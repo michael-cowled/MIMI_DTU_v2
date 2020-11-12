@@ -1,0 +1,32 @@
+{
+    "id": "1EC88886",
+    "path": null,
+    "project_path": null,
+    "type": "r_dataframe",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1605072198289.0,
+    "source_on_save": false,
+    "relative_order": 3,
+    "properties": {
+        "expression": "CON04",
+        "caption": "CON04",
+        "totalObservations": 14,
+        "displayedObservations": 14,
+        "variables": 11,
+        "cacheKey": "35CC980E",
+        "object": "CON04",
+        "environment": "",
+        "contentUrl": "grid_resource/gridviewer.html?env=&obj=CON04&cache_key=35CC980E&max_cols=50",
+        "preview": 0
+    },
+    "folds": "",
+    "lastKnownWriteTime": 7162249965381623818,
+    "encoding": "",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1605072198289,
+    "read_only": false,
+    "read_only_alternatives": []
+}
