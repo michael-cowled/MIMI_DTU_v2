@@ -65,7 +65,7 @@ while (Matrix_Row_No <= Matrix_TotalRows) {
         i = 1
         while (i < n+1) {
             z <- which(abs(CON2$RetTime-Coculture$RetTime[i])==min(abs(CON2$RetTime-Coculture$RetTime[i])))
-            ratio = ((Coculture[i,3]/CON1[z,3])*100) #Computes the ratio of peak areas as a %
+            ratio = ((Coculture[i,3]/CON2[z,3])*100) #Computes the ratio of peak areas as a %
             FinalCount <- UVCheck2(CON2, Coculture, i, z)
             if (Coculture$RetTime[i] < CON2$RetTime[z] + 0.2 && Coculture$RetTime[i] > CON2$RetTime[z] -0.2 && FinalCount > 0) {  
                 cat("Peak#", i, "@", round(Coculture$RetTime[i], digits =2), "min matches closest to Peak#", z, "@", round(CON2$RetTime[z], digits =2), "min in the control ")
