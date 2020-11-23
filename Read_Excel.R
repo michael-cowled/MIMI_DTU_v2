@@ -2,22 +2,6 @@ library(dplyr)
 library(tidyr)
 library(readxl)
 
-#
-Coculture$`UV Peaks` <- gsub("\\s*\\([^\\)]+\\)","",Coculture$`UV Peaks`)
-Coculture <- separate(Coculture, 'UV Peaks', c("UV1", "UV2", "UV3", "UV4", "UV5"), sep = "\r\n") %>%
-  mutate(RT_h = RetTime + 0.5) %>%
-  mutate(RT_l = RetTime - 0.5) %>%
-  select(1:4, 11:15, 24:25)
-
-#Converting UV columns to numerics
-CO27v04 <- transform(CO27v04, UV1 = as.numeric(UV1))
-CO27v04 <- transform(CO27v04, UV2 = as.numeric(UV2))
-CO27v04 <- transform(CO27v04, UV3 = as.numeric(UV3))
-CO27v04 <- transform(CO27v04, UV4 = as.numeric(UV4))
-CO27v04 <- transform(CO27v04, UV5 = as.numeric(UV5))
-#check with Str()
-str(CO27v04)
-
 #Read_Excel Function to create 3 data frames for the 3 samples to be compared.
 Read_Excel <- function(Excel_Name) {
     df_Name <- read_excel(paste0("Testing Broad-Scale Interactions/NovaCfiles/", Excel_Name, ".xlsm"), 
@@ -36,3 +20,10 @@ Read_Excel <- function(Excel_Name) {
 CON1 <- Read_Excel(CON1_Name)
 CON2 <- Read_Excel(CON2_Name)
 Coculture <- Read_Excel(Coculture_Name)
+
+#Read_UV Function
+Read_UV <- function(Excel_Name) {
+    UV_Name <- read_excel(paste0("Testing Broad-Scale Interactions/NovaCfiles/", Excel_Name, ".xlsm"), 
+                          sheet = "NormalisedUVVisData")
+    return(UV_Name)
+}

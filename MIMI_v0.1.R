@@ -1,16 +1,3 @@
-#While loop to choose label names
-
-TotalRows <- nrow(Mini_Matrix_Test)
-Row_No <- 1
-
-while (Row_No <= TotalRows) {
-    CON1_Name <- as.character(Mini_Matrix_Test[Row_No,1])
-    CON2_Name <- as.character(Mini_Matrix_Test[Row_No,2])
-    Coculture_Name <- as.character(Mini_Matrix_Test[Row_No,3])
-    Row_No <- Row_No +1
-    print(CON1_Name)
-}
-
 #Now to embed the previous MIMI function into this While loop
 
 MIMI <- function() {           
@@ -23,6 +10,10 @@ while (Matrix_Row_No <= Matrix_TotalRows) {
     CON1_Name <- as.character(Interaction_Matrix[Matrix_Row_No,1])
     CON2_Name <- as.character(Interaction_Matrix[Matrix_Row_No,2])
     Coculture_Name <- as.character(Interaction_Matrix[Matrix_Row_No,3])
+    CON1_UV <- as.data.frame(Read_UV(CON1_Name))
+    CON2_UV <- as.data.frame(Read_UV(CON2_Name))
+    Coculture_UV <- as.data.frame(Read_UV(Coculture_Name))
+    
     Matrix_Row_No <- Matrix_Row_No +1
     
 #Generates 3 dataframes based on the imput names in quotes

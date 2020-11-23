@@ -5,7 +5,7 @@ MIMI <- function(CON1_Name, CON2_Name, Coculture_Name) {
     #Generates 3 dataframes based on the imput names in quotes
     CON1 <- as.data.frame(Read_Excel(CON1_Name))
     CON2 <- as.data.frame(Read_Excel(CON2_Name))
-    Coculture <- as.data.frame(Read_Excel(Coculture_Name))
+    Coculture <- as.data.frame(Read_Excel(Coculture_Name)
     
     Coculture_df <- data.frame(PeakNo_CC = Coculture_Name, RetTime_CC = NA, PeakArea_CC = NA,
                                PeakNo_CON = NA, RetTime_CON = CON1_Name, PeakArea_CON = NA,
