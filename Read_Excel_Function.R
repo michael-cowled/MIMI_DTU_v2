@@ -1,6 +1,7 @@
 library(dplyr)
 library(tidyr)
 library(readxl)
+library(tm)
 
 #
 Coculture$`UV Peaks` <- gsub("\\s*\\([^\\)]+\\)","",Coculture$`UV Peaks`)
@@ -23,13 +24,16 @@ Read_Excel <- function(Excel_Name) {
     df_Name <- read_excel(paste0("Testing Broad-Scale Interactions/NovaCfiles/", Excel_Name, ".xlsm"), 
                           skip = 3)
     df_Name$`UV Peaks` <- gsub("\\s*\\([^\\)]+\\)","",df_Name$`UV Peaks`)
-    df_Name <- separate(df_Name, 'UV Peaks', c("UV1", "UV2", "UV3", "UV4", "UV5"), sep = "\r\n") %>%
-        select(1:4, 11:15)
+    df_Name$`UV Peaks` <- gsub("s","",df_Name$`UV Peaks`)
+    df_Name <- separate(df_Name, 'UV Peaks', c("UV1", "UV2", "UV3", "UV4", "UV5", "UV6", "UV7"), sep = "\r\n") %>%
+        select(1:4, 11:17)
     df_Name <- transform(df_Name, UV1 = as.numeric(UV1))
     df_Name <- transform(df_Name, UV2 = as.numeric(UV2))
     df_Name <- transform(df_Name, UV3 = as.numeric(UV3))
     df_Name <- transform(df_Name, UV4 = as.numeric(UV4))
     df_Name <- transform(df_Name, UV5 = as.numeric(UV5))
+    df_Name <- transform(df_Name, UV6 = as.numeric(UV6))
+    df_Name <- transform(df_Name, UV7 = as.numeric(UV7))
     return(df_Name)
 }
 

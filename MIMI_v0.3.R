@@ -32,7 +32,7 @@ MIMI <- function() {
             FinalCount <- UVcheck(CON1, Coculture, i, z)
             UV_Mean <- UVSubtract1(CON1_UV, Coculture_UV, i, z)
             if (Coculture$RetTime[i] < CON1$RetTime[z] + 0.2 && Coculture$RetTime[i] > CON1$RetTime[z] -0.2 
-                && FinalCount > 1 || abs(UV_Mean) < 1.5) {  
+                && FinalCount > 2 || abs(UV_Mean) < 1.5) {  
                 cat("Peak#", i, "@", round(Coculture$RetTime[i], digits =2), "min matches closest to Peak#", z, "@", round(CON1$RetTime[z], digits =2), "min in the control ")
                 Coculture_df <- rbind(Coculture_df, c(PeakNo_CC = Coculture$Peak[i], RetTime_CC = Coculture$RetTime[i], 
                                                       PeakArea_CC = Coculture$Area[i], PeakNo_CON1 = CON1$Peak[z], 
@@ -40,6 +40,15 @@ MIMI <- function() {
                                                       UV_Count_CON1 = FinalCount, Subtracted_UV_Mean_CON1 = UV_Mean, 
                                                       PeakRatio_CON1 = ratio))
                 i <- i+1
+            }    else if (Coculture$RetTime[i] < CON1$RetTime[z] + 0.2 && Coculture$RetTime[i] > CON1$RetTime[z] -0.2 
+                    && FinalCount > 1 && abs(UV_Mean) < 2) {  
+                    cat("Peak#", i, "@", round(Coculture$RetTime[i], digits =2), "min matches closest to Peak#", z, "@", round(CON1$RetTime[z], digits =2), "min in the control ")
+                    Coculture_df <- rbind(Coculture_df, c(PeakNo_CC = Coculture$Peak[i], RetTime_CC = Coculture$RetTime[i], 
+                                                          PeakArea_CC = Coculture$Area[i], PeakNo_CON1 = CON1$Peak[z], 
+                                                          RetTime_CON1 = CON1$RetTime[z], PeakArea_CON1 = CON1$Area[z], 
+                                                          UV_Count_CON1 = FinalCount, Subtracted_UV_Mean_CON1 = UV_Mean, 
+                                                          PeakRatio_CON1 = ratio))
+                    i <- i+1
             }   else  { 
                 cat("Peak#", i, "@", round(Coculture$RetTime[i], digits =2), "min is NOT present in the control \n")
                 Coculture_df <- rbind(Coculture_df, c(PeakNo_CC = Coculture$Peak[i], RetTime_CC = Coculture$RetTime[i], 
@@ -63,7 +72,7 @@ MIMI <- function() {
             FinalCount <- UVCheck2(CON2, Coculture, i, z)
             UV_Mean <- UVSubtract2(CON2_UV, Coculture_UV, i, z)
             if (Coculture$RetTime[i] < CON2$RetTime[z] + 0.2 && Coculture$RetTime[i] > CON2$RetTime[z] -0.2
-                && FinalCount > 1 || abs(UV_Mean) < 1.5) {  
+                && FinalCount > 2 || abs(UV_Mean) < 1.5) {  
                 cat("Peak#", i, "@", round(Coculture$RetTime[i], digits =2), "min matches closest to Peak#", z, "@", round(CON2$RetTime[z], digits =2), "min in the control ")
                 Coculture_df2 <- rbind(Coculture_df2, c(PeakNo_CC = Coculture$Peak[i], RetTime_CC = Coculture$RetTime[i], 
                                                         PeakArea_CC = Coculture$Area[i], PeakNo_CON2 = CON2$Peak[z], 
@@ -71,6 +80,15 @@ MIMI <- function() {
                                                         UV_Count_CON2 = FinalCount, Subtracted_UV_Mean_CON2 = UV_Mean, 
                                                         PeakRatio_CON2 = ratio))
                 i <- i+1
+            }    else if (Coculture$RetTime[i] < CON2$RetTime[z] + 0.2 && Coculture$RetTime[i] > CON2$RetTime[z] -0.2
+                    && FinalCount > 1 && abs(UV_Mean) < 2) {  
+                    cat("Peak#", i, "@", round(Coculture$RetTime[i], digits =2), "min matches closest to Peak#", z, "@", round(CON2$RetTime[z], digits =2), "min in the control ")
+                    Coculture_df2 <- rbind(Coculture_df2, c(PeakNo_CC = Coculture$Peak[i], RetTime_CC = Coculture$RetTime[i], 
+                                                            PeakArea_CC = Coculture$Area[i], PeakNo_CON2 = CON2$Peak[z], 
+                                                            RetTime_CON2 = CON2$RetTime[z], PeakArea_CON2 = CON2$Area[z], 
+                                                            UV_Count_CON2 = FinalCount, Subtracted_UV_Mean_CON2 = UV_Mean, 
+                                                            PeakRatio_CON2 = ratio))
+                    i <- i+1
             }   else  { 
                 cat("Peak#", i, "@", round(Coculture$RetTime[i], digits =2), "min is NOT present in the control \n")
                 Coculture_df2 <- rbind(Coculture_df2, c(PeakNo_CC = Coculture$Peak[i], RetTime_CC = Coculture$RetTime[i], 
@@ -96,29 +114,24 @@ MIMI <- function() {
         while (RowNo <= Rows) {
             if (is.na(Coculture_df[RowNo, 4]) && is.na(Coculture_df[RowNo, 10])) {
                 RowNo <- RowNo + 1
-                print(RowNo)
             }   else if (!is.na(Coculture_df[RowNo, 4]) && !is.na(Coculture_df[RowNo, 10] 
                                                                   && abs(Coculture_df[RowNo, 8]) < abs(Coculture_df[RowNo, 14]))) { #when two peaks are matched
                 MatchedPeak_df[RowNo, 1] <- CON1_Name
                 MatchedPeak_df[RowNo, 2:7] <- Coculture_df[RowNo, 4:9]
                 RowNo <- RowNo + 1
-                print(RowNo)
             }   else if (!is.na(Coculture_df[RowNo, 4]) && !is.na(Coculture_df[RowNo, 10] 
                                                                   && abs(Coculture_df[RowNo, 8]) > abs(Coculture_df[RowNo, 14]))) { 
                 MatchedPeak_df[RowNo, 1] <- CON2_Name
                 MatchedPeak_df[RowNo, 2:7] <- Coculture_df[RowNo, 10:15]
                 RowNo <- RowNo + 1
-                print(RowNo)
             }   else if (is.na(Coculture_df[RowNo, 10]))   {
                 MatchedPeak_df[RowNo, 1] <- CON1_Name
                 MatchedPeak_df[RowNo, 2:7] <- Coculture_df[RowNo, 4:9]
                 RowNo <- RowNo + 1
-                print(RowNo)
             }   else {
                 MatchedPeak_df[RowNo, 1] <- CON2_Name
                 MatchedPeak_df[RowNo, 2:7] <- Coculture_df[RowNo, 10:15]
                 RowNo <- RowNo + 1
-                print(RowNo)
             }
         }
         
