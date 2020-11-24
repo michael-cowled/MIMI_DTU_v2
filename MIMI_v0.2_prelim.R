@@ -4,33 +4,33 @@ MIMI <- function() {
     #Name is Microbial Interaction Metabolite Integrator
     #Requires the user now to make an object called Interaction_Matrix as a df of CON1, CON2, and Coculture
     
-    Matrix_TotalRows <- nrow(Interaction_Matrix)
+    Matrix_TotalRows <- nrow(Mini_Matrix_Test)
     Matrix_Row_No <- 1
     while (Matrix_Row_No <= Matrix_TotalRows) {
-        CON1_Name <- as.character(Interaction_Matrix[Matrix_Row_No,1])
-        CON2_Name <- as.character(Interaction_Matrix[Matrix_Row_No,2])
-        Coculture_Name <- as.character(Interaction_Matrix[Matrix_Row_No,3])
+        CON1_Name <- as.character(Mini_Matrix_Test[Matrix_Row_No,1])
+        CON2_Name <- as.character(Mini_Matrix_Test[Matrix_Row_No,2])
+        Coculture_Name <- as.character(Mini_Matrix_Test[Matrix_Row_No,3])
+        
+        Matrix_Row_No <- Matrix_Row_No +1
+        
+        #Generates 6 dataframes based on the imput names in quotes
+        CON1 <- as.data.frame(Read_Excel(CON1_Name))
+        CON2 <- as.data.frame(Read_Excel(CON2_Name))
+        Coculture <- as.data.frame(Read_Excel(Coculture_Name))
         CON1_UV <- as.data.frame(Read_UV(CON1_Name))
         CON2_UV <- as.data.frame(Read_UV(CON2_Name))
         Coculture_UV <- as.data.frame(Read_UV(Coculture_Name))
         
-        Matrix_Row_No <- Matrix_Row_No +1
-        
-        #Generates 3 dataframes based on the imput names in quotes
-        CON1 <- as.data.frame(Read_Excel(CON1_Name))
-        CON2 <- as.data.frame(Read_Excel(CON2_Name))
-        Coculture <- as.data.frame(Read_Excel(Coculture_Name))
-        
         Coculture_df <- data.frame(PeakNo_CC = Coculture_Name, RetTime_CC = NA, PeakArea_CC = NA,
                                    PeakNo_CON = NA, RetTime_CON = CON1_Name, PeakArea_CON = NA,
-                                   UV_Count = NA, PeakRatio = NA)
+                                   UV_Count = NA, Subtracted_UV_Mean = NA, PeakRatio = NA)
         n <- nrow(Coculture)
         i = 1
         while (i < n+1) {
             z <- which(abs(CON1$RetTime-Coculture$RetTime[i])==min(abs(CON1$RetTime-Coculture$RetTime[i])))
             ratio = ((Coculture[i,3]/CON1[z,3])*100) #Computes the ratio of peak areas as a %
             FinalCount <- UVcheck(CON1, Coculture, i, z)
-            UV_Mean <- UVSubtract(CON1_UV, Coculture_UV, i, z)
+            UV_Mean <- UVSubtract1(CON1_UV, Coculture_UV, i, z)
             if (Coculture$RetTime[i] < CON1$RetTime[z] + 0.2 && Coculture$RetTime[i] > CON1$RetTime[z] -0.2 && FinalCount > 0) {  
                 cat("Peak#", i, "@", round(Coculture$RetTime[i], digits =2), "min matches closest to Peak#", z, "@", round(CON1$RetTime[z], digits =2), "min in the control ")
                 Coculture_df <- rbind(Coculture_df, c(PeakNo_CC = Coculture$Peak[i], RetTime_CC = Coculture$RetTime[i], 
@@ -52,14 +52,14 @@ MIMI <- function() {
         
         Coculture_df2 <- data.frame(PeakNo_CC = Coculture_Name, RetTime_CC = NA, PeakArea_CC = NA,
                                     PeakNo_CON = NA, RetTime_CON = CON2_Name, PeakArea_CON = NA,
-                                    UV_Count = NA, PeakRatio = NA)
+                                    UV_Count = NA, Subtracted_UV_Mean = NA, PeakRatio = NA)
         n <- nrow(Coculture)
         i = 1
         while (i < n+1) {
             z <- which(abs(CON2$RetTime-Coculture$RetTime[i])==min(abs(CON2$RetTime-Coculture$RetTime[i])))
             ratio = ((Coculture[i,3]/CON2[z,3])*100) #Computes the ratio of peak areas as a %
             FinalCount <- UVCheck2(CON2, Coculture, i, z)
-            UV_Mean <- UVSubtract(CON2_UV, Coculture_UV, i, z)
+            UV_Mean <- UVSubtract2(CON2_UV, Coculture_UV, i, z)
             if (Coculture$RetTime[i] < CON2$RetTime[z] + 0.2 && Coculture$RetTime[i] > CON2$RetTime[z] -0.2 && FinalCount > 0) {  
                 cat("Peak#", i, "@", round(Coculture$RetTime[i], digits =2), "min matches closest to Peak#", z, "@", round(CON2$RetTime[z], digits =2), "min in the control ")
                 Coculture_df2 <- rbind(Coculture_df2, c(PeakNo_CC = Coculture$Peak[i], RetTime_CC = Coculture$RetTime[i], 
