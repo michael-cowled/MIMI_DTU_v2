@@ -23,7 +23,6 @@ Coculture <- Read_Excel(Coculture_Name)
 
 #Read_UV Function
 Read_UV <- function(Excel_Name) {
-    UV_Name <- read_excel(paste0("Testing Broad-Scale Interactions/NovaCfiles/", Excel_Name, ".xlsm"), 
-                          sheet = "NormalisedUVVisData")
+    UV_Name <- read_excel(paste0("Testing Broad-Scale Interactions/NovaCfiles/", Excel_Name, ".xlsm"), sheet = "NormalisedUVVisData")
     return(UV_Name)
 }

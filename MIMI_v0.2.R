@@ -30,19 +30,20 @@ MIMI <- function() {
             z <- which(abs(CON1$RetTime-Coculture$RetTime[i])==min(abs(CON1$RetTime-Coculture$RetTime[i])))
             ratio = ((Coculture[i,3]/CON1[z,3])*100) #Computes the ratio of peak areas as a %
             FinalCount <- UVcheck(CON1, Coculture, i, z)
+            UV_Mean <- UVSubtract(CON1_UV, Coculture_UV, i, z)
             if (Coculture$RetTime[i] < CON1$RetTime[z] + 0.2 && Coculture$RetTime[i] > CON1$RetTime[z] -0.2 && FinalCount > 0) {  
                 cat("Peak#", i, "@", round(Coculture$RetTime[i], digits =2), "min matches closest to Peak#", z, "@", round(CON1$RetTime[z], digits =2), "min in the control ")
                 Coculture_df <- rbind(Coculture_df, c(PeakNo_CC = Coculture$Peak[i], RetTime_CC = Coculture$RetTime[i], 
                                                       PeakArea_CC = Coculture$Area[i], PeakNo_CON = CON1$Peak[z], 
                                                       RetTime_CON = CON1$RetTime[z], PeakArea_CON = CON1$Area[z], 
-                                                      UV_Count = FinalCount, PeakRatio = ratio))
+                                                      UV_Count = FinalCount, Subtracted_UV_Mean = UV_Mean, PeakRatio = ratio))
                 i <- i+1
             }   else  { 
                 cat("Peak#", i, "@", round(Coculture$RetTime[i], digits =2), "min is NOT present in the control \n")
                 Coculture_df <- rbind(Coculture_df, c(PeakNo_CC = Coculture$Peak[i], RetTime_CC = Coculture$RetTime[i], 
                                                       PeakArea_CC = Coculture$Area[i], PeakNo_CON = NA, 
                                                       RetTime_CON = NA, PeakArea_CON = NA, 
-                                                      UV_Count = NA, PeakRatio = NA))
+                                                      UV_Count = NA, Subtracted_UV_Mean = NA, PeakRatio = NA))
                 i <- i+1
             }   
         }
@@ -58,23 +59,24 @@ MIMI <- function() {
             z <- which(abs(CON2$RetTime-Coculture$RetTime[i])==min(abs(CON2$RetTime-Coculture$RetTime[i])))
             ratio = ((Coculture[i,3]/CON2[z,3])*100) #Computes the ratio of peak areas as a %
             FinalCount <- UVCheck2(CON2, Coculture, i, z)
+            UV_Mean <- UVSubtract(CON2_UV, Coculture_UV, i, z)
             if (Coculture$RetTime[i] < CON2$RetTime[z] + 0.2 && Coculture$RetTime[i] > CON2$RetTime[z] -0.2 && FinalCount > 0) {  
                 cat("Peak#", i, "@", round(Coculture$RetTime[i], digits =2), "min matches closest to Peak#", z, "@", round(CON2$RetTime[z], digits =2), "min in the control ")
                 Coculture_df2 <- rbind(Coculture_df2, c(PeakNo_CC = Coculture$Peak[i], RetTime_CC = Coculture$RetTime[i], 
                                                         PeakArea_CC = Coculture$Area[i], PeakNo_CON = CON2$Peak[z], 
                                                         RetTime_CON = CON2$RetTime[z], PeakArea_CON = CON2$Area[z], 
-                                                        UV_Count = FinalCount, PeakRatio = ratio))
+                                                        UV_Count = FinalCount, Subtracted_UV_Mean = UV_Mean, PeakRatio = ratio))
                 i <- i+1
             }   else  { 
                 cat("Peak#", i, "@", round(Coculture$RetTime[i], digits =2), "min is NOT present in the control \n")
                 Coculture_df2 <- rbind(Coculture_df2, c(PeakNo_CC = Coculture$Peak[i], RetTime_CC = Coculture$RetTime[i], 
                                                         PeakArea_CC = Coculture$Area[i], PeakNo_CON = NA, 
                                                         RetTime_CON = NA, PeakArea_CON = NA, 
-                                                        UV_Count = NA, PeakRatio = NA))
+                                                        UV_Count = NA, Subtracted_UV_Mean = NA, PeakRatio = NA))
                 i <- i+1
             }   
         }
-        Coculture_df <- cbind(Coculture_df, Coculture_df2[, 4:8])
+        Coculture_df <- cbind(Coculture_df, Coculture_df2[, 4:9])
         write.csv(Coculture_df, paste0("C:/Users/Radicinol/Desktop/R/Testing Broad-Scale Interactions/OutputFiles/", Coculture_Name, ".CSV"), row.names = FALSE)
         print("loop finished")
     }
