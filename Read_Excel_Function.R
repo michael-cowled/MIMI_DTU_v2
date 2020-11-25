@@ -1,7 +1,6 @@
 library(dplyr)
 library(tidyr)
 library(readxl)
-library(tm)
 
 #
 Coculture$`UV Peaks` <- gsub("\\s*\\([^\\)]+\\)","",Coculture$`UV Peaks`)
@@ -36,7 +35,3 @@ Read_Excel <- function(Excel_Name) {
     df_Name <- transform(df_Name, UV7 = as.numeric(UV7))
     return(df_Name)
 }
-
-CON1 <- Read_Excel(CON1_Name)
-CON2 <- Read_Excel(CON2_Name)
-Coculture <- Read_Excel(Coculture_Name)
