@@ -26,7 +26,8 @@ while (Matrix_Row_No <= Matrix_TotalRows) {
             df_Name <- rbind(df_Name, c(Sample_Ref = CON1_Name, PeakNo_CC = NA, RetTime_CC = NA, PeakArea_CC = NA,
                                                     Combined = NA, MAtched_CON = NA, PeakNo_CON = CON1$Peak[i], 
                                                     RetTime_CON = CON1$RetTime[i], PeakArea_CON = CON1$Area[i], 
-                                                    UV_Count = NA, Subtracted_UV_Mean = NA, PeakRatio = -100))
+                                                    UV_Count = NA, Subtracted_UV_Mean = NA, PeakRatio = -100,
+                                                    Metabolite_Effect = 1))
             print(df_Name)
             i <- i + 1
         }   else {
@@ -45,7 +46,8 @@ while (Matrix_Row_No <= Matrix_TotalRows) {
             df_Name <- rbind(df_Name, c(Sample_Ref = CON2_Name, PeakNo_CC = NA, RetTime_CC = NA, PeakArea_CC = NA,
                                         Combined = NA, MAtched_CON = NA, PeakNo_CON = CON2$Peak[i], 
                                         RetTime_CON = CON2$RetTime[i], PeakArea_CON = CON2$Area[i], 
-                                        UV_Count = NA, Subtracted_UV_Mean = NA, PeakRatio = -100))
+                                        UV_Count = NA, Subtracted_UV_Mean = NA, PeakRatio = -100,
+                                        Metabolite_Effect = 1))
             print(df_Name)
             i <- i + 1
         }   else {
