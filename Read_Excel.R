@@ -17,10 +17,6 @@ Read_Excel <- function(Excel_Name) {
     return(df_Name)
 }
 
-CON1 <- Read_Excel(CON1_Name)
-CON2 <- Read_Excel(CON2_Name)
-Coculture <- Read_Excel(Coculture_Name)
-
 #Read_UV Function
 Read_UV <- function(Excel_Name) {
     UV_Name <- read_excel(paste0("Testing Broad-Scale Interactions/NovaCfiles/", Excel_Name, ".xlsm"), sheet = "NormalisedUVVisData")

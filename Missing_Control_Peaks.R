@@ -11,6 +11,7 @@ while (Matrix_Row_No <= Matrix_TotalRows) {
     CON2_Name <- as.character(Interaction_Matrix[Matrix_Row_No,2])
     Coculture_Name <- as.character(Interaction_Matrix[Matrix_Row_No,3])
     df_Name <- read.csv(paste0("Testing Broad-Scale Interactions/OutputFiles/", Coculture_Name, ".csv"))
+    df_Name$Sample_Ref <- as.character(df_Name$Sample_Ref)
     df_Name <- unite(df_Name, Combined, c(Matched_CON, PeakNo_CON), sep = "-", remove = FALSE)
     CON1 <- as.data.frame(Read_Excel(CON1_Name))
     CON2 <- as.data.frame(Read_Excel(CON2_Name))
@@ -28,7 +29,6 @@ while (Matrix_Row_No <= Matrix_TotalRows) {
                                                     RetTime_CON = CON1$RetTime[i], PeakArea_CON = CON1$Area[i], 
                                                     UV_Count = NA, Subtracted_UV_Mean = NA, PeakRatio = -100,
                                                     Metabolite_Effect = 1))
-            print(df_Name)
             i <- i + 1
         }   else {
             i <- i + 1
@@ -48,7 +48,6 @@ while (Matrix_Row_No <= Matrix_TotalRows) {
                                         RetTime_CON = CON2$RetTime[i], PeakArea_CON = CON2$Area[i], 
                                         UV_Count = NA, Subtracted_UV_Mean = NA, PeakRatio = -100,
                                         Metabolite_Effect = 1))
-            print(df_Name)
             i <- i + 1
         }   else {
             i <- i + 1
