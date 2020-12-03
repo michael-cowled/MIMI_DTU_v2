@@ -11,19 +11,21 @@ while (Logic_TotalRows > 0) {
     
     Matrix_TotalRows <- nrow(Interaction_Matrix)
     Matrix_Row_No <- 1
-    Logic_Table <- setNames(data.frame(matrix(ncol = 1, nrow = 0)), "Coculture_Name")
+    Logic_Table <- setNames(data.frame(matrix(ncol = 1, nrow = 0)), c("Coculture_Name"))
     
     while (Matrix_Row_No <= Matrix_TotalRows) {
         
         Coculture_Name <- as.character(Interaction_Matrix[Matrix_Row_No,3])
+        Coculture_Name2 <- setNames(data.frame(matrix(ncol = 1, nrow = 0)), c("Coculture_Name"))
+        Coculture_Name2[1,1] <- Coculture_Name
         df_Name <- read.csv(paste0("Testing Broad-Scale Interactions/OutputFiles/", Coculture_Name, ".csv"))
         df_Name <- unite(df_Name, Combined, c(Matched_CON, PeakNo_CON), sep = "-", remove = FALSE)
         df_Name <- filter(df_Name, Combined !="NA-NA")
         logic <- length(unique(df_Name$Combined)) == nrow(df_Name)
         if (logic == TRUE) {
             Matrix_Row_No <- Matrix_Row_No +1
-        } else if (logic == FALSE) {
-            Logic_Table <- rbind(Logic_Table, Coculture_Name = Coculture_Name)
+        } else {
+            Logic_Table <- rbind(Logic_Table, Coculture_Name2)
             Matrix_Row_No <- Matrix_Row_No +1
         }
     }
