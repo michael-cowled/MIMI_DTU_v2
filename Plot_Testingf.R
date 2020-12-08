@@ -15,6 +15,7 @@ Effect_3 <- filter(full_list, Metabolite_Effect == 3)
 Effect_4 <- filter(full_list, Metabolite_Effect == 4)
 Effect_5 <- filter(full_list, Metabolite_Effect == 5)
 Effect_6 <- filter(full_list, Metabolite_Effect == 6)
+Effect_7 <- filter(full_list, Metabolite_Effect == 4 | Metabolite_Effect == 5)
 
 #Generates a sequence of histograms comparing metabolite effect to ret_time
 par(mfrow=c(2,3))
@@ -24,6 +25,12 @@ hist(Effect_3$RetTime_CC, main = "Little to No Change")
 hist(Effect_4$RetTime_CC, main = "Enhancement")
 hist(Effect_5$RetTime_CC, main = "Major Enhancement")
 hist(Effect_6$RetTime_CC, main = "Induction or Unmatched")
+
+a <- hist(Effect_6$RetTime_CC, main = "Induction or Unmatched")
+b <- hist(full_list$RetTime_CC, main = "Induction or Unmatched")
+plot( a, col=rgb(0,0,1,1/4), xlim=c(0,11), ylim=c(0,800), main = "Overlay of Induction to All Metabolites")  # first histogram
+plot( b, col=rgb(1,0,0,1/4), xlim=c(0,11), ylim=c(0,800), add=T)  # second
+plot( c, col=rgb(0,1,0,1/4), xlim=c(0,11), ylim=c(0,800), add=T)  # third
 
 
 #Separate lists based on Coculturing Fungus
