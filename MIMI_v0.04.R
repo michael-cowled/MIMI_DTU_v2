@@ -31,8 +31,8 @@ MIMI <- function() {
             ratio = (((Coculture[i,3] - CON1[z,3])/CON1[z,3])*100) #Computes the ratio of peak areas as a %
             FinalCount <- UVcheck(CON1, Coculture, i, z)
             UV_Mean <- UVSubtract1(CON1_UV, Coculture_UV, i, z)
-            if (Coculture$RetTime[i] < CON1$RetTime[z] + 0.2 && Coculture$RetTime[i] > CON1$RetTime[z] -0.2 
-                && FinalCount > 2 || abs(UV_Mean) < 1.5) {  
+            if (Coculture$RetTime[i] < (CON1$RetTime[z] + 0.15) && Coculture$RetTime[i] > (CON1$RetTime[z] -0.15) 
+                && (FinalCount > 2 || abs(UV_Mean) < 1.5)) {  
                 cat("Peak#", i, "@", round(Coculture$RetTime[i], digits =2), "min matches closest to Peak#", z, "@", round(CON1$RetTime[z], digits =2), "min in the control ")
                 Coculture_df <- rbind(Coculture_df, c(PeakNo_CC = Coculture$Peak[i], RetTime_CC = Coculture$RetTime[i], 
                                                       PeakArea_CC = Coculture$Area[i], PeakNo_CON1 = CON1$Peak[z], 
@@ -40,7 +40,7 @@ MIMI <- function() {
                                                       UV_Count_CON1 = FinalCount, Subtracted_UV_Mean_CON1 = UV_Mean, 
                                                       PeakRatio_CON1 = ratio))
                 i <- i+1
-            }    else if (Coculture$RetTime[i] < CON1$RetTime[z] + 0.2 && Coculture$RetTime[i] > CON1$RetTime[z] -0.2 
+            }    else if (Coculture$RetTime[i] < (CON1$RetTime[z] + 0.15) && Coculture$RetTime[i] > (CON1$RetTime[z] -0.15) 
                           && FinalCount > 1 && abs(UV_Mean) < 2) {  
                 cat("Peak#", i, "@", round(Coculture$RetTime[i], digits =2), "min matches closest to Peak#", z, "@", round(CON1$RetTime[z], digits =2), "min in the control ")
                 Coculture_df <- rbind(Coculture_df, c(PeakNo_CC = Coculture$Peak[i], RetTime_CC = Coculture$RetTime[i], 
@@ -71,8 +71,8 @@ MIMI <- function() {
             ratio = (((Coculture[i,3] - CON2[z,3])/CON2[z,3])*100) #Computes the ratio of peak areas as a %
             FinalCount <- UVCheck2(CON2, Coculture, i, z)
             UV_Mean <- UVSubtract2(CON2_UV, Coculture_UV, i, z)
-            if (Coculture$RetTime[i] < CON2$RetTime[z] + 0.2 && Coculture$RetTime[i] > CON2$RetTime[z] -0.2
-                && FinalCount > 2 || abs(UV_Mean) < 1.5) {  
+            if (Coculture$RetTime[i] < (CON2$RetTime[z] + 0.15) && Coculture$RetTime[i] > (CON2$RetTime[z] -0.15)
+                && (FinalCount > 2 || abs(UV_Mean) < 1.5)) {  
                 cat("Peak#", i, "@", round(Coculture$RetTime[i], digits =2), "min matches closest to Peak#", z, "@", round(CON2$RetTime[z], digits =2), "min in the control ")
                 Coculture_df2 <- rbind(Coculture_df2, c(PeakNo_CC = Coculture$Peak[i], RetTime_CC = Coculture$RetTime[i], 
                                                         PeakArea_CC = Coculture$Area[i], PeakNo_CON2 = CON2$Peak[z], 
@@ -80,7 +80,7 @@ MIMI <- function() {
                                                         UV_Count_CON2 = FinalCount, Subtracted_UV_Mean_CON2 = UV_Mean, 
                                                         PeakRatio_CON2 = ratio))
                 i <- i+1
-            }    else if (Coculture$RetTime[i] < CON2$RetTime[z] + 0.2 && Coculture$RetTime[i] > CON2$RetTime[z] -0.2
+            }    else if (Coculture$RetTime[i] < (CON2$RetTime[z] + 0.15) && Coculture$RetTime[i] > (CON2$RetTime[z] -0.15)
                           && FinalCount > 1 && abs(UV_Mean) < 2) {  
                 cat("Peak#", i, "@", round(Coculture$RetTime[i], digits =2), "min matches closest to Peak#", z, "@", round(CON2$RetTime[z], digits =2), "min in the control ")
                 Coculture_df2 <- rbind(Coculture_df2, c(PeakNo_CC = Coculture$Peak[i], RetTime_CC = Coculture$RetTime[i], 

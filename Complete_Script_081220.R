@@ -140,14 +140,39 @@ Missing_Control_Peaks <- function(Interaction_Matrix) {
 Read_Excel <- function(Excel_Name) {
     df_Name <- read_excel(paste0("Testing Broad-Scale Interactions/NovaCfiles/", Excel_Name, ".xlsm"), 
                           skip = 3)
-    df_Name$`UV Peaks` <- gsub("\\s*\\([^\\)]+\\)","",df_Name$`UV Peaks`)
-    df_Name <- separate(df_Name, 'UV Peaks', c("UV1", "UV2", "UV3", "UV4", "UV5"), sep = "\r\n") %>%
-        select(1:4, 11:15)
-    df_Name <- transform(df_Name, UV1 = as.numeric(UV1))
-    df_Name <- transform(df_Name, UV2 = as.numeric(UV2))
-    df_Name <- transform(df_Name, UV3 = as.numeric(UV3))
-    df_Name <- transform(df_Name, UV4 = as.numeric(UV4))
-    df_Name <- transform(df_Name, UV5 = as.numeric(UV5))
+    
+    #The following extracts and sorts the top 5 UV maxima from each peak
+    UV_df <- setNames(data.frame(matrix(ncol = 5, nrow = 0)), c("UV1", "UV2", "UV3", "UV4", "UV5"))
+    
+    n <- nrow(df_Name)
+    i <- 1
+    while (i <= n) {
+        if (!is.na(df_Name$'UV Peaks')) {
+            UV_separate <-df_Name$`UV Peaks`[[i]] ##Looking at row by row. starting with compound 1
+            UV_separate <- gsub("\\(","", UV_separate)
+            UV_separate <- gsub("\\)","", UV_separate)
+            UV_separate <- gsub("< 190","", UV_separate)
+            UV_separate <- gsub("s","", UV_separate)
+            UV_separate <- strsplit(UV_separate, "\r\n")
+            UV_separate <- as.data.frame(UV_separate, col.names = "UV1")
+            UV_separate <- separate(UV_separate, 'UV1', c("UV1", "UV1_percent"), sep = " ")
+            UV_separate <- UV_separate[order(UV_separate$UV1_percent, decreasing =TRUE),]
+            UV_df <- rbind(UV_df, UV_separate[1:5,1])
+            i <- i +1    
+        }   else {
+            i <- i + 1
+            UV_separate <- c(NA, NA, NA, NA, NA)
+            UV_df <- rbind(UV_df, UV_separate[1:5,1])
+        }
+    }
+    names(UV_df) <- c("UV1", "UV2", "UV3", "UV4", "UV5")   
+    UV_df <- transform(UV_df, UV1 = as.numeric(UV1))
+    UV_df <- transform(UV_df, UV2 = as.numeric(UV2))
+    UV_df <- transform(UV_df, UV3 = as.numeric(UV3))
+    UV_df <- transform(UV_df, UV4 = as.numeric(UV4))
+    UV_df <- transform(UV_df, UV5 = as.numeric(UV5))
+    df_Name <- cbind(df_Name, UV_df)
+    df_Name <- select(df_Name, 1:4, 20:24)
     return(df_Name)
 }
 
@@ -175,7 +200,7 @@ UVcheck <- function(CON1, Coculture, i, z) {
                 k <- k+1
             }   else if (is.na(CON1[z,j])) {
                 j <- j+1
-            }   else if (Coculture[i,k] <= CON1[z,j] + 4 && Coculture[i,k] >= CON1[z,j] - 4) {
+            }   else if (Coculture[i,k] <= CON1[z,j] + 2 && Coculture[i,k] >= CON1[z,j] - 2) {
                 uvcount <- uvcount + 1
                 j <- j+1
             }   else {
@@ -208,7 +233,7 @@ UVCheck2 <- function(CON2, Coculture, i, z) {
                 k <- k+1
             }   else if (is.na(CON2[z,j])) {
                 j <- j+1
-            }   else if (Coculture[i,k] <= CON2[z,j] + 4 && Coculture[i,k] >= CON2[z,j] - 4) {
+            }   else if (Coculture[i,k] <= CON2[z,j] + 2 && Coculture[i,k] >= CON2[z,j] - 2) {
                 uvcount <- uvcount + 1
                 j <- j+1
             }   else {
@@ -276,8 +301,8 @@ MIMI <- function() {
             ratio = (((Coculture[i,3] - CON1[z,3])/CON1[z,3])*100) #Computes the ratio of peak areas as a %
             FinalCount <- UVcheck(CON1, Coculture, i, z)
             UV_Mean <- UVSubtract1(CON1_UV, Coculture_UV, i, z)
-            if (Coculture$RetTime[i] < CON1$RetTime[z] + 0.2 && Coculture$RetTime[i] > CON1$RetTime[z] -0.2 
-                && FinalCount > 2 || abs(UV_Mean) < 1.5) {  
+            if (Coculture$RetTime[i] < (CON1$RetTime[z] + 0.15) && Coculture$RetTime[i] > (CON1$RetTime[z] -0.15) 
+                && (FinalCount > 2 || abs(UV_Mean) < 1.5)) {  
                 cat("Peak#", i, "@", round(Coculture$RetTime[i], digits =2), "min matches closest to Peak#", z, "@", round(CON1$RetTime[z], digits =2), "min in the control ")
                 Coculture_df <- rbind(Coculture_df, c(PeakNo_CC = Coculture$Peak[i], RetTime_CC = Coculture$RetTime[i], 
                                                       PeakArea_CC = Coculture$Area[i], PeakNo_CON1 = CON1$Peak[z], 
@@ -285,7 +310,7 @@ MIMI <- function() {
                                                       UV_Count_CON1 = FinalCount, Subtracted_UV_Mean_CON1 = UV_Mean, 
                                                       PeakRatio_CON1 = ratio))
                 i <- i+1
-            }    else if (Coculture$RetTime[i] < CON1$RetTime[z] + 0.2 && Coculture$RetTime[i] > CON1$RetTime[z] -0.2 
+            }    else if (Coculture$RetTime[i] < (CON1$RetTime[z] + 0.15) && Coculture$RetTime[i] > (CON1$RetTime[z] -0.15) 
                           && FinalCount > 1 && abs(UV_Mean) < 2) {  
                 cat("Peak#", i, "@", round(Coculture$RetTime[i], digits =2), "min matches closest to Peak#", z, "@", round(CON1$RetTime[z], digits =2), "min in the control ")
                 Coculture_df <- rbind(Coculture_df, c(PeakNo_CC = Coculture$Peak[i], RetTime_CC = Coculture$RetTime[i], 
@@ -316,8 +341,8 @@ MIMI <- function() {
             ratio = (((Coculture[i,3] - CON2[z,3])/CON2[z,3])*100) #Computes the ratio of peak areas as a %
             FinalCount <- UVCheck2(CON2, Coculture, i, z)
             UV_Mean <- UVSubtract2(CON2_UV, Coculture_UV, i, z)
-            if (Coculture$RetTime[i] < CON2$RetTime[z] + 0.2 && Coculture$RetTime[i] > CON2$RetTime[z] -0.2
-                && FinalCount > 2 || abs(UV_Mean) < 1.5) {  
+            if (Coculture$RetTime[i] < (CON2$RetTime[z] + 0.15) && Coculture$RetTime[i] > (CON2$RetTime[z] -0.15)
+                && (FinalCount > 2 || abs(UV_Mean) < 1.5)) {  
                 cat("Peak#", i, "@", round(Coculture$RetTime[i], digits =2), "min matches closest to Peak#", z, "@", round(CON2$RetTime[z], digits =2), "min in the control ")
                 Coculture_df2 <- rbind(Coculture_df2, c(PeakNo_CC = Coculture$Peak[i], RetTime_CC = Coculture$RetTime[i], 
                                                         PeakArea_CC = Coculture$Area[i], PeakNo_CON2 = CON2$Peak[z], 
@@ -325,7 +350,7 @@ MIMI <- function() {
                                                         UV_Count_CON2 = FinalCount, Subtracted_UV_Mean_CON2 = UV_Mean, 
                                                         PeakRatio_CON2 = ratio))
                 i <- i+1
-            }    else if (Coculture$RetTime[i] < CON2$RetTime[z] + 0.2 && Coculture$RetTime[i] > CON2$RetTime[z] -0.2
+            }    else if (Coculture$RetTime[i] < (CON2$RetTime[z] + 0.15) && Coculture$RetTime[i] > (CON2$RetTime[z] -0.15)
                           && FinalCount > 1 && abs(UV_Mean) < 2) {  
                 cat("Peak#", i, "@", round(Coculture$RetTime[i], digits =2), "min matches closest to Peak#", z, "@", round(CON2$RetTime[z], digits =2), "min in the control ")
                 Coculture_df2 <- rbind(Coculture_df2, c(PeakNo_CC = Coculture$Peak[i], RetTime_CC = Coculture$RetTime[i], 
@@ -423,3 +448,5 @@ MIMI <- function() {
     Double_Peak_Remover(Interaction_Matrix)
     Missing_Control_Peaks(Interaction_Matrix)
 }
+
+#Load in excel file named Interaction_Matrix and use MIMI() function:

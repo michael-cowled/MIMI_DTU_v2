@@ -14,7 +14,7 @@ UVcheck <- function(CON1, Coculture, i, z) {
                 k <- k+1
             }   else if (is.na(CON1[z,j])) {
                 j <- j+1
-            }   else if (Coculture[i,k] <= CON1[z,j] + 4 && Coculture[i,k] >= CON1[z,j] - 4) {
+            }   else if (Coculture[i,k] <= CON1[z,j] + 2 && Coculture[i,k] >= CON1[z,j] - 2) {
                 uvcount <- uvcount + 1
                 j <- j+1
             }   else {
@@ -47,7 +47,7 @@ UVCheck2 <- function(CON2, Coculture, i, z) {
                 k <- k+1
             }   else if (is.na(CON2[z,j])) {
                 j <- j+1
-            }   else if (Coculture[i,k] <= CON2[z,j] + 4 && Coculture[i,k] >= CON2[z,j] - 4) {
+            }   else if (Coculture[i,k] <= CON2[z,j] + 2 && Coculture[i,k] >= CON2[z,j] - 2) {
                 uvcount <- uvcount + 1
                 j <- j+1
             }   else {

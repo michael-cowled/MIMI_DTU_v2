@@ -1,10 +1,12 @@
+library(data.table)
+library(ggplot2)
+
 #Combines all output files into a list of all metabolites from all cocultures
 
 filenames <- list.files(path = "Testing Broad-Scale Interactions/OutputFiles/", pattern = "F", full.names = TRUE)
 my_data <- lapply(filenames, read.csv)
 full_list <- rbindlist(my_data, use.names=TRUE, fill=FALSE)
 full_list <- transform(full_list, Metabolite_Effect = factor(Metabolite_Effect))
-full_list <- 
 
 #Filters into different lists based on metabolite_effect
 Effect_1 <- filter(full_list, Metabolite_Effect == 1)
@@ -42,3 +44,14 @@ my_data <- lapply(filenames, read.csv)
 a <- rbindlist(my_data, use.names=TRUE, fill=FALSE)
 a  <- transform(a , Metabolite_Effect = factor(Metabolite_Effect))
 boxplot(a$RetTime_CON ~ a$Metabolite_Effect, main = paste0("F", i, "v"), xlab="", ylab="") }
+
+
+#SCatterplot with colour
+full_list <- filter(full_list, PeakRatio != -100)
+full_list <- transform(full_list, Sample_Ref = factor(Sample_Ref))
+full_list <- transform(full_list, Matched_CON = factor(Matched_CON))
+qplot(full_list$RetTime_CC, full_list$PeakRatio, color = full_list$Sample_Ref)
+qplot(full_list$RetTime_CC, full_list$PeakRatio, color = full_list$Matched_CON)
+
+a <- filter(full_list, PeakRatio >2500)
+a
