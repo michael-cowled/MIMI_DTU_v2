@@ -13,7 +13,7 @@ library(dplyr)
 library(tidyr)
 library(readxl)
 
-#Functions to be pre-loaded prior to use of MIMI()
+#Functions to be pre-loaded prior to use of the main function, MIMI()
 #1.Read_Excel
 #2.UVcheck
 #3.UVcheck2
@@ -26,7 +26,6 @@ library(readxl)
 #10.Effect_Categoriser
 #11.Double_Peak_Remover
 #12.Missing_Control_Peaks
-#13.MIMI
 
 #Reading in the functions:
 
@@ -87,9 +86,9 @@ Read_Excel <- function(Excel_Name) {
 #2/3.UV_Check: Verifies the matching UV maxima for peaks in CON1/2 & Coculture
 #############################################
 
-#UVcheck: Comparing CON1 to coculture
+#UVcheck1: Comparing CON1 to coculture
 
-UVcheck <- function(CON1, Coculture, i, z) {
+UVcheck1 <- function(CON1, Coculture, i, z) {
     
     #Inputs are CON1 and coculture as read from the Interaction_Matrix
     #'i' refers to the peak no. being compared in Coculture
@@ -241,7 +240,7 @@ Peak_Matcher1 <- function(CON1, Coculture, CON1_UV, Coculture_UV) {
         
         #Computes the ratio of peak areas as a %
         
-        FinalCount <- UVcheck(CON1, Coculture, i, z)
+        FinalCount <- UVcheck1(CON1, Coculture, i, z)
         UV_Mean <- UVSubtract1(CON1_UV, Coculture_UV, i, z)
         
         #Performs both the UVcheck and UVsubtract functions
@@ -678,7 +677,7 @@ Missing_Control_Peaks <- function(Interaction_Matrix) {
 }
 
 #############################################
-#13.MIMI: The main working-function to compare the peak-matching and refinement
+#MIMI: The main working-function to compare the peak-matching and refinement
 #############################################
 
 MIMI <- function() {           
