@@ -89,7 +89,7 @@ These effects are:
 | *Major enhancement:* Peak area >=100%
 | *Induction:* NA (No peak area to compare to in CON)
 
-*An extra note for analysis*: Tentative assignments of non-UVs/distorted-UVs can be determined by the following piece of code. It is worthwhile cross-referencing these assignments to make sure they make sense.
+*An extra note for analysis*: Tentative assignments of non-UVs/distorted-UVs can be determined by the following piece of code. It is worthwhile performing the analysis with and without these matches.
 
 ```{r}
 #Let x <- Coculture_Name (of interest)

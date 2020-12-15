@@ -1,0 +1,1 @@
+sample(Interaction_Matrix$Coculture, 10, replace=FALSE)
