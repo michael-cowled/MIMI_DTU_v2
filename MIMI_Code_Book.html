@@ -1647,6 +1647,12 @@ summary {
 library(tidyr)
 library(readxl)</code></pre>
 </div>
+<div id="novac-files" class="section level2">
+<h2>NovaC files</h2>
+<p>The raw data was extracted from Agilent Chemstation LCMS/HPLC using the NovaC.mac or NovaH.mac macro which generates and Excel file with the following name: &quot;002-D1F-D7-_F7vF2.D_NovaH&quot;, as an example.</p>
+<p>File names were tidied up to remove unnecessary prefixes or suffixes: “F7vF2”.</p>
+<p>This name tidying and the creation of the Interaction_Matrix below, are the only manual steps performed.</p>
+</div>
 <div id="the-interaction-matrix" class="section level2">
 <h2>The Interaction Matrix</h2>
 <p>A table in excel format with the heading names as follows is required to be loaded in by the user. The matrix should contain all interactions to be investigated.</p>
@@ -1671,7 +1677,8 @@ head(Interaction_Matrix)</code></pre>
 <li><strong>PeakMatcher1:</strong> Matches and verifies peaks from CON1 to peaks in the coculture, utilising a combination of retention time, number of matching UV maxima (UVcheck1) and the means of the subtracted UV spectra (UVsubtract1).</li>
 <li><strong>PeakMatcher2:</strong> Matches and verifies peaks from CON2 to peaks in the coculture, utilising a combination of retention time, number of matching UV maxima (UVcheck2) and the means of the subtracted UV spectra (UVsubtract2).</li>
 <li><strong>CON_Consolidator:</strong> Consolidates the outcome table to match peaks from coculture to a single peak in a control. Compares subtracted UV spectra to make decisions based on double matching.</li>
-<li><strong>Effect_Categoriser:</strong> Characterises the Peak Area ratio as an effect to the metabolite in the coculture (induction, suppression, etc.).</li>
+<li><strong>Effect_Categoriser:</strong> Characterises the Peak Area ratio as an effect to the metabolite in the coculture (induction, suppression, etc.). 11.<strong>Simple_Effect_Characteriser:</strong> Uses the principles of the Effect_Categoriser function to categorise based on a single PeakRatio input.</li>
+<li><strong>NON_UV_Peak_Matcher:</strong> Tentatively assigns matched peaks as non UVs (or as distorted UVs) if matching the conditions.</li>
 <li><strong>Double_Peak_Remover:</strong> Checks for a peak in the control being assigned to more than one peak in the coculture. Uses the number of matching UV maxima and/or the subtracted UV spectra to make decisions as to which peak is a better match.</li>
 <li><strong>Missing_Control_Peaks:</strong> Adds in unassigned peaks from the controls to provide a single, unified table.</li>
 </ol>
@@ -1700,6 +1707,17 @@ head(Interaction_Matrix)</code></pre>
 <li><strong>PeakRatio:</strong> The relative ratio (in %) of the reference sample compared to the control.</li>
 <li><strong>Metabolite_Effect:</strong> A categorised effect on the metabolite in the reference sample as determined by the PeakRatio. These effects are: <em>Complete Suppression:</em> Peak Area = -100% | <em>Suppression:</em> -100% &lt; Peak Area &lt;= -20% | <em>Little to No Change:</em> -20% &lt; Peak Area &lt; 20% <em>Enhancement:</em> 20 &lt;= Peak Area &lt; 100% | <em>Major enhancement:</em> Peak area &gt;=100% | <em>Induction:</em> NA (No peak area to compare to in CON)</li>
 </ol>
+<p><em>An extra note for analysis</em>: Tentative assignments of non-UVs/distorted-UVs can be determined by the following piece of code. It is worthwhile cross-referencing these assignments to make sure they make sense.</p>
+<pre class="r"><code>#Let x &lt;- Coculture_Name (of interest)
+x &lt;- &quot;F15vF5&quot;
+df_Name &lt;- read.csv(paste0(&quot;Testing Broad-Scale Interactions/OutputFiles/&quot;, x, &quot;.csv&quot;))
+filter(df_Name, !is.na(Matched_CON) &amp; is.na(Subtracted_UV_Mean))</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["Sample_Ref"],"name":[1],"type":["chr"],"align":["left"]},{"label":["PeakNo_CC"],"name":[2],"type":["int"],"align":["right"]},{"label":["RetTime_CC"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["PeakArea_CC"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["Matched_CON"],"name":[5],"type":["chr"],"align":["left"]},{"label":["PeakNo_CON"],"name":[6],"type":["int"],"align":["right"]},{"label":["RetTime_CON"],"name":[7],"type":["dbl"],"align":["right"]},{"label":["PeakArea_CON"],"name":[8],"type":["dbl"],"align":["right"]},{"label":["UV_Count"],"name":[9],"type":["int"],"align":["right"]},{"label":["Subtracted_UV_Mean"],"name":[10],"type":["dbl"],"align":["right"]},{"label":["PeakRatio"],"name":[11],"type":["dbl"],"align":["right"]},{"label":["Metabolite_Effect"],"name":[12],"type":["int"],"align":["right"]}],"data":[{"1":"F15vF5","2":"1","3":"0.544092","4":"9.375462","5":"F15CON","6":"1","7":"0.558590","8":"18.75945","9":"0","10":"NA","11":"-50.02273","12":"7"},{"1":"F15vF5","2":"3","3":"2.579595","4":"7.394840","5":"F5CON","6":"1","7":"2.530542","8":"8.94676","9":"0","10":"NA","11":"-17.34617","12":"7"},{"1":"F15vF5","2":"7","3":"3.545672","4":"23.235842","5":"F15CON","6":"9","7":"3.582646","8":"19.98800","9":"1","10":"NA","11":"16.24895","12":"7"},{"1":"F15vF5","2":"15","3":"10.982312","4":"6.672816","5":"F5CON","6":"29","7":"10.935958","8":"19.02990","9":"1","10":"NA","11":"-64.93510","12":"7"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<p>Hence, there are 4 peaks identified as Non-UVs or distorted-UVs.</p>
 </div>
 
 

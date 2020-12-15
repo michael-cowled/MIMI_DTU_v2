@@ -19,6 +19,14 @@ library(tidyr)
 library(readxl)
 ```
 
+## NovaC files
+
+The raw data was extracted from Agilent Chemstation LCMS/HPLC using the NovaC.mac or NovaH.mac macro which generates and Excel file with the following name: "002-D1F-D7-_F7vF2.D_NovaH", as an example.
+
+File names were tidied up to remove unnecessary prefixes or suffixes: "F7vF2".
+
+This name tidying and the creation of the Interaction_Matrix below, are the only manual steps performed.
+
 ## The Interaction Matrix
 
 A table in excel format with the heading names as follows is required to be loaded in by the user.
@@ -43,6 +51,8 @@ The following functions are to be pre-loaded prior to use of the main function, 
 8. **PeakMatcher2:** Matches and verifies peaks from CON2 to peaks in the coculture, utilising a combination of retention time, number of matching UV maxima (UVcheck2) and the means of the subtracted UV spectra (UVsubtract2).
 9. **CON_Consolidator:** Consolidates the outcome table to match peaks from coculture to a single peak in a control. Compares subtracted UV spectra to make decisions based on double matching.
 10. **Effect_Categoriser:** Characterises the Peak Area ratio as an effect to the metabolite in the coculture (induction, suppression, etc.).
+11.**Simple_Effect_Characteriser:** Uses the principles of the Effect_Categoriser function to categorise based on a single PeakRatio input.
+11. **NON_UV_Peak_Matcher:** Tentatively assigns matched peaks as non UVs (or as distorted UVs) if matching the conditions.
 11. **Double_Peak_Remover:** Checks for a peak in the control being assigned to more than one peak in the coculture. Uses the number of matching UV maxima and/or the subtracted UV spectra to make decisions as to which peak is a better match.
 12. **Missing_Control_Peaks:** Adds in unassigned peaks from the controls to provide a single, unified table.
 
@@ -70,7 +80,8 @@ The resulting output file contains the following columns containing:
 9. **UV_Count:** The number of UV maxima that match between the control and coculture peaks.
 10. **Subtracted_UV_Mean:** The mean of the subtracted UV spectra (in Absorbance units) of the control from the coculture.
 11. **PeakRatio:** The relative ratio (in %) of the reference sample compared to the control.
-12. **Metabolite_Effect:** A categorised effect on the metabolite in the reference sample as determined by the PeakRatio. These effects are:
+12. **Metabolite_Effect:** A categorised effect on the metabolite in the reference sample as determined by the PeakRatio.
+These effects are:
 *Complete Suppression:* Peak Area = -100%
 | *Suppression:* -100% < Peak Area <= -20%
 | *Little to No Change:* -20% < Peak Area < 20%
@@ -78,5 +89,14 @@ The resulting output file contains the following columns containing:
 | *Major enhancement:* Peak area >=100%
 | *Induction:* NA (No peak area to compare to in CON)
 
+*An extra note for analysis*: Tentative assignments of non-UVs/distorted-UVs can be determined by the following piece of code. It is worthwhile cross-referencing these assignments to make sure they make sense.
 
+```{r}
+#Let x <- Coculture_Name (of interest)
+x <- "F15vF5"
+df_Name <- read.csv(paste0("Testing Broad-Scale Interactions/OutputFiles/", x, ".csv"))
+filter(df_Name, !is.na(Matched_CON) & is.na(Subtracted_UV_Mean))
+```
+
+Hence, there are 4 peaks identified as Non-UVs or distorted-UVs.
 
