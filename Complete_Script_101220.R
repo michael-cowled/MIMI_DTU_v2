@@ -790,7 +790,6 @@ Missing_Control_Peaks <- function(Interaction_Matrix) {
             }
         }
         
-        Matrix_Row_No <- Matrix_Row_No + 1
         n <- nrow(CON2)
         i <- 1
         
