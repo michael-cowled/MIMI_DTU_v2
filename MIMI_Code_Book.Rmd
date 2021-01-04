@@ -52,9 +52,10 @@ The following functions are to be pre-loaded prior to use of the main function, 
 9. **CON_Consolidator:** Consolidates the outcome table to match peaks from coculture to a single peak in a control. Compares subtracted UV spectra to make decisions based on double matching.
 10. **Effect_Categoriser:** Characterises the Peak Area ratio as an effect to the metabolite in the coculture (induction, suppression, etc.).
 11.**Simple_Effect_Characteriser:** Uses the principles of the Effect_Categoriser function to categorise based on a single PeakRatio input.
-11. **NON_UV_Peak_Matcher:** Tentatively assigns matched peaks as non UVs (or as distorted UVs) if matching the conditions.
-11. **Double_Peak_Remover:** Checks for a peak in the control being assigned to more than one peak in the coculture. Uses the number of matching UV maxima and/or the subtracted UV spectra to make decisions as to which peak is a better match.
-12. **Missing_Control_Peaks:** Adds in unassigned peaks from the controls to provide a single, unified table.
+12. **NON_UV_Peak_Matcher:** Tentatively assigns matched peaks as non UVs (or as distorted UVs) if matching the conditions.
+13. **Double_Peak_Remover:** Checks for a peak in the control being assigned to more than one peak in the coculture. Uses the number of matching UV maxima and/or the subtracted UV spectra to make decisions as to which peak is a better match.
+14. **Inhibition_Checker:** Checks if one culture is inhibited and deposits into a separate output file.
+15. **Missing_Control_Peaks:** Adds in unassigned peaks from the controls to provide a single, unified table.
 
 Please see the full script to load in the whole suite of functions and review annotations for extra details.
 The final main function, **MIMI**, combines the use of all 12 functions in providing the final tidied output files.
@@ -100,3 +101,53 @@ filter(df_Name, !is.na(Matched_CON) & is.na(Subtracted_UV_Mean))
 
 Hence, there are 4 peaks identified as Non-UVs or distorted-UVs.
 
+## Inhibition_Checker Output file:
+
+A separate output file is created during MIMI which identifies cultures likely to have been inhibited based on low matched peaks and a dominating culture.
+
+An example output file for the single coculture "F15vF5" is produced below.
+
+```{r}
+
+Inhibition_df <- setNames(data.frame(matrix(ncol = 3, nrow = 0)),
+                        c("Coculture_Name", "Inhibition", "Inhibited_Culture"))
+Coculture_Name <- "F15vF5"
+df_Name <- read.csv(paste0("Testing Broad-Scale Interactions/OutputFiles/", Coculture_Name, ".csv"))
+
+    match <- as.data.frame(table(df_Name$Matched_CON))
+    names(match)[2] <- 'match'
+    unmatch <- as.data.frame(table(df_Name$Sample_Ref))
+    names(unmatch)[2] <- 'unmatch'
+    combined <- merge(match, unmatch) %>%
+        mutate(ratio = unmatch / match)
+    #Then verify whether inhibition of control indicated
+    
+    if (nrow(combined) == 0) {
+        combined <- match
+        combined$unmatch[[1]] <- 0
+        combined$ratio[[1]] <- 0
+        combined$Inhibition[[1]] <- TRUE
+    } else if (nrow(combined) == 1) {
+        combined$Inhibition[[1]] <- TRUE
+    }   else if (combined$match[1] <= 1 && combined$ratio[1] >= 3) {
+        combined$Inhibition[[1]] <- TRUE
+        combined$Inhibition[[2]] <- FALSE
+    }   else if (combined$match[2] <= 1 && combined$ratio[2] >= 3) {
+        combined$Inhibition[[2]] <- TRUE
+        combined$Inhibition[[1]] <- FALSE
+    }   else {
+        combined$Inhibition[[2]] <- FALSE
+        combined$Inhibition[[1]] <- FALSE
+    }
+
+    combined <- filter(combined, Inhibition == TRUE)
+    if (nrow(combined) > 0) {
+        combined$Coculture_Name <- Coculture_Name
+        combined$Var1 <- as.character(combined$Var1)
+        temp <- as.data.frame(c(combined[1,6], combined[1,5], combined[1,1]))
+        names(temp) <- c("Coculture_Name", "Inhibition", "Inhibited_Culture")
+        Inhibition_df <- rbind(Inhibition_df, temp)
+    }
+
+print(Inhibition_df)
+```

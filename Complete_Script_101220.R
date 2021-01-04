@@ -24,9 +24,11 @@ library(readxl)
 #8.PeakMatcher2
 #9.CON_Consolidator
 #10.Effect_Categoriser
-#11.NON_UV_Peak_Matcher
-#12.Double_Peak_Remover
-#13.Missing_Control_Peaks
+#11.Simple_Effect_Categoriser
+#12.NON_UV_Peak_Matcher
+#13.Double_Peak_Remover
+#14.Inhibition_Checker
+#15.Missing_Control_Peaks
 
 #Reading in the functions:
 
@@ -738,10 +740,60 @@ Double_Peak_Remover <- function(Interaction_Matrix) {
 }
 
 #############################################
-#14.Missing Control Peaks: Adds in the unassigned peaks from the control(s)
+#14.Inhibition Checker: Verifies if one culture is inhibited
+#############################################
+
+Inhibition_Checker <- function(df_Name, Inhibition_df, Coculture_Name) {
+    
+    #From an opened output file (might be possible just downstream of missing control peaks)
+    match <- as.data.frame(table(df_Name$Matched_CON))
+    names(match)[2] <- 'match'
+    unmatch <- as.data.frame(table(df_Name$Sample_Ref))
+    names(unmatch)[2] <- 'unmatch'
+    combined <- merge(match, unmatch) %>%
+        mutate(ratio = unmatch / match)
+    #Then verify whether inhibition of control indicated
+    
+    if (nrow(combined) == 0) {
+        combined <- match
+        combined$unmatch[[1]] <- 0
+        combined$ratio[[1]] <- 0
+        combined$Inhibition[[1]] <- TRUE
+    } else if (nrow(combined) == 1) {
+        combined$Inhibition[[1]] <- TRUE
+    }   else if (combined$match[1] <= 1 && combined$ratio[1] >= 3) {
+        combined$Inhibition[[1]] <- TRUE
+        combined$Inhibition[[2]] <- FALSE
+    }   else if (combined$match[2] <= 1 && combined$ratio[2] >= 3) {
+        combined$Inhibition[[2]] <- TRUE
+        combined$Inhibition[[1]] <- FALSE
+    }   else {
+        combined$Inhibition[[2]] <- FALSE
+        combined$Inhibition[[1]] <- FALSE
+    }
+
+    combined <- filter(combined, Inhibition == TRUE)
+    if (nrow(combined) > 0) {
+        combined$Coculture_Name <- Coculture_Name
+        combined$Var1 <- as.character(combined$Var1)
+        temp <- as.data.frame(c(combined[1,6], combined[1,5], combined[1,1]))
+        names(temp) <- c("Coculture_Name", "Inhibition", "Inhibited_Culture")
+        Inhibition_df <- rbind(Inhibition_df, temp)
+    }
+    
+    return(Inhibition_df)
+    
+}
+
+#############################################
+#15.Missing Control Peaks: Adds in the unassigned peaks from the control(s)
 #############################################
 
 Missing_Control_Peaks <- function(Interaction_Matrix) {
+    
+    #Makes a new table that is used in Inhibition_Checker function:
+    Inhibition_df <- setNames(data.frame(matrix(ncol = 3, nrow = 0)),
+                        c("Coculture_Name", "Inhibition", "Inhibited_Culture"))
     
     Matrix_TotalRows <- nrow(Interaction_Matrix)
     Matrix_Row_No <- 1
@@ -814,10 +866,17 @@ Missing_Control_Peaks <- function(Interaction_Matrix) {
             }
         }
         df_Name <- select(df_Name, -Combined)
+        
+        #Space to include function to identify inhibition
+        Inhibition_df <- Inhibition_Checker(df_Name, Inhibition_df, 
+                                            Coculture_Name)
         write.csv(df_Name, 
                   paste0("Testing Broad-Scale Interactions/OutputFiles/", 
                          Coculture_Name, ".CSV"), row.names = FALSE)
     }
+    write.csv(Inhibition_df, 
+    paste0("Testing Broad-Scale Interactions/OutputFiles/Inhibition_df.CSV"), 
+    row.names = FALSE)
 }
 
 #############################################
