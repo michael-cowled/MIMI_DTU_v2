@@ -752,6 +752,7 @@ Inhibition_Checker <- function(df_Name, Inhibition_df, Coculture_Name) {
     names(unmatch)[2] <- 'unmatch'
     combined <- merge(match, unmatch) %>%
         mutate(ratio = unmatch / match)
+
     #Then verify whether inhibition of control indicated
     
     if (nrow(combined) == 0) {
@@ -773,16 +774,18 @@ Inhibition_Checker <- function(df_Name, Inhibition_df, Coculture_Name) {
     }
 
     combined <- filter(combined, Inhibition == TRUE)
+
     if (nrow(combined) > 0) {
+        temp <- setNames(data.frame(matrix(ncol = 3, nrow = 1)),
+                         c("Coculture_Name", "Inhibition", "Inhibited_Culture"))
         combined$Coculture_Name <- Coculture_Name
         combined$Var1 <- as.character(combined$Var1)
-        temp <- as.data.frame(c(combined[1,6], combined[1,5], combined[1,1]))
-        names(temp) <- c("Coculture_Name", "Inhibition", "Inhibited_Culture")
+        temp$Coculture_Name <- combined[1,6]
+        temp$Inhibition <- combined[1,5]
+        temp$Inhibited_Culture <- combined[1,1]
         Inhibition_df <- rbind(Inhibition_df, temp)
     }
-    
     return(Inhibition_df)
-    
 }
 
 #############################################
@@ -809,6 +812,7 @@ Missing_Control_Peaks <- function(Interaction_Matrix) {
         df_Name <- 
             read.csv(paste0("Testing Broad-Scale Interactions/OutputFiles/", 
                             Coculture_Name, ".csv"))
+        
         df_Name$Sample_Ref <- as.character(df_Name$Sample_Ref)
         df_Name <- unite(df_Name, Combined, c(Matched_CON, PeakNo_CON), 
                          sep = "-", remove = FALSE)
@@ -878,6 +882,8 @@ Missing_Control_Peaks <- function(Interaction_Matrix) {
     paste0("Testing Broad-Scale Interactions/OutputFiles/Inhibition_df.CSV"), 
     row.names = FALSE)
 }
+
+Missing_Control_Peaks(Interaction_Matrix)
 
 #############################################
 #MIMI: The main working-function to compare the peak-matching and refinement
