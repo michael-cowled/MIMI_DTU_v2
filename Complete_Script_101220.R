@@ -62,9 +62,16 @@ Read_Excel <- function(Excel_Name) {
             UV_separate <- as.data.frame(UV_separate, col.names = "UV1")
             UV_separate <- separate(UV_separate, 'UV1', c("UV1", "UV1_percent"), 
                                     sep = " ")
-            UV_separate <- UV_separate[order(UV_separate$UV1_percent, 
-                                             decreasing =TRUE),]
-            UV_df <- rbind(UV_df, UV_separate[1:5,1])
+            UV_separate <- transform(UV_separate, UV1_percent = as.numeric(UV1_percent))
+            UV_separate <- UV_separate[order(UV_separate$UV1_percent, decreasing = TRUE),]
+            UV_df2 <- setNames(data.frame(matrix(ncol = 5, nrow = 1)), 
+                              c("UV1", "UV2", "UV3", "UV4", "UV5"))
+            UV_df2[1,1] <- UV_separate[1,1]
+            UV_df2[1,2] <- UV_separate[2,1]
+            UV_df2[1,3] <- UV_separate[3,1]
+            UV_df2[1,4] <- UV_separate[4,1]
+            UV_df2[1,5] <- UV_separate[5,1]
+            UV_df <- rbind(UV_df, UV_df2)
             i <- i +1    
         }   else {
             i <- i + 1
@@ -72,7 +79,6 @@ Read_Excel <- function(Excel_Name) {
             UV_df <- rbind(UV_df, UV_separate[1:5,1])
         }
     }
-    
     #UV_df is added onto the loaded df_name object, correlating peaks with UV
     names(UV_df) <- c("UV1", "UV2", "UV3", "UV4", "UV5")   
     UV_df <- transform(UV_df, UV1 = as.numeric(UV1))
@@ -546,7 +552,7 @@ Simple_Effect_Categoriser <- function(ratio) {
 #############################################
 
 Non_UV_Matcher <- function(Interaction_Matrix) {
-    
+
     Matrix_TotalRows <- nrow(Interaction_Matrix)
     Matrix_Row_No <- 1
     
@@ -697,7 +703,6 @@ Double_Peak_Remover <- function(Interaction_Matrix) {
             #Preprocessing code to read and manipulate the file of interest
             
             Coculture_Name <- as.character(Logic_Table[Logic_Row_No,1])
-            print(Coculture_Name)
             df_Name <- 
                 read.csv(paste0("Testing Broad-Scale Interactions/OutputFiles/", 
                                 Coculture_Name, ".csv"))
@@ -777,12 +782,12 @@ Inhibition_Checker <- function(df_Name, Inhibition_df, Coculture_Name) {
 
     if (nrow(combined) > 0) {
         temp <- setNames(data.frame(matrix(ncol = 3, nrow = 1)),
-                         c("Coculture_Name", "Inhibition", "Inhibited_Culture"))
+                         c("Coculture_Name", "Inhibition", "Dominating_Culture"))
         combined$Coculture_Name <- Coculture_Name
         combined$Var1 <- as.character(combined$Var1)
         temp$Coculture_Name <- combined[1,6]
         temp$Inhibition <- combined[1,5]
-        temp$Inhibited_Culture <- combined[1,1]
+        temp$Dominating_Culture <- combined[1,1]
         Inhibition_df <- rbind(Inhibition_df, temp)
     }
     return(Inhibition_df)
@@ -882,8 +887,6 @@ Missing_Control_Peaks <- function(Interaction_Matrix) {
     paste0("Testing Broad-Scale Interactions/OutputFiles/Inhibition_df.CSV"), 
     row.names = FALSE)
 }
-
-Missing_Control_Peaks(Interaction_Matrix)
 
 #############################################
 #MIMI: The main working-function to compare the peak-matching and refinement
