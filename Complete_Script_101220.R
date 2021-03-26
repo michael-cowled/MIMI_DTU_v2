@@ -65,7 +65,7 @@ Read_Excel <- function(Excel_Name) {
             UV_separate <- transform(UV_separate, UV1_percent = as.numeric(UV1_percent))
             UV_separate <- UV_separate[order(UV_separate$UV1_percent, decreasing = TRUE),]
             UV_df2 <- setNames(data.frame(matrix(ncol = 5, nrow = 1)), 
-                              c("UV1", "UV2", "UV3", "UV4", "UV5"))
+                               c("UV1", "UV2", "UV3", "UV4", "UV5"))
             UV_df2[1,1] <- UV_separate[1,1]
             UV_df2[1,2] <- UV_separate[2,1]
             UV_df2[1,3] <- UV_separate[3,1]
@@ -97,49 +97,7 @@ Read_Excel <- function(Excel_Name) {
 
 #UVcheck1: Comparing CON1 to coculture
 
-UVcheck1 <- function(CON1, Coculture, i, z) {
-    
-    #Inputs are CON1 and coculture as read from the Interaction_Matrix
-    #'i' refers to the peak no. being compared in Coculture
-    #'z' refers to the peak no. being compared in CON1
-    
-    j <- 5
-    k <- 5
-    
-    #Comparing the 5 UVs from left to right matching to peaks 'i' and 'z'
-    #'k' refers to the UV no. being compared in Coculture
-    #'j' refers to the UV no. being compared in CON1
-    
-    uvcount <- 0
-    
-    #uvcount will be the metric to count the number of matching UVs
-    #Checks if UV maxima are within 2 nm of each other
-    
-    while (k < 10) {
-        j<-5
-        while (j < 10 && k < 10) {                      #UVs are in columns 5-9
-            if (j==9)  {
-                j <- j+1
-                k <- k+1
-            }   else if (is.na(Coculture[i,k])) {
-                k <- k+1
-            }   else if (is.na(CON1[z,j])) {
-                j <- j+1
-            }   else if (Coculture[i,k] <= CON1[z,j] + 2 && 
-                         Coculture[i,k] >= CON1[z,j] - 2) {
-                uvcount <- uvcount + 1
-                j <- j+1
-            }   else {
-                j <- j+1
-            }
-        }
-    }
-    return(uvcount)
-}
-
-#UVcheck2: Comparing CON2 to coculture
-
-UVCheck2 <- function(CON2, Coculture, i, z) {
+UVCheck <- function(control, Coculture, i, z) {
     
     #Inputs are CON2 and coculture as read from the Interaction_Matrix
     #'i' refers to the peak no. being compared in Coculture
@@ -156,10 +114,10 @@ UVCheck2 <- function(CON2, Coculture, i, z) {
                 k <- k+1
             }   else if (is.na(Coculture[i,k])) {
                 k <- k+1
-            }   else if (is.na(CON2[z,j])) {
+            }   else if (is.na(control[z,j])) {
                 j <- j+1
-            }   else if (Coculture[i,k] <= CON2[z,j] + 2 && 
-                         Coculture[i,k] >= CON2[z,j] - 2) {
+            }   else if (Coculture[i,k] <= control[z,j] + 2 && 
+                         Coculture[i,k] >= control[z,j] - 2) {
                 uvcount <- uvcount + 1
                 j <- j+1
             }   else {
@@ -169,7 +127,6 @@ UVCheck2 <- function(CON2, Coculture, i, z) {
     }
     return(uvcount)
 }
-
 
 #############################################
 #4.Read_UV Function: Reads in the raw UV data for every wavelength
@@ -249,7 +206,7 @@ Peak_Matcher1 <- function(CON1, Coculture, CON1_UV, Coculture_UV) {
         
         #Computes the ratio of peak areas as a %
         
-        FinalCount <- UVcheck1(CON1, Coculture, i, z)
+        FinalCount <- UVcheck(CON1, Coculture, i, z)
         UV_Mean <- UVSubtract1(CON1_UV, Coculture_UV, i, z)
         
         #Performs both the UVcheck and UVsubtract functions
@@ -348,7 +305,7 @@ Peak_Matcher2 <- function(CON2, Coculture, CON2_UV, Coculture_UV) {
         z <- which(abs(CON2$RetTime-Coculture$RetTime[i]) ==
                        min(abs(CON2$RetTime-Coculture$RetTime[i])))
         ratio = (((Coculture[i,3] - CON2[z,3])/CON2[z,3])*100)
-        FinalCount <- UVCheck2(CON2, Coculture, i, z)
+        FinalCount <- UVCheck(CON2, Coculture, i, z)
         UV_Mean <- UVSubtract2(CON2_UV, Coculture_UV, i, z)
         
         if (Coculture$RetTime[i] < (CON2$RetTime[z] + 0.15) && 
@@ -552,7 +509,7 @@ Simple_Effect_Categoriser <- function(ratio) {
 #############################################
 
 Non_UV_Matcher <- function(Interaction_Matrix) {
-
+    
     Matrix_TotalRows <- nrow(Interaction_Matrix)
     Matrix_Row_No <- 1
     
@@ -583,8 +540,8 @@ Non_UV_Matcher <- function(Interaction_Matrix) {
                             min(abs(CON1$RetTime-Coculture$RetTime[i])))
             z2 <- which(abs(CON2$RetTime-Coculture$RetTime[i]) ==
                             min(abs(CON2$RetTime-Coculture$RetTime[i])))
-            FinalCount1 <- UVcheck1(CON1, Coculture, i, z = z1)
-            FinalCount2 <- UVCheck2(CON2, Coculture, i, z = z2)
+            FinalCount1 <- UVcheck(CON1, Coculture, i, z = z1)
+            FinalCount2 <- UVCheck(CON2, Coculture, i, z = z2)
             if (!is.na(df_Name$Matched_CON[i]) | 
                 (any(df_Name[,7] == CON1$RetTime[z1], na.rm = TRUE)) |
                 (any(df_Name[,7] == CON2$RetTime[z2], na.rm = TRUE))) {
@@ -757,7 +714,7 @@ Inhibition_Checker <- function(df_Name, Inhibition_df, Coculture_Name) {
     names(unmatch)[2] <- 'unmatch'
     combined <- merge(match, unmatch) %>%
         mutate(ratio = unmatch / match)
-
+    
     #Then verify whether inhibition of control indicated
     
     if (nrow(combined) == 0) {
@@ -777,9 +734,9 @@ Inhibition_Checker <- function(df_Name, Inhibition_df, Coculture_Name) {
         combined$Inhibition[[2]] <- FALSE
         combined$Inhibition[[1]] <- FALSE
     }
-
+    
     combined <- filter(combined, Inhibition == TRUE)
-
+    
     if (nrow(combined) > 0) {
         temp <- setNames(data.frame(matrix(ncol = 3, nrow = 1)),
                          c("Coculture_Name", "Inhibition", "Dominating_Culture"))
@@ -801,7 +758,7 @@ Missing_Control_Peaks <- function(Interaction_Matrix) {
     
     #Makes a new table that is used in Inhibition_Checker function:
     Inhibition_df <- setNames(data.frame(matrix(ncol = 3, nrow = 0)),
-                        c("Coculture_Name", "Inhibition", "Inhibited_Culture"))
+                              c("Coculture_Name", "Inhibition", "Inhibited_Culture"))
     
     Matrix_TotalRows <- nrow(Interaction_Matrix)
     Matrix_Row_No <- 1
@@ -885,8 +842,8 @@ Missing_Control_Peaks <- function(Interaction_Matrix) {
     }
     Inhibition_df <- transform(Inhibition_df, Inhibition = as.logical(Inhibition))
     write.csv(Inhibition_df, 
-        paste0("Testing Broad-Scale Interactions/OutputFiles/Inhibition_df.CSV"), 
-    row.names = FALSE)
+              paste0("Testing Broad-Scale Interactions/OutputFiles/Inhibition_df.CSV"), 
+              row.names = FALSE)
 }
 
 #############################################
