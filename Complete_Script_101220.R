@@ -883,7 +883,7 @@ Missing_Control_Peaks <- function(Interaction_Matrix) {
                   paste0("Testing Broad-Scale Interactions/OutputFiles/", 
                          Coculture_Name, ".CSV"), row.names = FALSE)
     }
-    
+    Inhibition_df <- transform(Inhibition_df, Inhibition = as.logical(Inhibition))
     write.csv(Inhibition_df, 
         paste0("Testing Broad-Scale Interactions/OutputFiles/Inhibition_df.CSV"), 
     row.names = FALSE)
