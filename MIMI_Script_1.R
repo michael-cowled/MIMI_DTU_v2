@@ -16,7 +16,6 @@ library(readxl)
 #Functions to be pre-loaded prior to use of the main function, MIMI()
 #1.Read_Excel
 #2.UVcheck
-
 #4.Read_UV
 #5.UVSubtract1
 #6.UVSubtract2
@@ -41,54 +40,64 @@ Read_Excel <- function(Excel_Name) {
     #Input is Excel_Name which is read from the Interaction_Matrix object
     
     #Read in a df based on NovaC excel format
-    df_Name <- read_excel(paste0("Testing Broad-Scale Interactions/NovaCfiles/", 
+    raw_df <- read_excel(paste0("Testing Broad-Scale Interactions/NovaCfiles/", 
                                  Excel_Name, ".xlsm"), skip = 3)
     
-    #A new df is set up to capture the top 5 UV maxima for a peak
+    #A new df is set up to capture the top 5 UV maxima for each peak
     UV_df <- setNames(data.frame(matrix(ncol = 5, nrow = 0)), 
                       c("UV1", "UV2", "UV3", "UV4", "UV5"))
     
     #The following extracts and sorts the top 5 UV maxima from each peak
-    n <- nrow(df_Name)
+    n <- nrow(raw_df)
     i <- 1
     while (i <= n) {
-        if (!is.na(df_Name$'UV Peaks')) {
-            UV_separate <-df_Name$`UV Peaks`[[i]]
-            UV_separate <- gsub("\\(","", UV_separate)
-            UV_separate <- gsub("\\)","", UV_separate)
-            UV_separate <- gsub("< 190","", UV_separate)
-            UV_separate <- gsub("s","", UV_separate)
-            UV_separate <- strsplit(UV_separate, "\r\n")
-            UV_separate <- as.data.frame(UV_separate, col.names = "UV1")
-            UV_separate <- separate(UV_separate, 'UV1', c("UV1", "UV1_percent"), 
+        if (!is.na(raw_df$'UV Peaks')) {
+            raw_UV <-raw_df$`UV Peaks`[[i]]
+            raw_UV_processed <- gsub("\\(","", raw_UV)
+            raw_UV_processed <- gsub("\\)","", raw_UV_processed)
+            raw_UV_processed <- gsub("< 190","", raw_UV_processed)
+            raw_UV_processed <- gsub("s","", raw_UV_processed)
+            raw_UV_split <- strsplit(raw_UV_processed, "\r\n")
+            raw_UV_split <- as.data.frame(raw_UV_split, col.names = "UV1")
+            raw_UV_split <- separate(raw_UV_split, 'UV1', c("UV1", "UV1_percent"), 
                                     sep = " ")
-            UV_separate <- transform(UV_separate, UV1_percent = as.numeric(UV1_percent))
-            UV_separate <- UV_separate[order(UV_separate$UV1_percent, decreasing = TRUE),]
-            UV_df2 <- setNames(data.frame(matrix(ncol = 5, nrow = 1)), 
+            raw_UV_split <- transform(raw_UV_split, UV1_percent = as.numeric(UV1_percent))
+            raw_UV_ordered <- raw_UV_split[order(raw_UV_split$UV1_percent, decreasing = TRUE),]
+            
+            #A second UV_df is set up to capture the UV data for a single peak 
+            UV_df_peak <- setNames(data.frame(matrix(ncol = 5, nrow = 1)), 
                                c("UV1", "UV2", "UV3", "UV4", "UV5"))
-            UV_df2[1,1] <- UV_separate[1,1]
-            UV_df2[1,2] <- UV_separate[2,1]
-            UV_df2[1,3] <- UV_separate[3,1]
-            UV_df2[1,4] <- UV_separate[4,1]
-            UV_df2[1,5] <- UV_separate[5,1]
-            UV_df <- rbind(UV_df, UV_df2)
-            i <- i +1    
+            
+            #Transposes UVs into row format; more efficient method possible
+            UV_df_peak[1,1] <- raw_UV_ordered[1,1]
+            UV_df_peak[1,2] <- raw_UV_ordered[2,1]
+            UV_df_peak[1,3] <- raw_UV_ordered[3,1]
+            UV_df_peak[1,4] <- raw_UV_ordered[4,1]
+            UV_df_peak[1,5] <- raw_UV_ordered[5,1]
+            
+            #Lists the UV for the associated peak into the originally setup UV_df
+            UV_df <- rbind(UV_df, UV_df_peak)
+            
         }   else {
-            i <- i + 1
-            UV_separate <- c(NA, NA, NA, NA, NA)
-            UV_df <- rbind(UV_df, UV_separate[1:5,1])
-        }
+            
+            #Lists the UVs as nothing instead
+            UV_df_peak <- c(NA, NA, NA, NA, NA)
+            UV_df <- rbind(UV_df, UV_df_peak)
+            
+        }   i <- i + 1
     }
-    #UV_df is added onto the loaded df_name object, correlating peaks with UV
+    
+    #UV_df is added onto the loaded raw_df object, correlating peaks with UV
     names(UV_df) <- c("UV1", "UV2", "UV3", "UV4", "UV5")   
     UV_df <- transform(UV_df, UV1 = as.numeric(UV1))
     UV_df <- transform(UV_df, UV2 = as.numeric(UV2))
     UV_df <- transform(UV_df, UV3 = as.numeric(UV3))
     UV_df <- transform(UV_df, UV4 = as.numeric(UV4))
     UV_df <- transform(UV_df, UV5 = as.numeric(UV5))
-    df_Name <- cbind(df_Name, UV_df)
-    df_Name <- select(df_Name, 1:4, 20:24)
-    return(df_Name)
+    raw_df_with_sorted_UV <- cbind(raw_df, UV_df)
+    raw_df_with_sorted_UV <- select(raw_df_with_sorted_UV, 1:4, 20:24)
+    return(raw_df_with_sorted_UV)
+    
 }
 
 #############################################
