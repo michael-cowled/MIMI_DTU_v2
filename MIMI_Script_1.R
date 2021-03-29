@@ -5,7 +5,7 @@
 #############################################
 
 #A Matrix defined as Interaction_Matrix is required to be made with the THREE
-#samples to be compaared.
+#samples to be compared.
 
 #R packages required to be loaded in:
 

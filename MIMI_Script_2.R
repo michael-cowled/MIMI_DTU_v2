@@ -5,7 +5,7 @@
 #############################################
 
 #A Matrix defined as Interaction_Matrix is required to be made with the THREE
-#samples to be compaared.
+#samples to be compared.
 
 #R packages required to be loaded in:
 
@@ -31,17 +31,14 @@ library(readxl)
 Simple_Effect_Categoriser <- function(ratio) {
     if (ratio > -100 && ratio <= 20) {
         Effect <- 2
-        return(Effect)
     }   else if (ratio > -20 && ratio < 20) {
         Effect <- 3
-        return(Effect)
     }   else if (ratio >= 20 && ratio < 100) {
         Effect <- 4
-        return(Effect)
     }   else if (ratio >= 100) {
-        Effect <- 5
-        return(Effect)
+        Effect <- 5)
     }
+    return(Effect)
 }
 
 #############################################
