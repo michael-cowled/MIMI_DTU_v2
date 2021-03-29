@@ -106,6 +106,9 @@ UVCheck <- function(control, Coculture, i, z) {
     uvcount <- 0
     j <- 5
     k <- 5 
+    
+    #UV data is located in columns 5:9, hence 'j' and 'k' set to start at 5.
+    
     while (k < 10) {
         j<-5
         while (j < 10 && k < 10) {
