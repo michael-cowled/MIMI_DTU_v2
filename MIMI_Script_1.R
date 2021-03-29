@@ -99,7 +99,7 @@ Read_Excel <- function(Excel_Name) {
 #############################################
 
 #UVcheck: Comparing CON1 to coculture
-#Inputs are CON2 and coculture as read from the Interaction_Matrix
+#Inputs are CON1/CON2 and coculture as read from the Interaction_Matrix
 #'CC_peak' refers to the peak no. being compared in Coculture
 #'CON_peak' refers to the peak no. being compared in control
 #UV data is located in columns 5:9, hence 'CON_UV_no' and 'CC_UV_no' set to start at 5.
@@ -133,7 +133,7 @@ UVCheck <- function(control, Coculture, CC_peak, CON_peak) {
 }
 
 #############################################
-#4.Read_UV Function: Reads in the raw UV data for every wavelength
+#3.Read_UV Function: Reads in the raw UV data for every wavelength
 #############################################
 
 #Input is Excel_Name which is read from the Interaction_Matrix object
@@ -146,7 +146,7 @@ Read_UV <- function(Excel_Name) {
 }
 
 #############################################
-#5.UV Subtract: Subtracts whole UV spectra and calculates the mean for peaks 
+#4.UV Subtract: Subtracts whole UV spectra and calculates the mean for peaks 
 #in CON1/2 & Coculture
 #############################################
 
@@ -172,11 +172,12 @@ UVSubtract <- function(CON_UV, Coculture_UV, CC_peak, CON_peak) {
 }
 
 #############################################
-#6.Peak Matcher: Finds and compares the nearest matching peak in control
+#5.Peak Matcher: Finds and compares the nearest matching peak in control
 #############################################
 
 Peak_Matcher <- function(CON, Coculture, CON_UV, Coculture_UV) {
     
+    #Sets up a df to with the desired column names.
     Coculture_df <- data.frame(PeakNo_CC = NA, RetTime_CC = NA, 
                                PeakArea_CC = NA, PeakNo_CON = NA, 
                                RetTime_CON = NA, PeakArea_CON = NA,
@@ -222,7 +223,7 @@ Peak_Matcher <- function(CON, Coculture, CON_UV, Coculture_UV) {
                                     UV_Count_CON = FinalCount, 
                                     Subtracted_UV_Mean_CON = UV_Mean, 
                                     PeakRatio_CON = ratio))
-            CC_peak <- CC_peak + 1
+            
         }    else if (Coculture$RetTime[CC_peak] < (CON$RetTime[CON_peak] + 0.15) && 
                       Coculture$RetTime[CC_peak] > (CON$RetTime[CON_peak] -0.15) &&
                       FinalCount > 1 && abs(UV_Mean) < 2) {  
@@ -243,7 +244,6 @@ Peak_Matcher <- function(CON, Coculture, CON_UV, Coculture_UV) {
                                     UV_Count_CON = FinalCount, 
                                     Subtracted_UV_Mean_CON = UV_Mean, 
                                     PeakRatio_CON = ratio))
-            CC_peak<- CC_peak + 1
             
         }    else if (Coculture$RetTime[CC_peak] < (CON$RetTime[CON_peak] + 0.05) && 
                       Coculture$RetTime[CC_peak] > (CON$RetTime[CON_peak] -0.05) &&
@@ -259,11 +259,9 @@ Peak_Matcher <- function(CON, Coculture, CON_UV, Coculture_UV) {
                                     UV_Count_CON = FinalCount, 
                                     Subtracted_UV_Mean_CON = UV_Mean, 
                                     PeakRatio_CON = ratio))
-            CC_peak <- CC_peak + 1
-            
         }   else  { 
             
-            #The peak is declared NOT to have a match in CON1, and NA added
+            #The peak is declared NOT to have a match in the control and given NA
             
             Coculture_df <- rbind(Coculture_df, 
                                   c(PeakNo_CC = Coculture$Peak[CC_peak], 
@@ -273,14 +271,14 @@ Peak_Matcher <- function(CON, Coculture, CON_UV, Coculture_UV) {
                                     PeakArea_CON = NA, UV_Count_CON = NA, 
                                     Subtracted_UV_Mean_CON = NA, 
                                     PeakRatio_CON = NA))
-            CC_peak <- CC_peak + 1
         }   
+        CC_peak <- CC_peak + 1
     }
     return(Coculture_df)
 }
 
 #############################################
-#7.CON Consolidator: Removes double peak matching to a coculture peak
+#6.CON Consolidator: Removes double peak matching to a coculture peak
 #############################################
 
 #The following code removes double assignments to a coculture peak
@@ -308,7 +306,6 @@ CON_Consolidator <- function(Coculture_df, CON1_Name, CON2_Name) {
     while (RowNo <= Rows+1) {
         if (is.na(Coculture_df[RowNo, 4]) && 
             is.na(Coculture_df[RowNo, 10])) {
-            RowNo <- RowNo + 1
         }   else if (!is.na(Coculture_df[RowNo, 4]) && 
                      !is.na(Coculture_df[RowNo, 10] && 
                             abs(Coculture_df[RowNo, 8]) < 
@@ -319,14 +316,12 @@ CON_Consolidator <- function(Coculture_df, CON1_Name, CON2_Name) {
             
             MatchedPeak_df[RowNo, 1] <- CON1_Name
             MatchedPeak_df[RowNo, 2:7] <- Coculture_df[RowNo, 4:9]
-            RowNo <- RowNo + 1
         }   else if (!is.na(Coculture_df[RowNo, 4]) && 
                      !is.na(Coculture_df[RowNo, 10] && 
                             abs(Coculture_df[RowNo, 8]) > 
                             abs(Coculture_df[RowNo, 14]))) { 
             MatchedPeak_df[RowNo, 1] <- CON2_Name
             MatchedPeak_df[RowNo, 2:7] <- Coculture_df[RowNo, 10:15]
-            RowNo <- RowNo + 1
         }   else if (is.na(Coculture_df[RowNo, 10]))   {
             
             #If no double-peak mactching but signifies a matched CON1 peak
@@ -334,7 +329,6 @@ CON_Consolidator <- function(Coculture_df, CON1_Name, CON2_Name) {
             
             MatchedPeak_df[RowNo, 1] <- CON1_Name
             MatchedPeak_df[RowNo, 2:7] <- Coculture_df[RowNo, 4:9]
-            RowNo <- RowNo + 1
         }   else {
             
             #If no double-peak mactching or matched CON1 peak
@@ -342,14 +336,14 @@ CON_Consolidator <- function(Coculture_df, CON1_Name, CON2_Name) {
             
             MatchedPeak_df[RowNo, 1] <- CON2_Name
             MatchedPeak_df[RowNo, 2:7] <- Coculture_df[RowNo, 10:15]
-            RowNo <- RowNo + 1
         }
+        RowNo <- RowNo + 1
     }
     return(MatchedPeak_df)
 }
 
 #############################################
-#10.Metabolite Effect Characteriser: Converting PeakRatio to a Factor
+#7.Metabolite Effect Characteriser: Converting PeakRatio to a Factor
 #############################################
 
 #The following piece of code adds a column that categorises the peak 
@@ -369,27 +363,23 @@ Effect_Categoriser <- function(Refined_Coculture_df, Coculture_Name) {
         if (Refined_Coculture_df[RowNo, 1] == Coculture_Name && 
             is.na(Refined_Coculture_df[RowNo, 11])) {
             Metabolite_effect_df[RowNo, 1] <- 6 #Induction
-            RowNo <- RowNo + 1
         }   else if (Refined_Coculture_df[RowNo, 1] == Coculture_Name && 
                      Refined_Coculture_df[RowNo, 11] > -100
                      && Refined_Coculture_df[RowNo, 11] <= -20) {
             Metabolite_effect_df[RowNo, 1] <- 2 #Suppression
-            RowNo <- RowNo + 1
         }   else if (Refined_Coculture_df[RowNo, 1] == Coculture_Name && 
                      Refined_Coculture_df[RowNo, 11] > -20
                      && Refined_Coculture_df[RowNo, 11] < 20) {
             Metabolite_effect_df[RowNo, 1] <- 3 #Little to No Change
-            RowNo <- RowNo + 1
         }   else if (Refined_Coculture_df[RowNo, 1] == Coculture_Name && 
                      Refined_Coculture_df[RowNo, 11] >= 20
                      && Refined_Coculture_df[RowNo, 11] < 100) {
             Metabolite_effect_df[RowNo, 1] <- 4 #Enhancement
-            RowNo <- RowNo + 1
         }   else if (Refined_Coculture_df[RowNo, 1] == Coculture_Name && 
                      Refined_Coculture_df[RowNo, 11] >= 100) {
             Metabolite_effect_df[RowNo, 1] <- 5 #Major Enhancement
-            RowNo <- RowNo + 1
         }
+        RowNo <- RowNo + 1
     }
     Refined_Coculture_df <- 
         cbind(Refined_Coculture_df, Metabolite_effect_df)
@@ -459,7 +449,7 @@ MIMI <- function() {
         Refined_Coculture_df <- 
             Effect_Categoriser(Refined_Coculture_df, Coculture_Name)
         
-        #Rewrites the tidied dataset to file
+        #Rewrites the tidied dataset to a csv file
         
         write.csv(Refined_Coculture_df, 
                   paste0("Testing Broad-Scale Interactions/OutputFiles/", 
