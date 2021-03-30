@@ -16,10 +16,8 @@ library(readxl)
 #Functions to be pre-loaded prior to use of the main function, MIMI()
 #1.Read_Excel
 #2.UVcheck
-#3.UVcheck2
 #4.Read_UV
-#5.UVSubtract1
-#6.UVSubtract2
+#5.UVSubtract
 #7.PeakMatcher1
 #8.PeakMatcher2
 #9.CON_Consolidator
@@ -92,10 +90,10 @@ Read_Excel <- function(Excel_Name) {
 }
 
 #############################################
-#2/3.UV_Check: Verifies the matching UV maxima for peaks in CON1/2 & Coculture
+#2.UVCheck: Verifies the matching UV maxima for peaks in CON1/2 & Coculture
 #############################################
 
-#UVcheck1: Comparing CON1 to coculture
+#UVcheck: Comparing CON1 to coculture
 
 UVCheck <- function(control, Coculture, i, z) {
     
@@ -143,13 +141,13 @@ Read_UV <- function(Excel_Name) {
 }
 
 #############################################
-#5/6.UV Subtract: Subtracts whole UV spectra and calculates the mean for peaks 
+#5.UV Subtract: Subtracts whole UV spectra and calculates the mean for peaks 
 #in CON1/2 & Coculture
 #############################################
 
-#UVsubtract1: Comparing CON1 to coculture
+#UVsubtract: Comparing CON1 to coculture
 
-UVSubtract1 <- function(CON1_UV, Coculture_UV, i, z) {
+UVSubtract <- function(control_UV, Coculture_UV, i, z) {
     
     #Inputs are CON1_UV and coculture_UV as created from the Interaction_Matrix
     #'i' refers to the peak no. being compared in Coculture
@@ -163,17 +161,7 @@ UVSubtract1 <- function(CON1_UV, Coculture_UV, i, z) {
     #'j' refers to the column of abs data being compared in CON1
     #Note: Col2 = Peak#1, Col3 = Peak#2, etc. hence '+1'
     
-    SubtractedUV <- Coculture_UV[,k]-CON1_UV[,j]
-    UV_Mean <- mean(SubtractedUV)
-    return(UV_Mean)
-}
-
-#UVsubtract2: Comparing CON2 to coculture
-
-UVSubtract2 <- function(CON2_UV, Coculture_UV, i, z) {
-    k <- i + 1
-    j <- z + 1
-    SubtractedUV <- Coculture_UV[,k]-CON2_UV[,j]
+    SubtractedUV <- Coculture_UV[,k]-control_UV[,j]
     UV_Mean <- mean(SubtractedUV)
     return(UV_Mean)
 }
@@ -207,7 +195,7 @@ Peak_Matcher1 <- function(CON1, Coculture, CON1_UV, Coculture_UV) {
         #Computes the ratio of peak areas as a %
         
         FinalCount <- UVcheck(CON1, Coculture, i, z)
-        UV_Mean <- UVSubtract1(CON1_UV, Coculture_UV, i, z)
+        UV_Mean <- UVSubtract(CON1_UV, Coculture_UV, i, z)
         
         #Performs both the UVcheck and UVsubtract functions
         
@@ -306,7 +294,7 @@ Peak_Matcher2 <- function(CON2, Coculture, CON2_UV, Coculture_UV) {
                        min(abs(CON2$RetTime-Coculture$RetTime[i])))
         ratio = (((Coculture[i,3] - CON2[z,3])/CON2[z,3])*100)
         FinalCount <- UVCheck(CON2, Coculture, i, z)
-        UV_Mean <- UVSubtract2(CON2_UV, Coculture_UV, i, z)
+        UV_Mean <- UVSubtract(CON2_UV, Coculture_UV, i, z)
         
         if (Coculture$RetTime[i] < (CON2$RetTime[z] + 0.15) && 
             Coculture$RetTime[i] > (CON2$RetTime[z] -0.15)

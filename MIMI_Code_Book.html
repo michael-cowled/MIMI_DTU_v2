@@ -11,7 +11,6 @@
 
 <meta name="author" content="Michael Cowled" />
 
-<meta name="date" content="2020-10-12" />
 
 <title>MIMI: Microbial Interaction Metabolite Integrator</title>
 
@@ -1636,7 +1635,7 @@ summary {
 
 <h1 class="title toc-ignore">MIMI: Microbial Interaction Metabolite Integrator</h1>
 <h4 class="author">Michael Cowled</h4>
-<h4 class="date">10/12/2020</h4>
+<h4 class="date">30/03/2021</h4>
 
 </div>
 
@@ -1664,33 +1663,37 @@ head(Interaction_Matrix)</code></pre>
   </script>
 </div>
 </div>
-<div id="the-core-function-mimi" class="section level2">
-<h2>The core function, MIMI</h2>
+<div id="mimi---script-12" class="section level2">
+<h2>MIMI - Script #1/2</h2>
 <p>The following functions are to be pre-loaded prior to use of the main function, MIMI()</p>
 <ol style="list-style-type: decimal">
 <li><strong>Read_Excel:</strong> Reads in the NovaC files corresponding to a particular row number in the Interaction_Matrix.</li>
-<li><strong>UVcheck1:</strong> Compares the top 5 UV maxima of a matched peak in CON1 and the coculture.</li>
-<li><strong>UVcheck2:</strong> Compares the top 5 UV maxima of a matched peak in CON2 and the coculture.</li>
+<li><strong>UVcheck:</strong> Compares the top 5 UV maxima of a matched peak in the control of interest and the coculture.</li>
 <li><strong>Read_UV:</strong> Reads in the UV spectral data (abs vs. wavelength) for the corresponding 3 samples being compared.</li>
-<li><strong>UVSubtract1:</strong> Subtracts the UV spectrum of CON1 from the coculture, and takes the mean(Abs).</li>
-<li><strong>UVSubtract2:</strong> Subtracts the UV spectrum of CON2 from the coculture, and takes the mean(Abs)</li>
-<li><strong>PeakMatcher1:</strong> Matches and verifies peaks from CON1 to peaks in the coculture, utilising a combination of retention time, number of matching UV maxima (UVcheck1) and the means of the subtracted UV spectra (UVsubtract1).</li>
-<li><strong>PeakMatcher2:</strong> Matches and verifies peaks from CON2 to peaks in the coculture, utilising a combination of retention time, number of matching UV maxima (UVcheck2) and the means of the subtracted UV spectra (UVsubtract2).</li>
+<li><strong>UVSubtract:</strong> Subtracts the UV spectrum of the control of interest from the coculture, and takes the mean(Abs).</li>
+<li><strong>PeakMatcher:</strong> Matches and verifies peaks from the control of interest to peaks in the coculture, utilising a combination of retention time, number of matching UV maxima (UVcheck) and the means of the subtracted UV spectra (UVsubtract).</li>
 <li><strong>CON_Consolidator:</strong> Consolidates the outcome table to match peaks from coculture to a single peak in a control. Compares subtracted UV spectra to make decisions based on double matching.</li>
-<li><strong>Effect_Categoriser:</strong> Characterises the Peak Area ratio as an effect to the metabolite in the coculture (induction, suppression, etc.). 11.<strong>Simple_Effect_Characteriser:</strong> Uses the principles of the Effect_Categoriser function to categorise based on a single PeakRatio input.</li>
+<li><strong>Effect_Categoriser:</strong> Characterises the Peak Area ratio as an effect to the metabolite in the coculture (induction, suppression, etc.).</li>
+</ol>
+</div>
+<div id="mimi---script-22" class="section level2">
+<h2>MIMI - Script #2/2</h2>
+<p>The following functions are to be pre-loaded prior to use of the main function, MIMI2()</p>
+<ol style="list-style-type: decimal">
+<li><strong>Simple_Effect_Characteriser:</strong> Uses the principles of the Effect_Categoriser function to categorise based on a single PeakRatio input.</li>
 <li><strong>NON_UV_Peak_Matcher:</strong> Tentatively assigns matched peaks as non UVs (or as distorted UVs) if matching the conditions.</li>
 <li><strong>Double_Peak_Remover:</strong> Checks for a peak in the control being assigned to more than one peak in the coculture. Uses the number of matching UV maxima and/or the subtracted UV spectra to make decisions as to which peak is a better match.</li>
 <li><strong>Inhibition_Checker:</strong> Checks if one culture is inhibited and deposits into a separate output file.</li>
 <li><strong>Missing_Control_Peaks:</strong> Adds in unassigned peaks from the controls to provide a single, unified table.</li>
 </ol>
-<p>Please see the full script to load in the whole suite of functions and review annotations for extra details. The final main function, <strong>MIMI</strong>, combines the use of all 12 functions in providing the final tidied output files.</p>
+<p>Please see the full script to load in the whole suite of functions and review annotations for extra details. The final main functions, <strong>MIMI()</strong> and <strong>MIMI2()</strong>, combines the use of all 12 functions in providing the final tidied output files.</p>
 </div>
 <div id="the-output-file" class="section level2">
 <h2>The output file</h2>
 <p>An example output file is as follows:</p>
 <div data-pagedtable="false">
 <script data-pagedtable-source type="application/json">
-{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["Sample_Ref"],"name":[1],"type":["chr"],"align":["left"]},{"label":["PeakNo_CC"],"name":[2],"type":["int"],"align":["right"]},{"label":["RetTime_CC"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["PeakArea_CC"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["Matched_CON"],"name":[5],"type":["chr"],"align":["left"]},{"label":["PeakNo_CON"],"name":[6],"type":["int"],"align":["right"]},{"label":["RetTime_CON"],"name":[7],"type":["dbl"],"align":["right"]},{"label":["PeakArea_CON"],"name":[8],"type":["dbl"],"align":["right"]},{"label":["UV_Count"],"name":[9],"type":["int"],"align":["right"]},{"label":["Subtracted_UV_Mean"],"name":[10],"type":["dbl"],"align":["right"]},{"label":["PeakRatio"],"name":[11],"type":["dbl"],"align":["right"]},{"label":["Metabolite_Effect"],"name":[12],"type":["int"],"align":["right"]}],"data":[{"1":"F1vF2","2":"1","3":"0.574148","4":"443.07318","5":"F1CON","6":"1","7":"0.584723","8":"265.30689","9":"2","10":"0.24628712","11":"67.004027","12":"4","_rn_":"1"},{"1":"F1vF2","2":"2","3":"0.823611","4":"138.25619","5":"F1CON","6":"2","7":"0.850788","8":"78.56687","9":"2","10":"-0.10172607","11":"75.972635","12":"4","_rn_":"2"},{"1":"F1vF2","2":"3","3":"1.039223","4":"969.03809","5":"F1CON","6":"3","7":"1.060212","8":"536.97082","9":"4","10":"-0.04061093","11":"80.463824","12":"4","_rn_":"3"},{"1":"F1vF2","2":"4","3":"1.943658","4":"305.83585","5":"F1CON","6":"4","7":"1.970453","8":"33.35677","9":"2","10":"-0.21657340","11":"816.863002","12":"5","_rn_":"4"},{"1":"F1vF2","2":"5","3":"2.601163","4":"82.36204","5":"F1CON","6":"5","7":"2.609808","8":"30.68041","9":"0","10":"0.25347206","11":"168.451544","12":"5","_rn_":"5"},{"1":"F1vF2","2":"6","3":"2.718488","4":"19.89000","5":"F1CON","6":"6","7":"2.723022","8":"18.68216","9":"1","10":"-1.34667949","11":"6.465207","12":"3","_rn_":"6"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["Sample_Ref"],"name":[1],"type":["chr"],"align":["left"]},{"label":["PeakNo_CC"],"name":[2],"type":["int"],"align":["right"]},{"label":["RetTime_CC"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["PeakArea_CC"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["Matched_CON"],"name":[5],"type":["chr"],"align":["left"]},{"label":["PeakNo_CON"],"name":[6],"type":["int"],"align":["right"]},{"label":["RetTime_CON"],"name":[7],"type":["dbl"],"align":["right"]},{"label":["PeakArea_CON"],"name":[8],"type":["dbl"],"align":["right"]},{"label":["UV_Count"],"name":[9],"type":["int"],"align":["right"]},{"label":["Subtracted_UV_Mean"],"name":[10],"type":["dbl"],"align":["right"]},{"label":["PeakRatio"],"name":[11],"type":["dbl"],"align":["right"]},{"label":["Metabolite_Effect"],"name":[12],"type":["int"],"align":["right"]}],"data":[{"1":"F1vF2","2":"NA","3":"NA","4":"NA","5":"F1CON","6":"1","7":"0.584723","8":"265.30689","9":"2","10":"0.24628712","11":"67.004027","12":"4","_rn_":"1"},{"1":"F1vF2","2":"1","3":"0.574148","4":"443.07318","5":"F1CON","6":"2","7":"0.850788","8":"78.56687","9":"2","10":"-0.10172607","11":"75.972635","12":"4","_rn_":"2"},{"1":"F1vF2","2":"2","3":"0.823611","4":"138.25619","5":"F1CON","6":"3","7":"1.060212","8":"536.97082","9":"4","10":"-0.04061093","11":"80.463824","12":"4","_rn_":"3"},{"1":"F1vF2","2":"3","3":"1.039223","4":"969.03809","5":"F1CON","6":"4","7":"1.970453","8":"33.35677","9":"2","10":"-0.21657340","11":"816.863002","12":"5","_rn_":"4"},{"1":"F1vF2","2":"4","3":"1.943658","4":"305.83585","5":"F1CON","6":"5","7":"2.609808","8":"30.68041","9":"2","10":"0.25347206","11":"168.451544","12":"5","_rn_":"5"},{"1":"F1vF2","2":"5","3":"2.601163","4":"82.36204","5":"F1CON","6":"6","7":"2.723022","8":"18.68216","9":"1","10":"-1.34667949","11":"6.465207","12":"3","_rn_":"6"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
 <p>The resulting output file contains the following columns containing:</p>
@@ -1715,7 +1718,7 @@ df_Name &lt;- read.csv(paste0(&quot;Testing Broad-Scale Interactions/OutputFiles
 filter(df_Name, !is.na(Matched_CON) &amp; is.na(Subtracted_UV_Mean))</code></pre>
 <div data-pagedtable="false">
 <script data-pagedtable-source type="application/json">
-{"columns":[{"label":["Sample_Ref"],"name":[1],"type":["chr"],"align":["left"]},{"label":["PeakNo_CC"],"name":[2],"type":["int"],"align":["right"]},{"label":["RetTime_CC"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["PeakArea_CC"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["Matched_CON"],"name":[5],"type":["chr"],"align":["left"]},{"label":["PeakNo_CON"],"name":[6],"type":["int"],"align":["right"]},{"label":["RetTime_CON"],"name":[7],"type":["dbl"],"align":["right"]},{"label":["PeakArea_CON"],"name":[8],"type":["dbl"],"align":["right"]},{"label":["UV_Count"],"name":[9],"type":["int"],"align":["right"]},{"label":["Subtracted_UV_Mean"],"name":[10],"type":["dbl"],"align":["right"]},{"label":["PeakRatio"],"name":[11],"type":["dbl"],"align":["right"]},{"label":["Metabolite_Effect"],"name":[12],"type":["int"],"align":["right"]}],"data":[{"1":"F15vF5","2":"1","3":"0.544092","4":"9.375462","5":"F15CON","6":"1","7":"0.558590","8":"18.75945","9":"0","10":"NA","11":"-50.02273","12":"2"},{"1":"F15vF5","2":"3","3":"2.579595","4":"7.394840","5":"F15CON","6":"3","7":"2.571035","8":"109.42897","9":"1","10":"NA","11":"-93.24234","12":"2"},{"1":"F15vF5","2":"7","3":"3.545672","4":"23.235842","5":"F15CON","6":"9","7":"3.582646","8":"19.98800","9":"1","10":"NA","11":"16.24895","12":"2"},{"1":"F15vF5","2":"15","3":"10.982312","4":"6.672816","5":"F5CON","6":"29","7":"10.935958","8":"19.02990","9":"1","10":"NA","11":"-64.93510","12":"2"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+{"columns":[{"label":["Sample_Ref"],"name":[1],"type":["chr"],"align":["left"]},{"label":["PeakNo_CC"],"name":[2],"type":["int"],"align":["right"]},{"label":["RetTime_CC"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["PeakArea_CC"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["Matched_CON"],"name":[5],"type":["chr"],"align":["left"]},{"label":["PeakNo_CON"],"name":[6],"type":["int"],"align":["right"]},{"label":["RetTime_CON"],"name":[7],"type":["dbl"],"align":["right"]},{"label":["PeakArea_CON"],"name":[8],"type":["dbl"],"align":["right"]},{"label":["UV_Count"],"name":[9],"type":["int"],"align":["right"]},{"label":["Subtracted_UV_Mean"],"name":[10],"type":["dbl"],"align":["right"]},{"label":["PeakRatio"],"name":[11],"type":["dbl"],"align":["right"]},{"label":["Metabolite_Effect"],"name":[12],"type":["int"],"align":["right"]}],"data":[],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
 <p>Hence, there are 4 peaks identified as Non-UVs or distorted-UVs.</p>
@@ -1756,17 +1759,17 @@ df_Name &lt;- read.csv(paste0(&quot;Testing Broad-Scale Interactions/OutputFiles
     }
 
     combined &lt;- filter(combined, Inhibition == TRUE)
-    print(combined)</code></pre>
-<pre><code>##     Var1 match unmatch ratio Inhibition
-## 1 F15CON    11       0     0       TRUE
-## 2  F5CON     1       0     0       TRUE</code></pre>
-<pre class="r"><code>    if (nrow(combined) &gt; 0) {
+    if (nrow(combined) &gt; 0) {
         combined$Coculture_Name &lt;- Coculture_Name
         combined$Var1 &lt;- as.character(combined$Var1)
         temp &lt;- as.data.frame(c(combined[1,6], combined[1,5], combined[1,1]))
         names(temp) &lt;- c(&quot;Coculture_Name&quot;, &quot;Inhibition&quot;, &quot;Inhibited_Culture&quot;)
         Inhibition_df &lt;- rbind(Inhibition_df, temp)
-    }</code></pre>
+    }
+
+print(Inhibition_df)</code></pre>
+<pre><code>##   Coculture_Name Inhibition Inhibited_Culture
+## 1         F15vF5       TRUE            F15CON</code></pre>
 </div>
 
 

@@ -45,7 +45,7 @@ Simple_Effect_Categoriser <- function(ratio) {
 #2.Double Peak Remover: Removes doubley-assigned peaks from a control.
 #############################################
 
-#An example is that perhaps the peaks 1 and 2 from the coculture match
+#An example is that perhaps the peaks 1 and 2 from the coculture match to
 #twice to peak 1 in the control.
 
 #This function will determine which peak from the control matches closest
@@ -53,7 +53,6 @@ Simple_Effect_Categoriser <- function(ratio) {
 
 Double_Peak_Remover <- function(Interaction_Matrix) {
     
-    #Arbitrarily sets a positive value to the variable.
     Logic_TotalRows <- 1
     
     while (Logic_TotalRows > 0) {
@@ -99,7 +98,7 @@ Double_Peak_Remover <- function(Interaction_Matrix) {
         
         Logic_TotalRows <- nrow(Logic_Table)
         Logic_Row_No <- 1
-        
+
         while (Logic_Row_No <= Logic_TotalRows) {
             
             #Preprocessing code to read and manipulate the file of interest
@@ -110,33 +109,38 @@ Double_Peak_Remover <- function(Interaction_Matrix) {
                                 Coculture_Name, ".csv"))
             df_Name <- unite(df_Name, Combined, c(Matched_CON, PeakNo_CON), 
                              sep = "-", remove = FALSE)
-            df_Name2 <- filter(df_Name, Combined != "NA-NA")
-            df_Name2$Duplicated <- duplicated(df_Name2$Combined)
-            df_Name3 <- filter(df_Name2, Duplicated == TRUE)
-            df_Name4 <- filter(df_Name2, Combined == df_Name3[1, 5])
+            df_Name4 <- df_Name
+            df_Name <- filter(df_Name, Combined != "NA-NA")
+            df_Name$Duplicated <- duplicated(df_Name$Combined)
+            df_Name2 <- filter(df_Name, Duplicated == TRUE)
+            df_Name3 <- filter(df_Name, Combined == df_Name2[1, 5])
             
-            if (df_Name4[1,10] > df_Name4[2,10]) {
+            if (df_Name3[1,10] > df_Name3[2,10]) {
                 
                 #Peaks are compared based on UV count first.
                 #The peak with the lowest UV count is removed.
-                
-                Bad_Peak <- df_Name4[2,2]
-                
-            }   else if (df_Name4[1,10] < df_Name4[2,10]) {
-                Bad_Peak <- df_Name4[1,2]
-                
-            }   else if (df_Name4[1,11] < df_Name4[2,11]) {
+                print("error1")
+                Bad_Peak <- df_Name3[2,2]
+                df_Name4[Bad_Peak, 5:12] <- NA
+            }   else if (df_Name3[1,10] < df_Name3[2,10]) {
+                Bad_Peak <- df_Name3[1,2]
+                df_Name4[Bad_Peak, 5:12] <- NA
+                print("error2")
+            }   else if (df_Name3[1,11] < df_Name3[2,11]) {
                 
                 #If the UV counts are equal the subtracted UV mean is compared.
                 #The peak with the highest UV mean is removed.
                 
-                Bad_Peak <- df_Name4[2,2]
+                Bad_Peak <- df_Name3[2,2]
+                df_Name4[Bad_Peak, 5:12] <- NA
+                print("error3")
             }   else {
-                Bad_Peak <- df_Name4[1,2]
+                Bad_Peak <- df_Name3[1,2]
+                df_Name4[Bad_Peak, 5:12] <- NA
+                print("error4")
             }
-            df_Name[Bad_Peak, 5:12] <- NA
-            df_Name <- select(df_Name, -Combined)
-            write.csv(df_Name, 
+            df_Name4 <- select(df_Name4, -Combined)
+            write.csv(df_Name4, 
                       paste0("Testing Broad-Scale Interactions/OutputFiles/", 
                              Coculture_Name, ".CSV"), row.names = FALSE)
             Logic_Row_No <- Logic_Row_No + 1

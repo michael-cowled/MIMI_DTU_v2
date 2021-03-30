@@ -1,7 +1,7 @@
 ---
 title: "MIMI: Microbial Interaction Metabolite Integrator"
 author: "Michael Cowled"
-date: "10/12/2020"
+date: "30/03/2021"
 output:
   html_document:
     df_print: paged
@@ -37,28 +37,30 @@ Interaction_Matrix <- read_excel("Interaction_Matrix.xlsx")
 head(Interaction_Matrix)
 ```
 
-## The core function, MIMI
+## MIMI - Script #1/2
 
 The following functions are to be pre-loaded prior to use of the main function, MIMI()
 
 1. **Read_Excel:** Reads in the NovaC files corresponding to a particular row number in the Interaction_Matrix.
-2. **UVcheck1:** Compares the top 5 UV maxima of a matched peak in CON1 and the coculture.
-3. **UVcheck2:** Compares the top 5 UV maxima of a matched peak in CON2 and the coculture.
-4. **Read_UV:** Reads in the UV spectral data (abs vs. wavelength) for the corresponding 3 samples being compared.
-5. **UVSubtract1:** Subtracts the UV spectrum of CON1 from the coculture, and takes the mean(Abs).
-6. **UVSubtract2:** Subtracts the UV spectrum of CON2 from the coculture, and takes the mean(Abs)
-7. **PeakMatcher1:** Matches and verifies peaks from CON1 to peaks in the coculture, utilising a combination of retention time, number of matching UV maxima (UVcheck1) and the means of the subtracted UV spectra (UVsubtract1).
-8. **PeakMatcher2:** Matches and verifies peaks from CON2 to peaks in the coculture, utilising a combination of retention time, number of matching UV maxima (UVcheck2) and the means of the subtracted UV spectra (UVsubtract2).
-9. **CON_Consolidator:** Consolidates the outcome table to match peaks from coculture to a single peak in a control. Compares subtracted UV spectra to make decisions based on double matching.
-10. **Effect_Categoriser:** Characterises the Peak Area ratio as an effect to the metabolite in the coculture (induction, suppression, etc.).
-11.**Simple_Effect_Characteriser:** Uses the principles of the Effect_Categoriser function to categorise based on a single PeakRatio input.
-12. **NON_UV_Peak_Matcher:** Tentatively assigns matched peaks as non UVs (or as distorted UVs) if matching the conditions.
-13. **Double_Peak_Remover:** Checks for a peak in the control being assigned to more than one peak in the coculture. Uses the number of matching UV maxima and/or the subtracted UV spectra to make decisions as to which peak is a better match.
-14. **Inhibition_Checker:** Checks if one culture is inhibited and deposits into a separate output file.
-15. **Missing_Control_Peaks:** Adds in unassigned peaks from the controls to provide a single, unified table.
+2. **UVcheck:** Compares the top 5 UV maxima of a matched peak in the control of interest and the coculture.
+3. **Read_UV:** Reads in the UV spectral data (abs vs. wavelength) for the corresponding 3 samples being compared.
+4. **UVSubtract:** Subtracts the UV spectrum of the control of interest from the coculture, and takes the mean(Abs).
+5. **PeakMatcher:** Matches and verifies peaks from the control of interest to peaks in the coculture, utilising a combination of retention time, number of matching UV maxima (UVcheck) and the means of the subtracted UV spectra (UVsubtract).
+6. **CON_Consolidator:** Consolidates the outcome table to match peaks from coculture to a single peak in a control. Compares subtracted UV spectra to make decisions based on double matching.
+7. **Effect_Categoriser:** Characterises the Peak Area ratio as an effect to the metabolite in the coculture (induction, suppression, etc.).
+
+## MIMI - Script #2/2
+
+The following functions are to be pre-loaded prior to use of the main function, MIMI2()
+
+1. **Simple_Effect_Characteriser:** Uses the principles of the Effect_Categoriser function to categorise based on a single PeakRatio input.
+2. **NON_UV_Peak_Matcher:** Tentatively assigns matched peaks as non UVs (or as distorted UVs) if matching the conditions.
+3. **Double_Peak_Remover:** Checks for a peak in the control being assigned to more than one peak in the coculture. Uses the number of matching UV maxima and/or the subtracted UV spectra to make decisions as to which peak is a better match.
+4. **Inhibition_Checker:** Checks if one culture is inhibited and deposits into a separate output file.
+5. **Missing_Control_Peaks:** Adds in unassigned peaks from the controls to provide a single, unified table.
 
 Please see the full script to load in the whole suite of functions and review annotations for extra details.
-The final main function, **MIMI**, combines the use of all 12 functions in providing the final tidied output files.
+The final main functions, **MIMI()** and **MIMI2()**, combines the use of all 12 functions in providing the final tidied output files.
 
 ## The output file
 
