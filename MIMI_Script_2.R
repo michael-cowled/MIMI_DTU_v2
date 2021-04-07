@@ -67,9 +67,9 @@ Double_Peak_Remover <- function(Interaction_Matrix) {
         while (Matrix_Row_No <= Matrix_TotalRows) {
             
             Coculture_Name <- as.character(Interaction_Matrix[Matrix_Row_No,3])
-            Coculture_Name2 <- setNames(data.frame(matrix(ncol = 1, nrow = 0)), 
+            Coculture_Name_List <- setNames(data.frame(matrix(ncol = 1, nrow = 0)), 
                                         c("Coculture_Name"))
-            Coculture_Name2[1,1] <- Coculture_Name
+            Coculture_Name_List[1,1] <- Coculture_Name
             df_Name <- 
                 read.csv(paste0("Testing Broad-Scale Interactions/OutputFiles/", 
                                 Coculture_Name, ".csv"))
@@ -84,11 +84,10 @@ Double_Peak_Remover <- function(Interaction_Matrix) {
             #coculture, then it will be incorporated in the logic_table
             
             if (logic == TRUE) {
-                Matrix_Row_No <- Matrix_Row_No +1
             } else {
-                Logic_Table <- rbind(Logic_Table, Coculture_Name2)
-                Matrix_Row_No <- Matrix_Row_No +1
+                Logic_Table <- rbind(Logic_Table, Coculture_Name_List)
             }
+            Matrix_Row_No <- Matrix_Row_No +1
         }
         
         #Now to use the logic_table to read in the files that need fixing.
@@ -104,43 +103,36 @@ Double_Peak_Remover <- function(Interaction_Matrix) {
             #Preprocessing code to read and manipulate the file of interest
             
             Coculture_Name <- as.character(Logic_Table[Logic_Row_No,1])
-            df_Name <- 
+            df_with_double_peaks <- 
                 read.csv(paste0("Testing Broad-Scale Interactions/OutputFiles/", 
                                 Coculture_Name, ".csv"))
-            df_Name <- unite(df_Name, Combined, c(Matched_CON, PeakNo_CON), 
+            df_with_double_peaks <- unite(df_with_double_peaks, Combined, c(Matched_CON, PeakNo_CON), 
                              sep = "-", remove = FALSE)
-            df_Name4 <- df_Name
-            df_Name <- filter(df_Name, Combined != "NA-NA")
-            df_Name$Duplicated <- duplicated(df_Name$Combined)
-            df_Name2 <- filter(df_Name, Duplicated == TRUE)
-            df_Name3 <- filter(df_Name, Combined == df_Name2[1, 5])
+            df_to_manipulate <- df_with_double_peaks
+            df_with_double_peaks <- filter(df_with_double_peaks, Combined != "NA-NA")
+            df_with_double_peaks$Duplicated <- duplicated(df_with_double_peaks$Combined)
+            df_to_compare_double_peaks <- filter(df_with_double_peaks, Duplicated == TRUE)
+            df_to_compare_double_peaks <- filter(df_with_double_peaks, Combined == df_to_compare_double_peaks[1, 5])
             
-            if (df_Name3[1,10] > df_Name3[2,10]) {
+            if (df_to_compare_double_peaks[1,10] > df_to_compare_double_peaks[2,10]) {
                 
                 #Peaks are compared based on UV count first.
                 #The peak with the lowest UV count is removed.
-                print("error1")
-                Bad_Peak <- df_Name3[2,2]
-                df_Name4[Bad_Peak, 5:12] <- NA
-            }   else if (df_Name3[1,10] < df_Name3[2,10]) {
-                Bad_Peak <- df_Name3[1,2]
-                df_Name4[Bad_Peak, 5:12] <- NA
-                print("error2")
-            }   else if (df_Name3[1,11] < df_Name3[2,11]) {
+                Bad_Peak <- df_to_compare_double_peaks[2,2]
+            }   else if (df_to_compare_double_peaks[1,10] < df_to_compare_double_peaks[2,10]) {
+                Bad_Peak <- df_to_compare_double_peaks[1,2]
+            }   else if (df_to_compare_double_peaks[1,11] < df_to_compare_double_peaks[2,11]) {
                 
                 #If the UV counts are equal the subtracted UV mean is compared.
                 #The peak with the highest UV mean is removed.
                 
-                Bad_Peak <- df_Name3[2,2]
-                df_Name4[Bad_Peak, 5:12] <- NA
-                print("error3")
+                Bad_Peak <- df_to_compare_double_peaks[2,2]
             }   else {
-                Bad_Peak <- df_Name3[1,2]
-                df_Name4[Bad_Peak, 5:12] <- NA
-                print("error4")
+                Bad_Peak <- df_to_compare_double_peaks[1,2]
             }
-            df_Name4 <- select(df_Name4, -Combined)
-            write.csv(df_Name4, 
+            df_to_manipulate[Bad_Peak, 5:12] <- NA
+            df_with_double_peaks_removed <- select(df_to_manipulate, -Combined)
+            write.csv(df_with_double_peaks_removed, 
                       paste0("Testing Broad-Scale Interactions/OutputFiles/", 
                              Coculture_Name, ".CSV"), row.names = FALSE)
             Logic_Row_No <- Logic_Row_No + 1
