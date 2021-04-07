@@ -34,7 +34,7 @@ Read_Excel <- function(Excel_Name) {
     
     #Read in a df based on NovaC excel format
     raw_df <- read_excel(paste0("Testing Broad-Scale Interactions/NovaCfiles/", 
-                                 Excel_Name, ".xlsm"), skip = 3)
+                                Excel_Name, ".xlsm"), skip = 3)
     
     #A new df is set up to capture the top 5 UV maxima for each peak
     UV_df <- setNames(data.frame(matrix(ncol = 5, nrow = 0)), 
@@ -53,13 +53,13 @@ Read_Excel <- function(Excel_Name) {
             raw_UV_split <- strsplit(raw_UV_processed, "\r\n")
             raw_UV_split <- as.data.frame(raw_UV_split, col.names = "UV1")
             raw_UV_split <- separate(raw_UV_split, 'UV1', c("UV1", "UV1_percent"), 
-                                    sep = " ")
+                                     sep = " ")
             raw_UV_split <- transform(raw_UV_split, UV1_percent = as.numeric(UV1_percent))
             raw_UV_ordered <- raw_UV_split[order(raw_UV_split$UV1_percent, decreasing = TRUE),]
             
             #A second UV_df is set up to capture the UV data for a single peak 
             UV_df_peak <- setNames(data.frame(matrix(ncol = 5, nrow = 1)), 
-                               c("UV1", "UV2", "UV3", "UV4", "UV5"))
+                                   c("UV1", "UV2", "UV3", "UV4", "UV5"))
             
             #Transposes UVs into row format; more efficient method possible
             UV_df_peak[1,1] <- raw_UV_ordered[1,1]
@@ -105,7 +105,7 @@ Read_Excel <- function(Excel_Name) {
 #UV data is located in columns 5:9, hence 'CON_UV_no' and 'CC_UV_no' set to start at 5.
 
 UVCheck <- function(control, Coculture, CC_peak, CON_peak) {
-   
+    
     uvcount <- 0
     CC_UV_no <- 5 
     CON_UV_no <- 5
@@ -178,21 +178,19 @@ UVSubtract <- function(CON_UV, Coculture_UV, CC_peak, CON_peak) {
 Peak_Matcher <- function(CON, Coculture, CON_UV, Coculture_UV) {
     
     #Sets up a df to with the desired column names.
-    Coculture_df <- data.frame(PeakNo_CC = NA, RetTime_CC = NA, 
-                               PeakArea_CC = NA, PeakNo_CON = NA, 
-                               RetTime_CON = NA, PeakArea_CON = NA,
-                               UV_Count_CON = NA, 
-                               Subtracted_UV_Mean_CON = NA, 
-                               PeakRatio_CON = NA)
+    Coculture_df <- setNames(data.frame(matrix(ncol = 9, nrow = 0)), 
+                             c("PeakNo_CC", "RetTime_CC", "PeakArea_CC", "PeakNo_CON", 
+                               "RetTime_CON", "PeakArea_CON", "UV_Count_CON",
+                               "Subtracted_UV_Mean_CON", "PeakRatio_CON"))
     
     n <- nrow(Coculture)
     CC_peak <- 1
     
     #'CC_peak' corresponds to the peak no. to be compared in the coculture
     
-    while (CC_peak< n + 1) {
+    while (CC_peak < n + 1) {
         CON_peak <- which(abs(CON$RetTime-Coculture$RetTime[CC_peak]) ==
-                       min(abs(CON$RetTime-Coculture$RetTime[CC_peak])))
+                              min(abs(CON$RetTime-Coculture$RetTime[CC_peak])))
         
         #'CON_peak' finds the peak in CON1 with the closest ret-time to peak 'CC_peak'
         
@@ -424,10 +422,6 @@ MIMI <- function() {
         Coculture_df2 <- Peak_Matcher(CON2, Coculture, CON2_UV, Coculture_UV)
         Coculture_df_merged <- cbind(Coculture_df, Coculture_df2[, 4:9])
         
-        #Removes the first arbitrary row of missing values
-        
-        Coculture_df_merged <- Coculture_df_merged[2:nrow(Coculture_df_merged), ]
-        
         #Performs a function to correct for double peak matching to a unique
         #peak to peaks from more than one CON
         
@@ -448,6 +442,7 @@ MIMI <- function() {
         
         Refined_Coculture_df <- 
             Effect_Categoriser(Refined_Coculture_df, Coculture_Name)
+        names(Refined_Coculture_df)[2:4] <- c("PeakNo_CC", "RetTime_CC", "PeakArea_CC")
         
         #Rewrites the tidied dataset to a csv file
         
