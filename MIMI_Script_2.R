@@ -319,11 +319,9 @@ Missing_Control_Peaks <- function(Interaction_Matrix) {
         CC_peak <- 1
         
         #Sequentially checks CON1 for peak 'CC_peak' in coculture output file
-        
+
         while (CC_peak <= n) {
-            
             if (any(df_Name[,5] == paste0(CON1_Name, "-", CC_peak), na.rm = TRUE)) {
-                CC_peak <- CC_peak + 1    
             }   else if (any(df_Name[,5] != paste0(CON1_Name, "-", CC_peak), 
                              na.rm = TRUE)) {
                 df_Name <- rbind(df_Name, 
@@ -343,9 +341,7 @@ Missing_Control_Peaks <- function(Interaction_Matrix) {
         CC_peak <- 1
         
         while (CC_peak <= n) {
-            
             if (any(df_Name[,5] == paste0(CON2_Name, "-", CC_peak), na.rm = TRUE)) {
-                CC_peak <- CC_peak + 1    
             }   else if (any(df_Name[,5] != paste0(CON2_Name, "-", CC_peak), 
                              na.rm = TRUE)) {
                 df_Name <- rbind(df_Name, 
@@ -357,10 +353,8 @@ Missing_Control_Peaks <- function(Interaction_Matrix) {
                                    PeakArea_CON = CON2$Area[CC_peak], 
                                    UV_Count = NA, Subtracted_UV_Mean = NA, 
                                    PeakRatio = -100, Metabolite_Effect = 1))
-                CC_peak <- CC_peak + 1
-            }   else {
-                CC_peak <- CC_peak + 1
-            }
+            }   
+            CC_peak <- CC_peak + 1
         }
         df_Name <- select(df_Name, -Combined)
         
