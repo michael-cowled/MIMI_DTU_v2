@@ -15,36 +15,36 @@ library(readxl)
 
 #Functions to be pre-loaded prior to use of the main function, MIMI()
 #1.SimpleEffectCategoriser
-#2.DoublePeakRemover
-#3.NonUVPeakMatcher
+#2.RemoveDoubleyAssignedPeaks
+#3.MatchNonUVs
 #4.InhibitionChecker
-#5.MissingControlPeaks
+#5.FindMissingControlPeaks
 
 #Note: Some functions as part of this script rely on functions from MIMI_Script_1.
 
 #Reading in the functions:
 
 #############################################
-#1.Simple Metabolite Effect Characteriser:
+#1.SimpleEffectCategoriser:
 #############################################
 
 #This is a simple version of the effect categoriser with a single ratio input
 
 SimpleEffectCategoriser <- function(ratio) {
     if (ratio > -100 && ratio <= 20) {
-        Effect <- 2
+        effect <- 2
     }   else if (ratio > -20 && ratio < 20) {
-        Effect <- 3
+        effect <- 3
     }   else if (ratio >= 20 && ratio < 100) {
-        Effect <- 4
+        effect <- 4
     }   else if (ratio >= 100) {
-        Effect <- 5
+        effect <- 5
     }
-    return(Effect)
+    return(effect)
 }
 
 #############################################
-#2.DoublePeakRemover: Removes doubley-assigned peaks from a control.
+#2.RemoveDoubleyAssignedPeaks: Removes doubley-assigned peaks from a control.
 #############################################
 
 #An example is that perhaps the peaks 1 and 2 from the coculture match to
@@ -53,61 +53,61 @@ SimpleEffectCategoriser <- function(ratio) {
 #This function will determine which peak from the control matches closest
 #and remove the assignment for the weakest match.
 
-DoublePeakRemover <- function(Interaction_Matrix) {
+RemoveDoubleyAssignedPeaks <- function(Interaction_Matrix) {
     
-    Logic.Total.Rows <- 1
+    logic.total.rows <- 1
     
-    while (Logic.Total.Rows > 0) {
+    while (logic.total.rows > 0) {
         
-        Matrix.Total.Rows <- nrow(Interaction_Matrix)
-        Matrix.Row.no <- 1
-        Logic.Table <- setNames(data.frame(matrix(ncol = 1, nrow = 0)),
-                                c("CC.Name"))
+        matrix.total.rows <- nrow(Interaction_Matrix)
+        matrix.row.no <- 1
+        logic.table <- setNames(data.frame(matrix(ncol = 1, nrow = 0)),
+                                c("cc.name"))
         
         #A df is set up to list the instances where double-peak matching occurs.
         
-        while (Matrix.Row.no <= Matrix.Total.Rows) {
+        while (matrix.row.no <= matrix.total.rows) {
             
-            CC.Name <- as.character(Interaction_Matrix[Matrix.Row.no,3])
-            CC.Name.List <- setNames(data.frame(matrix(ncol = 1, nrow = 0)), 
-                                        c("CC.Name"))
-            CC.Name.List[1,1] <- CC.Name
-            df.Name <- 
+            cc.name <- as.character(Interaction_Matrix[matrix.row.no,3])
+            cc.name.list <- setNames(data.frame(matrix(ncol = 1, nrow = 0)), 
+                                        c("cc.name"))
+            cc.name.list[1,1] <- cc.name
+            df.name <- 
                 read.csv(paste0("Testing Broad-Scale Interactions/OutputFiles/", 
-                                CC.Name, ".csv"))
-            df.Name <- unite(df.Name, Combined, c(Matched_CON, PeakNo_CON), 
+                                cc.name, ".csv"))
+            df.name <- unite(df.name, Combined, c(Matched_CON, PeakNo_CON), 
                              sep = "-", remove = FALSE)
-            df.Name <- filter(df.Name, Combined !="NA-NA")
-            logic <- length(unique(df.Name$Combined)) == nrow(df.Name)
+            df.name <- filter(df.name, Combined !="NA-NA")
+            logic <- length(unique(df.name$Combined)) == nrow(df.name)
             
             #Compares the no. of unique peaks assigned in the control
             
             #If the no. of unique peaks differs to the no. of peaks in the
-            #coculture, then it will be incorporated in the Logic.Table
+            #coculture, then it will be incorporated in the logic.table
             
             if (logic == TRUE) {
             } else {
-                Logic.Table <- rbind(Logic.Table, CC.Name.List)
+                logic.table <- rbind(logic.table, cc.name.list)
             }
-            Matrix.Row.no <- Matrix.Row.no +1
+            matrix.row.no <- matrix.row.no +1
         }
         
-        #Now to use the Logic.Table to read in the files that need fixing.
+        #Now to use the logic.table to read in the files that need fixing.
         
         #Note: Only 1 peak is fixed at a time, and so will go back through
-        #and regenerate the Logic.Table and check if more peaks need fixing.
+        #and regenerate the logic.table and check if more peaks need fixing.
         
-        Logic.Total.Rows <- nrow(Logic.Table)
-        Logic.Row.no <- 1
+        logic.total.rows <- nrow(logic.table)
+        logic.row.no <- 1
 
-        while (Logic.Row.no <= Logic.Total.Rows) {
+        while (logic.row.no <= logic.total.rows) {
             
             #Preprocessing code to read and manipulate the file of interest
             
-            CC.Name <- as.character(Logic.Table[Logic.Row.no,1])
+            cc.name <- as.character(logic.table[logic.row.no,1])
             df.with.double.peaks <- 
                 read.csv(paste0("Testing Broad-Scale Interactions/OutputFiles/", 
-                                CC.Name, ".csv"))
+                                cc.name, ".csv"))
             df.with.double.peaks <- unite(df.with.double.peaks, Combined, c(Matched_CON, PeakNo_CON), 
                              sep = "-", remove = FALSE)
             df.to.manipulate <- df.with.double.peaks
@@ -120,124 +120,124 @@ DoublePeakRemover <- function(Interaction_Matrix) {
                 
                 #Peaks are compared based on UV count first.
                 #The peak with the lowest UV count is removed.
-                Bad.Peak <- df.to.compare.double.peaks[2,2]
+                bad.peak <- df.to.compare.double.peaks[2,2]
             }   else if (df.to.compare.double.peaks[1,10] < df.to.compare.double.peaks[2,10]) {
-                Bad.Peak <- df.to.compare.double.peaks[1,2]
+                bad.peak <- df.to.compare.double.peaks[1,2]
             }   else if (df.to.compare.double.peaks[1,11] < df.to.compare.double.peaks[2,11]) {
                 
                 #If the UV counts are equal the subtracted UV mean is compared.
                 #The peak with the highest UV mean is removed.
                 
-                Bad.Peak <- df.to.compare.double.peaks[2,2]
+                bad.peak <- df.to.compare.double.peaks[2,2]
             }   else {
-                Bad.Peak <- df.to.compare.double.peaks[1,2]
+                bad.peak <- df.to.compare.double.peaks[1,2]
             }
-            df.to.manipulate[Bad.Peak, 5:12] <- NA
+            df.to.manipulate[bad.peak, 5:12] <- NA
             df.with.double.peaks_removed <- select(df.to.manipulate, -Combined)
             write.csv(df.with.double.peaks_removed, 
                       paste0("Testing Broad-Scale Interactions/OutputFiles/", 
-                             CC.Name, ".CSV"), row.names = FALSE)
-            Logic.Row.no <- Logic.Row.no + 1
+                             cc.name, ".CSV"), row.names = FALSE)
+            logic.row.no <- logic.row.no + 1
         }
     }
 }
 
 #############################################
-#3.NON_UV Peak Matcher: Further assigns peaks based on weaker criteria.
+#3.MatchNonUVs: Further assigns peaks based on weaker criteria.
 #############################################
 
-NonUVMatcher <- function(Interaction_Matrix) {
+MatchNonUVs <- function(Interaction_Matrix) {
     
-    Matrix.Total.Rows <- nrow(Interaction_Matrix)
-    Matrix.Row.no <- 1
+    matrix.total.rows <- nrow(Interaction_Matrix)
+    matrix.row.no <- 1
     
-    while (Matrix.Row.no <= Matrix.Total.Rows) {
+    while (matrix.row.no <= matrix.total.rows) {
         
         #Reads in the first coculture output file to be amended.
         #Reads in the the corresponding CON files from raw NovaC.
         
-        CON1.Name <- as.character(Interaction_Matrix[Matrix.Row.no,1])
-        CON2.Name <- as.character(Interaction_Matrix[Matrix.Row.no,2])
-        CC.Name <- as.character(Interaction_Matrix[Matrix.Row.no,3])
-        df.Name <- 
+        con1.name <- as.character(Interaction_Matrix[matrix.row.no,1])
+        con2.name <- as.character(Interaction_Matrix[matrix.row.no,2])
+        cc.name <- as.character(Interaction_Matrix[matrix.row.no,3])
+        df.name <- 
             read.csv(paste0("Testing Broad-Scale Interactions/OutputFiles/", 
-                            CC.Name, ".csv"))
-        CON1 <- as.data.frame(ReadExcel(CON1.Name))
-        CON2 <- as.data.frame(ReadExcel(CON2.Name))
-        Coculture <- as.data.frame(ReadExcel(CC.Name))
+                            cc.name, ".csv"))
+        con1 <- as.data.frame(ReadExcel(con1.name))
+        con2 <- as.data.frame(ReadExcel(con2.name))
+        coculture <- as.data.frame(ReadExcel(cc.name))
         
-        Matrix.Row.no <- Matrix.Row.no + 1
-        n <- nrow(df.Name)
-        CC.peak <- 1
+        matrix.row.no <- matrix.row.no + 1
+        n <- nrow(df.name)
+        cc.peak <- 1
         
-        #'CC.peak' corresponds to the peak no. to be matched in the coculture
+        #'cc.peak' corresponds to the peak no. to be matched in the coculture
         #This is a second set of peak matching that improves on the first round.
         
-        while (CC.peak < n+1) {
-            CON1.peak <- which(abs(CON1$RetTime-Coculture$RetTime[CC.peak]) ==
-                            min(abs(CON1$RetTime-Coculture$RetTime[CC.peak])))
-            CON2.peak <- which(abs(CON2$RetTime-Coculture$RetTime[CC.peak]) ==
-                            min(abs(CON2$RetTime-Coculture$RetTime[CC.peak])))
-            Final.Count.1 <- UVcheck(CON1, Coculture, CC.peak, CON1.peak)
-            Final.Count.2 <- UVCheck(CON2, Coculture, CC.peak, CON2.peak)
-            if (!is.na(df.Name$Matched_CON[CC.peak]) | 
-                (any(df.Name[,7] == CON1$RetTime[CON1.peak], na.rm = TRUE)) |
-                (any(df.Name[,7] == CON2$RetTime[CON2.peak], na.rm = TRUE))) {
+        while (cc.peak < n+1) {
+           con1.peak <- which(abs(con1$RetTime-coculture$RetTime[cc.peak]) ==
+                            min(abs(con1$RetTime-coculture$RetTime[cc.peak])))
+           con2.peak <- which(abs(con2$RetTime-coculture$RetTime[cc.peak]) ==
+                            min(abs(con2$RetTime-coculture$RetTime[cc.peak])))
+            final.count.1 <- UVcheck(con1, coculture, cc.peak,con1.peak)
+            final.count.2 <- UVCheck(con2, coculture, cc.peak,con2.peak)
+            if (!is.na(df.name$Matched_CON[cc.peak]) | 
+                (any(df.name[,7] ==con1$RetTime[con1.peak], na.rm = TRUE)) |
+                (any(df.name[,7] ==con2$RetTime[con2.peak], na.rm = TRUE))) {
                 
                 #Checks for peak matching already, and skips to the next peak.
 
-            }   else if (Coculture$RetTime[CC.peak] < (CON1$RetTime[CON1.peak] + 0.05) && 
-                         Coculture$RetTime[CC.peak] > (CON1$RetTime[CON1.peak] -0.05) &&
-                         Final.Count.1 < 2)    {
+            }   else if (coculture$RetTime[cc.peak] < (con1$RetTime[con1.peak] + 0.05) && 
+                         coculture$RetTime[cc.peak] > (con1$RetTime[con1.peak] -0.05) &&
+                         final.count.1 < 2)    {
                 
-                #Checks if the closest match in CON1 satisfies this test.
+                #Checks if the closest match incon1 satisfies this test.
                 
-                CON.peak <- CON1.peak
-                ratio = (((Coculture[CC.peak,3] - CON1[CON.peak,3])/CON1[CON.peak,3])*100)
-                Effect <- SimpleEffectCategoriser(ratio)
+                con.peak <-con1.peak
+                ratio = (((coculture[cc.peak,3] -con1[con.peak,3])/con1[con.peak,3])*100)
+                effect <- SimpleEffectCategoriser(ratio)
                 
                 #Assignments of the matched peak
                 
-                df.Name$Matched_CON[CC.peak] <- CON1.Name
-                df.Name$PeakNo_CON[CC.peak] <- CON1$Peak[CON.peak]
-                df.Name$RetTime_CON[CC.peak] <- CON1$RetTime[CON.peak]
-                df.Name$PeakArea_CON[CC.peak] <- CON1$Area[CON.peak]
-                df.Name$UV_Count[CC.peak] <- Final.Count.1
-                df.Name$PeakRatio[CC.peak] <- ratio
-                df.Name$Metabolite_Effect[CC.peak] <- Effect
+                df.name$Matched_CON[cc.peak] <-con1.name
+                df.name$PeakNo_CON[cc.peak] <-con1$Peak[con.peak]
+                df.name$RetTime_CON[cc.peak] <-con1$RetTime[con.peak]
+                df.name$PeakArea_CON[cc.peak] <-con1$Area[con.peak]
+                df.name$UV_Count[cc.peak] <- final.count.1
+                df.name$PeakRatio[cc.peak] <- ratio
+                df.name$Metabolite_effect[cc.peak] <- effect
                 
-            }   else if (Coculture$RetTime[CC.peak] < (CON2$RetTime[CON2.peak] + 0.05) && 
-                         Coculture$RetTime[CC.peak] > (CON2$RetTime[CON2.peak] -0.05) &&
-                         Final.Count.2 < 2)    {
-                CON.peak <- CON2.peak
-                ratio = (((Coculture[CC.peak,3] - CON2[CON.peak,3])/CON2[CON.peak,3])*100)
-                Effect <- SimpleEffectCategoriser(ratio)
-                df.Name$Matched_CON[CC.peak] <- CON2.Name
-                df.Name$PeakNo_CON[CC.peak] <- CON2$Peak[CON.peak]
-                df.Name$RetTime_CON[CC.peak] <- CON2$RetTime[CON.peak]
-                df.Name$PeakArea_CON[CC.peak] <- CON2$Area[CON.peak]
-                df.Name$UV_Count[CC.peak] <- Final.Count.2
-                df.Name$PeakRatio[CC.peak] <- ratio
-                df.Name$Metabolite_Effect[CC.peak] <- Effect
+            }   else if (coculture$RetTime[cc.peak] < (con2$RetTime[con2.peak] + 0.05) && 
+                         coculture$RetTime[cc.peak] > (con2$RetTime[con2.peak] -0.05) &&
+                         final.count.2 < 2)    {
+                con.peak <-con2.peak
+                ratio = (((coculture[cc.peak,3] -con2[con.peak,3])/con2[con.peak,3])*100)
+                effect <- SimpleEffectCategoriser(ratio)
+                df.name$Matched_CON[cc.peak] <-con2.name
+                df.name$PeakNo_CON[cc.peak] <-con2$Peak[con.peak]
+                df.name$RetTime_CON[cc.peak] <-con2$RetTime[con.peak]
+                df.name$PeakArea_CON[cc.peak] <-con2$Area[con.peak]
+                df.name$UV_Count[cc.peak] <- final.count.2
+                df.name$PeakRatio[cc.peak] <- ratio
+                df.name$Metabolite_effect[cc.peak] <- effect
             }    
-            CC.peak <- CC.peak + 1
+            cc.peak <- cc.peak + 1
         }
-        write.csv(df.Name, 
+        write.csv(df.name, 
                   paste0("Testing Broad-Scale Interactions/OutputFiles/", 
-                         CC.Name, ".CSV"), row.names = FALSE)
+                         cc.name, ".CSV"), row.names = FALSE)
     }
 }
 
 #############################################
-#4.Inhibition Checker: Verifies if one culture is inhibited
+#4.InhibitionChecker: Verifies if one culture is inhibited
 #############################################
 
-InhibitionChecker <- function(df.Name, Inhibition.df, CC.Name) {
+InhibitionChecker <- function(df.name, inhibition.df, cc.name) {
     
     #From an opened output file (might be possible just downstream of missing control peaks)
-    match <- as.data.frame(table(df.Name$Matched_CON))
+    match <- as.data.frame(table(df.name$Matched_CON))
     names(match)[2] <- 'match'
-    unmatch <- as.data.frame(table(df.Name$Sample_Ref))
+    unmatch <- as.data.frame(table(df.name$Sample_Ref))
     names(unmatch)[2] <- 'unmatch'
     combined <- merge(match, unmatch) %>%
         mutate(ratio = unmatch / match)
@@ -266,102 +266,102 @@ InhibitionChecker <- function(df.Name, Inhibition.df, CC.Name) {
     
     if (nrow(combined) > 0) {
         temp <- setNames(data.frame(matrix(ncol = 3, nrow = 1)),
-                         c("CC.Name", "Inhibition", "Dominating_Culture"))
-        combined$CC.Name <- CC.Name
+                         c("cc.name", "Inhibition", "Dominating_Culture"))
+        combined$cc.name <- cc.name
         combined$Var1 <- as.character(combined$Var1)
-        temp$CC.Name <- combined[1,6]
+        temp$cc.name <- combined[1,6]
         temp$Inhibition <- combined[1,5]
         temp$Dominating_Culture <- combined[1,1]
-        Inhibition.df <- rbind(Inhibition.df, temp)
+        inhibition.df <- rbind(inhibition.df, temp)
     }
-    return(Inhibition.df)
+    return(inhibition.df)
 }
 
 #############################################
-#5.Missing Control Peaks: Adds in the unassigned peaks from the control(s)
+#5.FindMissingControlPeaks: Adds in the unassigned peaks from the control(s)
 #############################################
 
-MissingControlPeaks <- function(Interaction_Matrix) {
+FindMissingControlPeaks <- function(Interaction_Matrix) {
     
     #Makes a new table that is used in InhibitionChecker function:
-    Inhibition.df <- setNames(data.frame(matrix(ncol = 3, nrow = 0)),
-                              c("CC.Name", "Inhibition", "Inhibited_Culture"))
+    inhibition.df <- setNames(data.frame(matrix(ncol = 3, nrow = 0)),
+                              c("cc.name", "Inhibition", "Inhibited_Culture"))
     
-    Matrix.Total.Rows <- nrow(Interaction_Matrix)
-    Matrix.Row.no <- 1
+    matrix.total.rows <- nrow(Interaction_Matrix)
+    matrix.row.no <- 1
     
-    while (Matrix.Row.no <= Matrix.Total.Rows) {
+    while (matrix.row.no <= matrix.total.rows) {
         
         #Reads in the first coculture output file to be amended.
         #Reads in the the corresponding CON files from raw NovaC.
         
-        CON1.Name <- as.character(Interaction_Matrix[Matrix.Row.no,1])
-        CON2.Name <- as.character(Interaction_Matrix[Matrix.Row.no,2])
-        CC.Name <- as.character(Interaction_Matrix[Matrix.Row.no,3])
-        df.Name <- 
+       con1.name <- as.character(Interaction_Matrix[matrix.row.no,1])
+       con2.name <- as.character(Interaction_Matrix[matrix.row.no,2])
+        cc.name <- as.character(Interaction_Matrix[matrix.row.no,3])
+        df.name <- 
             read.csv(paste0("Testing Broad-Scale Interactions/OutputFiles/", 
-                            CC.Name, ".csv"))
+                            cc.name, ".csv"))
         
-        df.Name$Sample_Ref <- as.character(df.Name$Sample_Ref)
-        df.Name <- unite(df.Name, Combined, c(Matched_CON, PeakNo_CON), 
+        df.name$Sample_Ref <- as.character(df.name$Sample_Ref)
+        df.name <- unite(df.name, Combined, c(Matched_CON, PeakNo_CON), 
                          sep = "-", remove = FALSE)
-        CON1 <- as.data.frame(ReadExcel(CON1.Name))
-        CON2 <- as.data.frame(ReadExcel(CON2.Name))
+       con1 <- as.data.frame(ReadExcel(con1.name))
+       con2 <- as.data.frame(ReadExcel(con2.name))
         
-        Matrix.Row.no <- Matrix.Row.no + 1
-        n <- nrow(CON1)
-        CC.peak <- 1
+        matrix.row.no <- matrix.row.no + 1
+        n <- nrow(con1)
+        cc.peak <- 1
         
-        #Sequentially checks CON1 for peak 'CC.peak' in coculture output file
+        #Sequentially checkscon1 for peak 'cc.peak' in coculture output file
 
-        while (CC.peak <= n) {
-            if (any(df.Name[,5] == paste0(CON1.Name, "-", CC.peak), na.rm = TRUE)) {
-            }   else if (any(df.Name[,5] != paste0(CON1.Name, "-", CC.peak), 
+        while (cc.peak <= n) {
+            if (any(df.name[,5] == paste0(con1.name, "-", cc.peak), na.rm = TRUE)) {
+            }   else if (any(df.name[,5] != paste0(con1.name, "-", cc.peak), 
                              na.rm = TRUE)) {
-                df.Name <- rbind(df.Name, 
-                                 c(Sample_Ref = CON1.Name, PeakNo_CC = NA, 
+                df.name <- rbind(df.name, 
+                                 c(Sample_Ref =con1.name, PeakNo_CC = NA, 
                                    RetTime_CC = NA, PeakArea_CC = NA, 
                                    Combined = NA, MAtched_CON = NA, 
-                                   PeakNo_CON = CON1$Peak[CC.peak], 
-                                   RetTime_CON = CON1$RetTime[CC.peak], 
-                                   PeakArea_CON = CON1$Area[CC.peak], 
+                                   PeakNo_CON =con1$Peak[cc.peak], 
+                                   RetTime_CON =con1$RetTime[cc.peak], 
+                                   PeakArea_CON =con1$Area[cc.peak], 
                                    UV_Count = NA, Subtracted_UV_Mean = NA, 
-                                   PeakRatio = -100, Metabolite_Effect = 1))
+                                   PeakRatio = -100, Metabolite_effect = 1))
             }
-            CC.peak <- CC.peak + 1 
+            cc.peak <- cc.peak + 1 
         }
         
-        n <- nrow(CON2)
-        CC.peak <- 1
+        n <- nrow(con2)
+        cc.peak <- 1
         
-        while (CC.peak <= n) {
-            if (any(df.Name[,5] == paste0(CON2.Name, "-", CC.peak), na.rm = TRUE)) {
-            }   else if (any(df.Name[,5] != paste0(CON2.Name, "-", CC.peak), 
+        while (cc.peak <= n) {
+            if (any(df.name[,5] == paste0(con2.name, "-", cc.peak), na.rm = TRUE)) {
+            }   else if (any(df.name[,5] != paste0(con2.name, "-", cc.peak), 
                              na.rm = TRUE)) {
-                df.Name <- rbind(df.Name, 
-                                 c(Sample_Ref = CON2.Name, PeakNo_CC = NA, 
+                df.name <- rbind(df.name, 
+                                 c(Sample_Ref =con2.name, PeakNo_CC = NA, 
                                    RetTime_CC = NA, PeakArea_CC = NA,
                                    Combined = NA, MAtched_CON = NA, 
-                                   PeakNo_CON = CON2$Peak[CC.peak], 
-                                   RetTime_CON = CON2$RetTime[CC.peak], 
-                                   PeakArea_CON = CON2$Area[CC.peak], 
+                                   PeakNo_CON =con2$Peak[cc.peak], 
+                                   RetTime_CON =con2$RetTime[cc.peak], 
+                                   PeakArea_CON =con2$Area[cc.peak], 
                                    UV_Count = NA, Subtracted_UV_Mean = NA, 
-                                   PeakRatio = -100, Metabolite_Effect = 1))
+                                   PeakRatio = -100, Metabolite_effect = 1))
             }   
-            CC.peak <- CC.peak + 1
+            cc.peak <- cc.peak + 1
         }
-        df.Name <- select(df.Name, -Combined)
+        df.name <- select(df.name, -Combined)
         
         #Space to include function to identify inhibition
-        Inhibition.df <- InhibitionChecker(df.Name, Inhibition.df, 
-                                            CC.Name)
-        write.csv(df.Name, 
+        inhibition.df <- InhibitionChecker(df.name, inhibition.df, 
+                                            cc.name)
+        write.csv(df.name, 
                   paste0("Testing Broad-Scale Interactions/OutputFiles/", 
-                         CC.Name, ".CSV"), row.names = FALSE)
+                         cc.name, ".CSV"), row.names = FALSE)
     }
-    Inhibition.df <- transform(Inhibition.df, Inhibition = as.logical(Inhibition))
-    write.csv(Inhibition.df, 
-              paste0("Testing Broad-Scale Interactions/OutputFiles/Inhibition.df.CSV"), 
+    inhibition.df <- transform(inhibition.df, Inhibition = as.logical(Inhibition))
+    write.csv(inhibition.df, 
+              paste0("Testing Broad-Scale Interactions/OutputFiles/inhibition.df.CSV"), 
               row.names = FALSE)
 }
 
@@ -370,19 +370,19 @@ MissingControlPeaks <- function(Interaction_Matrix) {
 #############################################
 
 #Carries out the last two functions:
-#1.DoublePeakRemover: Multiple peaks in a coculture matched to the same
+#1.RemoveDoubleyAssignedPeaks: Multiple peaks in a coculture matched to the same
 #unique peak of a control
-#2.MissingControlPeaks: Unique peaks from control(s) not matched to a peak
+#2.FindMissingControlPeaks: Unique peaks from control(s) not matched to a peak
 #in the coculture, are added into a single, unified df
 
 MIMI2 <- function() {  
     
-print("Initiating DoublePeakRemover")
-DoublePeakRemover(Interaction_Matrix)
-print("Initiating NonUVMatcher")
-NonUVMatcher(Interaction_Matrix)
-print("Initiating MissingControlPeaks")
-MissingControlPeaks(Interaction_Matrix)
+print("Initiating RemoveDoubleyAssignedPeaks")
+RemoveDoubleyAssignedPeaks(Interaction_Matrix)
+print("Initiating MatchNonUVs")
+MatchNonUVs(Interaction_Matrix)
+print("Initiating FindMissingControlPeaks")
+FindMissingControlPeaks(Interaction_Matrix)
 print("MIMI2 completed.")
 
 }
