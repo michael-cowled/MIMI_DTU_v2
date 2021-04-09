@@ -1,34 +1,52 @@
+##########################################################
+##########################################################
+# Microbial Interaction Metabolite Integrator - Script 2 #
+##########################################################
+##########################################################
+
+# COPYWRIGHT: © Macquarie University - Michael Cowled and contributors [2021]
+
+# INPUT: The output file from Script_1 is used as the input file for Script_2.
+
+# OUTPUT: A refined output file (.csv) is generated that remove doubley assigned 
+# peaks, identifies non UVs and adds in peaks belonging to the control(s).
+
+
+# The same R packages required of MIMI_Script_1 are required here.
+
+#------------------------------------------------------------------------------#
+
+# Functions to be pre-loaded prior to use of the main function, MIMI2()
+
+# 1.SimpleEffectCategoriser - Uses the principles of the EffectCategoriser 
+# function to categorise based on a single PeakRatio input.
+
+# 2.RemoveDoubleyAssignedPeaks -Checks for a peak in the control being assigned 
+# to more than one peak in the coculture. Uses the number of matching UV maxima 
+# and/or the subtracted UV spectra to make decisions as to which peak is a better 
+# match.
+
+# 3.MatchNonUVs - - Tentatively assigns matched peaks as non UVs 
+# (or as distorted UVs) if matching the conditions.
+
+ 
+# 4.InhibitionChecker - Checks if one culture is inhibited and deposits into a 
+# separate output file.
+
+# 5.FindMissingcontrolPeaks - Adds in unassigned peaks from the controls to 
+# provide a single, unified table.
+
+#------------------------------------------------------------------------------#
+
+# Note: Some functions as part of this script rely on functions from MIMI_Script_1.
+
+# Reading in the functions:
+
 #############################################
-#############################################
-#Microbial Interaction Metabolite Integrator#
-#############################################
+# 1.SimpleEffectCategoriser:
 #############################################
 
-#A Matrix defined as Interaction_Matrix is required to be made with the THREE
-#samples to be compared.
-
-#R packages required to be loaded in:
-
-library(dplyr)
-library(tidyr)
-library(readxl)
-
-#Functions to be pre-loaded prior to use of the main function, MIMI()
-#1.SimpleEffectCategoriser
-#2.RemoveDoubleyAssignedPeaks
-#3.MatchNonUVs
-#4.InhibitionChecker
-#5.FindMissingcontrolPeaks
-
-#Note: Some functions as part of this script rely on functions from MIMI_Script_1.
-
-#Reading in the functions:
-
-#############################################
-#1.SimpleEffectCategoriser:
-#############################################
-
-#This is a simple version of the Effect categoriser with a single ratio input
+# This is a simple version of the Effect categoriser with a single ratio input
 
 SimpleEffectCategoriser <- function(ratio) {
     if (ratio > -100 && ratio <= 20) {
@@ -44,14 +62,14 @@ SimpleEffectCategoriser <- function(ratio) {
 }
 
 #############################################
-#2.RemoveDoubleyAssignedPeaks: Removes doubley-assigned peaks from a control.
+# 2.RemoveDoubleyAssignedPeaks: Removes doubley-assigned peaks from a control.
 #############################################
 
-#An example is that perhaps the peaks 1 and 2 from the coculture match to
-#twice to peak 1 in the control.
+# An example is that perhaps the peaks 1 and 2 from the coculture match to
+# twice to peak 1 in the control.
 
-#This function will determine which peak from the control matches closest
-#and remove the assignment for the weakest match.
+# This function will determine which peak from the control matches closest
+# and remove the assignment for the weakest match.
 
 RemoveDoubleyAssignedPeaks <- function(Interaction_Matrix) {
     
@@ -64,7 +82,7 @@ RemoveDoubleyAssignedPeaks <- function(Interaction_Matrix) {
         logic.table <- setNames(data.frame(matrix(ncol = 1, nrow = 0)),
                                 c("cc.name"))
         
-        #A df is set up to list the instances where double-peak matching occurs.
+        # A df is set up to list the instances where double-peak matching occurs.
         
         while (matrix.row.no <= matrix.total.rows) {
             
@@ -80,10 +98,10 @@ RemoveDoubleyAssignedPeaks <- function(Interaction_Matrix) {
             df.name <- filter(df.name, Combined !="NA-NA")
             logic <- length(unique(df.name$Combined)) == nrow(df.name)
             
-            #Compares the no. of unique peaks assigned in the control
+            # Compares the no. of unique peaks assigned in the control
             
-            #If the no. of unique peaks differs to the no. of peaks in the
-            #coculture, then it will be incorporated in the logic.table
+            # If the no. of unique peaks differs to the no. of peaks in the
+            # coculture, then it will be incorporated in the logic.table
             
             if (logic == TRUE) {
             } else {
@@ -92,10 +110,10 @@ RemoveDoubleyAssignedPeaks <- function(Interaction_Matrix) {
             matrix.row.no <- matrix.row.no +1
         }
         
-        #Now to use the logic.table to read in the files that need fixing.
+        # Now to use the logic.table to read in the files that need fixing.
         
-        #Note: Only 1 peak is fixed at a time, and so will go back through
-        #and regenerate the logic.table and check if more peaks need fixing.
+        # Note: Only 1 peak is fixed at a time, and so will go back through
+        # and regenerate the logic.table and check if more peaks need fixing.
         
         logic.total.rows <- nrow(logic.table)
         logic.row.no <- 1
@@ -120,15 +138,15 @@ RemoveDoubleyAssignedPeaks <- function(Interaction_Matrix) {
             
             if (double.peaks.subset[1, 10] > double.peaks.subset[2, 10]) {
                 
-                #Peaks are compared based on UV count first.
-                #The peak with the lowest UV count is removed.
+                # Peaks are compared based on UV count first.
+                # The peak with the lowest UV count is removed.
                 bad.peak <- double.peaks.subset[2, 2]
             }   else if (double.peaks.subset[1, 10] < double.peaks.subset[2, 10]) {
                 bad.peak <- double.peaks.subset[1, 2]
             }   else if (double.peaks.subset[1, 11] < double.peaks.subset[2, 11]) {
                 
-                #If the UV counts are equal the subtracted UV mean is compared.
-                #The peak with the highest UV mean is removed.
+                # If the UV counts are equal the subtracted UV mean is compared.
+                # The peak with the highest UV mean is removed.
                 
                 bad.peak <- double.peaks.subset[2, 2]
             }   else {
@@ -145,7 +163,7 @@ RemoveDoubleyAssignedPeaks <- function(Interaction_Matrix) {
 }
 
 #############################################
-#3.MatchNonUVs: Further assigns peaks based on weaker criteria.
+# 3.MatchNonUVs: Further assigns peaks based on weaker criteria.
 #############################################
 
 MatchNonUVs <- function(Interaction_Matrix) {
@@ -155,8 +173,8 @@ MatchNonUVs <- function(Interaction_Matrix) {
     
     while (matrix.row.no <= matrix.total.rows) {
         
-        #Reads in the first coculture output file to be amended.
-        #Reads in the the corresponding con files from raw NovaC.
+        # Reads in the first coculture output file to be amended.
+        # Reads in the the corresponding con files from raw NovaC.
         
         con1.name <- as.character(Interaction_Matrix[matrix.row.no, 1])
         con2.name <- as.character(Interaction_Matrix[matrix.row.no, 2])
@@ -172,8 +190,8 @@ MatchNonUVs <- function(Interaction_Matrix) {
         n <- nrow(df.name)
         cc.peak <- 1
         
-        #'cc.peak' corresponds to the peak no. to be matched in the coculture
-        #This is a second set of peak matching that improves on the first round.
+        # 'cc.peak' corresponds to the peak no. to be matched in the coculture
+        # This is a second set of peak matching that improves on the first round.
         
         while (cc.peak < n+1) {
             con1.peak <- which(abs(con1$RetTime-cc$RetTime[cc.peak]) ==
@@ -186,20 +204,20 @@ MatchNonUVs <- function(Interaction_Matrix) {
                 (any(df.name[, 7] ==con1$RetTime[con1.peak], na.rm = TRUE)) |
                 (any(df.name[, 7] ==con2$RetTime[con2.peak], na.rm = TRUE))) {
                 
-                #Checks for peak matching already, and skips to the next peak.
+                # Checks for peak matching already, and skips to the next peak.
                 
             }   else if (cc$RetTime[cc.peak] < (con1$RetTime[con1.peak] + 0.05) && 
                          cc$RetTime[cc.peak] > (con1$RetTime[con1.peak] -0.05) &&
                          final.count.1 < 2)    {
                 
-                #Checks if the closest match incon1 satisfies this test.
+                # Checks if the closest match incon1 satisfies this test.
                 
                 con.peak <-con1.peak
                 ratio = (((cc[cc.peak, 3] -con1[con.peak, 3]) 
                           / con1[con.peak, 3]) * 100)
                 Effect <- SimpleEffectCategoriser(ratio)
                 
-                #Assignments of the matched peak
+                # Assignments of the matched peak
                 
                 df.name$Matched_con[cc.peak] <-con1.name
                 df.name$PeakNo_con[cc.peak] <-con1$Peak[con.peak]
@@ -233,7 +251,7 @@ MatchNonUVs <- function(Interaction_Matrix) {
 }
 
 #############################################
-#4.InhibitionChecker: Verifies if one culture is inhibited
+# 4.InhibitionChecker: Verifies if one culture is inhibited
 #############################################
 
 InhibitionChecker <- function(df.name, inhibition.df, cc.name) {
@@ -247,7 +265,7 @@ InhibitionChecker <- function(df.name, inhibition.df, cc.name) {
     combined <- merge(match, unmatch) %>%
         mutate(ratio = unmatch / match)
     
-    #Then verify whether inhibition of control indicated
+    # Then verify whether inhibition of control indicated
     
     if (nrow(combined) == 0) {
         combined <- match
@@ -283,12 +301,12 @@ InhibitionChecker <- function(df.name, inhibition.df, cc.name) {
 }
 
 #############################################
-#5.FindMissingcontrolPeaks: Adds in the unassigned peaks from the control(s)
+# 5.FindMissingcontrolPeaks: Adds in the unassigned peaks from the control(s)
 #############################################
 
 FindMissingcontrolPeaks <- function(Interaction_Matrix) {
     
-    #Makes a new table that is used in InhibitionChecker function:
+    # Makes a new table that is used in InhibitionChecker function:
     inhibition.df <- setNames(data.frame(matrix(ncol = 3, nrow = 0)),
                               c("cc.name", "Inhibition", "Inhibited_Culture"))
     
@@ -297,8 +315,8 @@ FindMissingcontrolPeaks <- function(Interaction_Matrix) {
     
     while (matrix.row.no <= matrix.total.rows) {
         
-        #Reads in the first coculture output file to be amended.
-        #Reads in the the corresponding con files from raw NovaC.
+        # Reads in the first coculture output file to be amended.
+        # Reads in the the corresponding con files from raw NovaC.
         
         con1.name <- as.character(Interaction_Matrix[matrix.row.no, 1])
         con2.name <- as.character(Interaction_Matrix[matrix.row.no, 2])
@@ -317,7 +335,7 @@ FindMissingcontrolPeaks <- function(Interaction_Matrix) {
         n <- nrow(con1)
         cc.peak <- 1
         
-        #Sequentially checkscon1 for peak 'cc.peak' in coculture output file
+        # Sequentially checkscon1 for peak 'cc.peak' in coculture output file
         
         while (cc.peak <= n) {
             if (any(df.name[, 5] == paste0(con1.name, "-", cc.peak), na.rm = TRUE)) {
@@ -357,7 +375,7 @@ FindMissingcontrolPeaks <- function(Interaction_Matrix) {
         }
         df.name <- select(df.name, -Combined)
         
-        #Space to include function to identify inhibition
+        # Space to include function to identify inhibition
         inhibition.df <- InhibitionChecker(df.name, inhibition.df, 
                                            cc.name)
         write.csv(df.name, 
@@ -371,14 +389,14 @@ FindMissingcontrolPeaks <- function(Interaction_Matrix) {
 }
 
 #############################################
-#MIMI_Part_2: Carries out the main dereplication processes
+# MIMI_Part_2: Carries out the main dereplication processes
 #############################################
 
-#Carries out the last two functions:
-#1.RemoveDoubleyAssignedPeaks: Multiple peaks in a coculture matched to the same
-#unique peak of a control
-#2.FindMissingcontrolPeaks: Unique peaks from control(s) not matched to a peak
-#in the coculture, are added into a single, unified df
+# Carries out the last two functions:
+# 1.RemoveDoubleyAssignedPeaks: Multiple peaks in a coculture matched to the same
+# unique peak of a control
+# 2.FindMissingcontrolPeaks: Unique peaks from control(s) not matched to a peak
+# in the coculture, are added into a single, unified df
 
 MIMI2 <- function() {  
     
