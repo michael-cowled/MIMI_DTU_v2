@@ -14,21 +14,21 @@ library(tidyr)
 library(readxl)
 
 #Functions to be pre-loaded prior to use of the main function, MIMI()
-#1.Read_Excel
+#1.ReadExcel
 #2.UVcheck
-#3.Read_UV
+#3.ReadUV
 #4.UVSubtract
 #5.PeakMatcher
-#6.CON_Consolidator
-#7.Effect_Categoriser
+#6.CONConsolidator
+#7.EffectCategoriser
 
 #Reading in the functions:
 
 #############################################
-#1.Read_Excel: Creates 3 data frames for the 3 samples to be compared.
+#1.ReadExcel: Creates 3 data frames for the 3 samples to be compared.
 #############################################
 
-Read_Excel <- function(Excel_Name) {
+ReadExcel <- function(Excel_Name) {
     
     #Input is Excel_Name which is read from the Interaction_Matrix object
     
@@ -133,20 +133,20 @@ UVCheck <- function(control, Coculture, CC_peak, CON_peak) {
 }
 
 #############################################
-#3.Read_UV Function: Reads in the raw UV data for every wavelength
+#3.ReadUV Function: Reads in the raw UV data for every wavelength
 #############################################
 
 #Input is Excel_Name which is read from the Interaction_Matrix object
 #Generates a df with col1 = Wavelength, col2 = Abs for Peak 1, etc.
 
-Read_UV <- function(Excel_Name) {
+ReadUV <- function(Excel_Name) {
     UV_Name <- read_excel(paste0("Testing Broad-Scale Interactions/NovaCfiles/",
                                  Excel_Name, ".xlsm"), sheet = "NormalisedUVVisData")
     return(UV_Name)
 }
 
 #############################################
-#4.UV Subtract: Subtracts whole UV spectra and calculates the mean for peaks 
+#4.UVSubtract: Subtracts whole UV spectra and calculates the mean for peaks 
 #in CON1/2 & Coculture
 #############################################
 
@@ -172,10 +172,10 @@ UVSubtract <- function(CON_UV, Coculture_UV, CC_peak, CON_peak) {
 }
 
 #############################################
-#5.Peak Matcher: Finds and compares the nearest matching peak in control
+#5.PeakMatcher: Finds and compares the nearest matching peak in control
 #############################################
 
-Peak_Matcher <- function(CON, Coculture, CON_UV, Coculture_UV) {
+PeakMatcher <- function(CON, Coculture, CON_UV, Coculture_UV) {
     
     #Sets up a df to with the desired column names.
     Coculture_df <- setNames(data.frame(matrix(ncol = 9, nrow = 0)), 
@@ -276,7 +276,7 @@ Peak_Matcher <- function(CON, Coculture, CON_UV, Coculture_UV) {
 }
 
 #############################################
-#6.CON Consolidator: Removes double peak matching to a coculture peak
+#6.CONConsolidator: Removes double peak matching to a coculture peak
 #############################################
 
 #The following code removes double assignments to a coculture peak
@@ -288,7 +288,7 @@ Peak_Matcher <- function(CON, Coculture, CON_UV, Coculture_UV) {
 #This function will determine which control's matched peak matches
 #closest and remove the assignment for the weakest match.
 
-CON_Consolidator <- function(Coculture_df, CON1_Name, CON2_Name) {
+CONConsolidator <- function(Coculture_df, CON1_Name, CON2_Name) {
     
     RowNo <- 1
     Rows <- nrow(Coculture_df)
@@ -347,7 +347,7 @@ CON_Consolidator <- function(Coculture_df, CON1_Name, CON2_Name) {
 #The following piece of code adds a column that categorises the peak 
 #areas into suppressions, and enhancements
 
-Effect_Categoriser <- function(Refined_Coculture_df, Coculture_Name) {
+EffectCategoriser <- function(Refined_Coculture_df, Coculture_Name) {
     
     RowNo <- 1
     Rows <- nrow(Refined_Coculture_df)
@@ -402,30 +402,30 @@ MIMI <- function() {
         Coculture_Name <- as.character(Interaction_Matrix[Matrix_Row_No,3])
         Matrix_Row_No <- Matrix_Row_No +1
         
-        #Generates 3 dataframes using the Read_Excel function for the first
+        #Generates 3 dataframes using the ReadExcel function for the first
         #interction to be investigated from the Interaction_Matrix
         
-        CON1 <- as.data.frame(Read_Excel(CON1_Name))
-        CON2 <- as.data.frame(Read_Excel(CON2_Name))
-        Coculture <- as.data.frame(Read_Excel(Coculture_Name))
+        CON1 <- as.data.frame(ReadExcel(CON1_Name))
+        CON2 <- as.data.frame(ReadExcel(CON2_Name))
+        Coculture <- as.data.frame(ReadExcel(Coculture_Name))
         
-        #Generates 3 dataframes using the Read_UV function
+        #Generates 3 dataframes using the ReadUV function
         
-        CON1_UV <- as.data.frame(Read_UV(CON1_Name))
-        CON2_UV <- as.data.frame(Read_UV(CON2_Name))
-        Coculture_UV <- as.data.frame(Read_UV(Coculture_Name))
+        CON1_UV <- as.data.frame(ReadUV(CON1_Name))
+        CON2_UV <- as.data.frame(ReadUV(CON2_Name))
+        Coculture_UV <- as.data.frame(ReadUV(Coculture_Name))
         
         #Runs the peak matching algorithm for CON1 and CON2 separately.
         #Then merges the two together into a unified df.
         
-        Coculture_df <- Peak_Matcher(CON1, Coculture, CON1_UV, Coculture_UV)
-        Coculture_df2 <- Peak_Matcher(CON2, Coculture, CON2_UV, Coculture_UV)
+        Coculture_df <- PeakMatcher(CON1, Coculture, CON1_UV, Coculture_UV)
+        Coculture_df2 <- PeakMatcher(CON2, Coculture, CON2_UV, Coculture_UV)
         Coculture_df_merged <- cbind(Coculture_df, Coculture_df2[, 4:9])
         
         #Performs a function to correct for double peak matching to a unique
         #peak to peaks from more than one CON
         
-        MatchedPeak_df <- CON_Consolidator(Coculture_df_merged, CON1_Name, CON2_Name)
+        MatchedPeak_df <- CONConsolidator(Coculture_df_merged, CON1_Name, CON2_Name)
         
         #Final processing steps in creating the tidied df (Refined_Coculture_df)
         
@@ -441,7 +441,7 @@ MIMI <- function() {
         #and adds this into the tidied data set
         
         Refined_Coculture_df <- 
-            Effect_Categoriser(Refined_Coculture_df, Coculture_Name)
+            EffectCategoriser(Refined_Coculture_df, Coculture_Name)
         names(Refined_Coculture_df)[2:4] <- c("PeakNo_CC", "RetTime_CC", "PeakArea_CC")
         
         #Rewrites the tidied dataset to a csv file

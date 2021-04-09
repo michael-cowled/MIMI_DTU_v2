@@ -14,11 +14,13 @@ library(tidyr)
 library(readxl)
 
 #Functions to be pre-loaded prior to use of the main function, MIMI()
-#1.Simple_Effect_Categoriser
-#1.Double_Peak_Remover
-#2.NON_UV_Peak_Matcher
-#3.Inhibition_Checker
-#4.Missing_Control_Peaks
+#1.SimpleEffectCategoriser
+#2.DoublePeakRemover
+#3.NON_UV_Peak_Matcher
+#4.Inhibition_Checker
+#5.MissingControlPeaks
+
+#Note: Some functions as part of this script rely on functions from MIMI_Script_1.
 
 #Reading in the functions:
 
@@ -28,7 +30,7 @@ library(readxl)
 
 #This is a simple version of the effect categoriser with a single ratio input
 
-Simple_Effect_Categoriser <- function(ratio) {
+SimpleEffectCategoriser <- function(ratio) {
     if (ratio > -100 && ratio <= 20) {
         Effect <- 2
     }   else if (ratio > -20 && ratio < 20) {
@@ -42,7 +44,7 @@ Simple_Effect_Categoriser <- function(ratio) {
 }
 
 #############################################
-#2.Double Peak Remover: Removes doubley-assigned peaks from a control.
+#2.DoublePeakRemover: Removes doubley-assigned peaks from a control.
 #############################################
 
 #An example is that perhaps the peaks 1 and 2 from the coculture match to
@@ -51,7 +53,7 @@ Simple_Effect_Categoriser <- function(ratio) {
 #This function will determine which peak from the control matches closest
 #and remove the assignment for the weakest match.
 
-Double_Peak_Remover <- function(Interaction_Matrix) {
+DoublePeakRemover <- function(Interaction_Matrix) {
     
     Logic_TotalRows <- 1
     
@@ -144,7 +146,7 @@ Double_Peak_Remover <- function(Interaction_Matrix) {
 #3.NON_UV Peak Matcher: Further assigns peaks based on weaker criteria.
 #############################################
 
-Non_UV_Matcher <- function(Interaction_Matrix) {
+NonUVMatcher <- function(Interaction_Matrix) {
     
     Matrix_TotalRows <- nrow(Interaction_Matrix)
     Matrix_Row_No <- 1
@@ -160,9 +162,9 @@ Non_UV_Matcher <- function(Interaction_Matrix) {
         df_Name <- 
             read.csv(paste0("Testing Broad-Scale Interactions/OutputFiles/", 
                             Coculture_Name, ".csv"))
-        CON1 <- as.data.frame(Read_Excel(CON1_Name))
-        CON2 <- as.data.frame(Read_Excel(CON2_Name))
-        Coculture <- as.data.frame(Read_Excel(Coculture_Name))
+        CON1 <- as.data.frame(ReadExcel(CON1_Name))
+        CON2 <- as.data.frame(ReadExcel(CON2_Name))
+        Coculture <- as.data.frame(ReadExcel(Coculture_Name))
         
         Matrix_Row_No <- Matrix_Row_No + 1
         n <- nrow(df_Name)
@@ -192,7 +194,7 @@ Non_UV_Matcher <- function(Interaction_Matrix) {
                 
                 CON_peak <- CON1_peak
                 ratio = (((Coculture[CC_peak,3] - CON1[CON_peak,3])/CON1[CON_peak,3])*100)
-                Effect <- Simple_Effect_Categoriser(ratio)
+                Effect <- SimpleEffectCategoriser(ratio)
                 
                 #Assignments of the matched peak
                 
@@ -209,7 +211,7 @@ Non_UV_Matcher <- function(Interaction_Matrix) {
                          FinalCount2 < 2)    {
                 CON_peak <- CON2_peak
                 ratio = (((Coculture[CC_peak,3] - CON2[CON_peak,3])/CON2[CON_peak,3])*100)
-                Effect <- Simple_Effect_Categoriser(ratio)
+                Effect <- SimpleEffectCategoriser(ratio)
                 df_Name$Matched_CON[CC_peak] <- CON2_Name
                 df_Name$PeakNo_CON[CC_peak] <- CON2$Peak[CON_peak]
                 df_Name$RetTime_CON[CC_peak] <- CON2$RetTime[CON_peak]
@@ -279,7 +281,7 @@ Inhibition_Checker <- function(df_Name, Inhibition_df, Coculture_Name) {
 #5.Missing Control Peaks: Adds in the unassigned peaks from the control(s)
 #############################################
 
-Missing_Control_Peaks <- function(Interaction_Matrix) {
+MissingControlPeaks <- function(Interaction_Matrix) {
     
     #Makes a new table that is used in Inhibition_Checker function:
     Inhibition_df <- setNames(data.frame(matrix(ncol = 3, nrow = 0)),
@@ -303,8 +305,8 @@ Missing_Control_Peaks <- function(Interaction_Matrix) {
         df_Name$Sample_Ref <- as.character(df_Name$Sample_Ref)
         df_Name <- unite(df_Name, Combined, c(Matched_CON, PeakNo_CON), 
                          sep = "-", remove = FALSE)
-        CON1 <- as.data.frame(Read_Excel(CON1_Name))
-        CON2 <- as.data.frame(Read_Excel(CON2_Name))
+        CON1 <- as.data.frame(ReadExcel(CON1_Name))
+        CON2 <- as.data.frame(ReadExcel(CON2_Name))
         
         Matrix_Row_No <- Matrix_Row_No + 1
         n <- nrow(CON1)
@@ -368,19 +370,19 @@ Missing_Control_Peaks <- function(Interaction_Matrix) {
 #############################################
 
 #Carries out the last two functions:
-#1.Double_Peak_Remover: Multiple peaks in a coculture matched to the same
+#1.DoublePeakRemover: Multiple peaks in a coculture matched to the same
 #unique peak of a control
-#2.Missing_Control_Peaks: Unique peaks from control(s) not matched to a peak
+#2.MissingControlPeaks: Unique peaks from control(s) not matched to a peak
 #in the coculture, are added into a single, unified df
 
 MIMI2 <- function() {  
     
-print("Initiating Double_Peak_Remover")
-Double_Peak_Remover(Interaction_Matrix)
-print("Initiating Non_UV_Matcher")
-Non_UV_Matcher(Interaction_Matrix)
-print("Initiating Missing_Control_Peaks")
-Missing_Control_Peaks(Interaction_Matrix)
-print("MIMI_2 completed.")
+print("Initiating DoublePeakRemover")
+DoublePeakRemover(Interaction_Matrix)
+print("Initiating NonUVMatcher")
+NonUVMatcher(Interaction_Matrix)
+print("Initiating MissingControlPeaks")
+MissingControlPeaks(Interaction_Matrix)
+print("MIMI2 completed.")
 
 }
