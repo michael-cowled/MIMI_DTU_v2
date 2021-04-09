@@ -61,18 +61,18 @@ ReadExcel <- function(excel.name) {
             raw.uv.split <- transform(raw.uv.split, 
                                       UV1_percent = as.numeric(UV1_percent))
             raw.uv.ordered <- raw.uv.split[order(raw.uv.split$UV1_percent, 
-                                                 decreasing = TRUE),]
+                                                 decreasing = TRUE), ]
             
             #A second uv.df is set up to capture the UV data for a single peak 
             uv.df.peak <- setNames(data.frame(matrix(ncol = 5, nrow = 1)), 
                                    c("UV1", "UV2", "UV3", "UV4", "UV5"))
             
             #Transposes UVs into row format; more efficient method possible
-            uv.df.peak[1,1] <- raw.uv.ordered[1,1]
-            uv.df.peak[1,2] <- raw.uv.ordered[2,1]
-            uv.df.peak[1,3] <- raw.uv.ordered[3,1]
-            uv.df.peak[1,4] <- raw.uv.ordered[4,1]
-            uv.df.peak[1,5] <- raw.uv.ordered[5,1]
+            uv.df.peak[1, 1] <- raw.uv.ordered[1, 1]
+            uv.df.peak[1, 2] <- raw.uv.ordered[2, 1]
+            uv.df.peak[1, 3] <- raw.uv.ordered[3, 1]
+            uv.df.peak[1, 4] <- raw.uv.ordered[4, 1]
+            uv.df.peak[1, 5] <- raw.uv.ordered[5, 1]
             
             #Lists the UV for the associated peak into the originally setup uv.df
             uv.df <- rbind(uv.df, uv.df.peak)
@@ -122,12 +122,12 @@ CheckUVCount <- function(con, cc, cc.peak, con.peak) {
             if (con.uv.no == 9)  {
                 con.uv.no <- con.uv.no + 1
                 cc.uv.no <- cc.uv.no + 1
-            }   else if (is.na(cc[cc.peak,cc.uv.no])) {
+            }   else if (is.na(cc[cc.peak, cc.uv.no])) {
                 cc.uv.no <- cc.uv.no + 1
-            }   else if (is.na(con[con.peak,con.uv.no])) {
+            }   else if (is.na(con[con.peak, con.uv.no])) {
                 con.uv.no <- con.uv.no + 1
-            }   else if (cc[cc.peak,cc.uv.no] <= con[con.peak,con.uv.no] + 2 && 
-                         cc[cc.peak,cc.uv.no] >= con[con.peak,con.uv.no] - 2) {
+            }   else if (cc[cc.peak, cc.uv.no] <= con[con.peak, con.uv.no] + 2 && 
+                         cc[cc.peak, cc.uv.no] >= con[con.peak, con.uv.no] - 2) {
                 uv.count <- uv.count + 1
                 con.uv.no <- con.uv.no + 1
             }   else {
@@ -147,7 +147,7 @@ CheckUVCount <- function(con, cc, cc.peak, con.peak) {
 
 ReadUV <- function(excel.name) {
     uv.name <- read_excel(paste0("Testing Broad-Scale Interactions/NovaCfiles/",
-                         excel.name, ".xlsm"), sheet = "NormalisedUVVisData")
+                                 excel.name, ".xlsm"), sheet = "NormalisedUVVisData")
     return(uv.name)
 }
 
@@ -160,7 +160,7 @@ ReadUV <- function(excel.name) {
 
 SubtractUV <- function(con.uv, cc.uv, cc.peak, con.peak) {
     
-    #Inputs are con1.UV and cc.uv as created from the Interaction_Matrix
+    #Inputs are con1.uv and cc.uv as created from the Interaction_Matrix
     #'cc.peak' refers to the peak no. being compared in coculture
     #'con.peak' refers to the peak no. being compared in control
     
@@ -172,7 +172,7 @@ SubtractUV <- function(con.uv, cc.uv, cc.peak, con.peak) {
     #'con.uv.no' refers to the column of abs data being compared in control
     #Note: Col2 = Peak#1, Col3 = Peak#2, etc. hence '+1'
     
-    subtracted.uv <- cc.uv[,cc.uv.no]-con.uv[,con.uv.no]
+    subtracted.uv <- cc.uv[, cc.uv.no] - con.uv[, con.uv.no]
     uv.mean <- mean(subtracted.uv)
     return(uv.mean)
 }
@@ -186,7 +186,7 @@ PeakMatcher <- function(con, coculture, con.uv, cc.uv) {
     #Sets up a df to with the desired column names.
     cc.df <- setNames(data.frame(matrix(ncol = 9, nrow = 0)), 
                       c("PeakNo_CC", "RetTime_CC", "PeakArea_CC", "PeakNo_con", 
-                        "RetTime_con", "PeakArea_con", "UV_Count_con",
+                        "RetTime_con", "PeakArea_con", "UV_Count_con", 
                         "Subtracted_UV_Mean_con", "PeakRatio_con"))
     
     n <- nrow(coculture)
@@ -195,12 +195,13 @@ PeakMatcher <- function(con, coculture, con.uv, cc.uv) {
     #'cc.peak' corresponds to the peak no. to be compared in the coculture
     
     while (cc.peak < n + 1) {
-        con.peak <- which(abs(con$RetTime-coculture$RetTime[cc.peak]) ==
-                              min(abs(con$RetTime-coculture$RetTime[cc.peak])))
+        con.peak <- which(abs(con$RetTime - coculture$RetTime[cc.peak]) ==
+                              min(abs(con$RetTime - coculture$RetTime[cc.peak])))
         
         #'con.peak' finds the peak in con1 with the closest RetTime to peak 'cc.peak'
         
-        ratio = (((coculture[cc.peak,3] - con[con.peak,3])/con[con.peak,3])*100) 
+        ratio <- (((coculture[cc.peak, 3] - con[con.peak, 3]) / 
+                       con[con.peak,3]) * 100) 
         
         #Computes the ratio of peak areas as a %
         
@@ -210,7 +211,7 @@ PeakMatcher <- function(con, coculture, con.uv, cc.uv) {
         #Performs both the CheckUVCount and SubtractUV functions
         
         if (coculture$RetTime[cc.peak] < (con$RetTime[con.peak] + 0.15) && 
-            coculture$RetTime[cc.peak] > (con$RetTime[con.peak] -0.15) &&
+            coculture$RetTime[cc.peak] > (con$RetTime[con.peak] - 0.15) &&
             (final.count > 2 || abs(uv.mean) < 1.5)) {
             
             #Checks if the ret.time is within 0.15 min of each other
@@ -301,19 +302,16 @@ conconsolidator <- function(cc.df, con1.Name, con2.Name) {
     
     #sets up a new tidier version of the df
     
-    matched.peak.df <- setNames(data.frame(matrix(ncol = 7, 
-                                                  nrow = nrow(cc.df))), 
+    matched.peak.df <- setNames(data.frame(matrix(ncol = 7, nrow = nrow(cc.df))), 
                                 c("Matched_con", "PeakNo_con", "RetTime_con", 
                                   "PeakArea_con", "UV_Count", 
                                   "Subtracted_uv.mean", "PeakRatio"))
     
     while (row.no <= total.rows + 1) {
-        if (is.na(cc.df[row.no, 4]) && 
-            is.na(cc.df[row.no, 10])) {
+        if (is.na(cc.df[row.no, 4]) && is.na(cc.df[row.no, 10])) {
         }   else if (!is.na(cc.df[row.no, 4]) && 
                      !is.na(cc.df[row.no, 10] && 
-                            abs(cc.df[row.no, 8]) < 
-                            abs(cc.df[row.no, 14]))) { 
+                     abs(cc.df[row.no, 8]) < abs(cc.df[row.no, 14]))) { 
             
             #When there are two peaks matched (!is.na for both),
             #the uv.means are compared, with the higher removed.
@@ -322,8 +320,7 @@ conconsolidator <- function(cc.df, con1.Name, con2.Name) {
             matched.peak.df[row.no, 2:7] <- cc.df[row.no, 4:9]
         }   else if (!is.na(cc.df[row.no, 4]) && 
                      !is.na(cc.df[row.no, 10] && 
-                            abs(cc.df[row.no, 8]) > 
-                            abs(cc.df[row.no, 14]))) { 
+                     abs(cc.df[row.no, 8]) > abs(cc.df[row.no, 14]))) { 
             matched.peak.df[row.no, 1] <- con2.Name
             matched.peak.df[row.no, 2:7] <- cc.df[row.no, 10:15]
         }   else if (is.na(cc.df[row.no, 10]))   {
@@ -385,8 +382,7 @@ EffectCategoriser <- function(refined.cc.df, CC.Name) {
         }
         row.no <- row.no + 1
     }
-    refined.cc.df <- 
-        cbind(refined.cc.df, metabolite.effect.df)
+    refined.cc.df <- cbind(refined.cc.df, metabolite.effect.df)
     return(refined.cc.df)
 }
 
@@ -403,10 +399,10 @@ MIMI <- function() {
     
     while (matrix.row.no <= matrix.total.rows) {
         
-        con1.Name <- as.character(Interaction_Matrix[matrix.row.no,1])
-        con2.Name <- as.character(Interaction_Matrix[matrix.row.no,2])
-        CC.Name <- as.character(Interaction_Matrix[matrix.row.no,3])
-        matrix.row.no <- matrix.row.no +1
+        con1.Name <- as.character(Interaction_Matrix[matrix.row.no, 1])
+        con2.Name <- as.character(Interaction_Matrix[matrix.row.no, 2])
+        CC.Name <- as.character(Interaction_Matrix[matrix.row.no, 3])
+        matrix.row.no <- matrix.row.no + 1
         
         #Generates 3 dataframes using the ReadExcel function for the first
         #interction to be investigated from the Interaction_Matrix
@@ -417,15 +413,15 @@ MIMI <- function() {
         
         #Generates 3 dataframes using the ReadUV function
         
-        con1.UV <- as.data.frame(ReadUV(con1.Name))
-        con2.UV <- as.data.frame(ReadUV(con2.Name))
+        con1.uv <- as.data.frame(ReadUV(con1.Name))
+        con2.uv <- as.data.frame(ReadUV(con2.Name))
         cc.uv <- as.data.frame(ReadUV(CC.Name))
         
         #Runs the peak matching algorithm for con1 and con2 separately.
         #Then merges the two together into a unified df.
         
-        cc.df <- PeakMatcher(con1, coculture, con1.UV, cc.uv)
-        cc.df2 <- PeakMatcher(con2, coculture, con2.UV, cc.uv)
+        cc.df <- PeakMatcher(con1, coculture, con1.uv, cc.uv)
+        cc.df2 <- PeakMatcher(con2, coculture, con2.uv, cc.uv)
         cc.df.merged <- cbind(cc.df, cc.df2[, 4:9])
         
         #Performs a function to correct for double peak matching to a unique
