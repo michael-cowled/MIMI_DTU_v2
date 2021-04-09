@@ -22,75 +22,79 @@ library(readxl)
 #6.CONConsolidator
 #7.EffectCategoriser
 
+#Special Terms:
+#1. CC - Coculture: the duoculture of two organisms grown together.
+#2. CON - Control: the axenic monoculture of one of the organisms.
+
 #Reading in the functions:
 
 #############################################
 #1.ReadExcel: Creates 3 data frames for the 3 samples to be compared.
 #############################################
 
-ReadExcel <- function(Excel_Name) {
+ReadExcel <- function(Excel.Name) {
     
-    #Input is Excel_Name which is read from the Interaction_Matrix object
+    #Input is Excel.Name which is read from the Interaction_Matrix object
     
     #Read in a df based on NovaC excel format
-    raw_df <- read_excel(paste0("Testing Broad-Scale Interactions/NovaCfiles/", 
-                                Excel_Name, ".xlsm"), skip = 3)
+    raw.df <- read_excel(paste0("Testing Broad-Scale Interactions/NovaCfiles/", 
+                                Excel.Name, ".xlsm"), skip = 3)
     
     #A new df is set up to capture the top 5 UV maxima for each peak
-    UV_df <- setNames(data.frame(matrix(ncol = 5, nrow = 0)), 
+    UV.df <- setNames(data.frame(matrix(ncol = 5, nrow = 0)), 
                       c("UV1", "UV2", "UV3", "UV4", "UV5"))
     
     #The following extracts and sorts the top 5 UV maxima from each peak
-    n <- nrow(raw_df)
-    CC_peak<- 1
-    while (CC_peak<= n) {
-        if (!is.na(raw_df$'UV Peaks')) {
-            raw_UV <-raw_df$`UV Peaks`[[CC_peak]]
-            raw_UV_processed <- gsub("\\(","", raw_UV)
-            raw_UV_processed <- gsub("\\)","", raw_UV_processed)
-            raw_UV_processed <- gsub("< 190","", raw_UV_processed)
-            raw_UV_processed <- gsub("s","", raw_UV_processed)
-            raw_UV_split <- strsplit(raw_UV_processed, "\r\n")
-            raw_UV_split <- as.data.frame(raw_UV_split, col.names = "UV1")
-            raw_UV_split <- separate(raw_UV_split, 'UV1', c("UV1", "UV1_percent"), 
+    n <- nrow(raw.df)
+    CC.peak <- 1
+    while (CC.peak <= n) {
+        if (!is.na(raw.df$'UV Peaks')) {
+            raw.UV <-raw.df$`UV Peaks`[[CC.peak]]
+            raw.UV.processed <- gsub("\\(","", raw.UV)
+            raw.UV.processed <- gsub("\\)","", raw.UV.processed)
+            raw.UV.processed <- gsub("< 190","", raw.UV.processed)
+            raw.UV.processed <- gsub("s","", raw.UV.processed)
+            raw.UV.split <- strsplit(raw.UV.processed, "\r\n")
+            raw.UV.split <- as.data.frame(raw.UV.split, col.names = "UV1")
+            raw.UV.split <- separate(raw.UV.split, 'UV1', c("UV1", "UV1_percent"), 
                                      sep = " ")
-            raw_UV_split <- transform(raw_UV_split, UV1_percent = as.numeric(UV1_percent))
-            raw_UV_ordered <- raw_UV_split[order(raw_UV_split$UV1_percent, decreasing = TRUE),]
+            raw.UV.split <- transform(raw.UV.split, UV1_percent = as.numeric(UV1_percent))
+            raw.UV.ordered <- raw.UV.split[order(raw.UV.split$UV1_percent, decreasing = TRUE),]
             
-            #A second UV_df is set up to capture the UV data for a single peak 
-            UV_df_peak <- setNames(data.frame(matrix(ncol = 5, nrow = 1)), 
+            #A second UV.df is set up to capture the UV data for a single peak 
+            UV.df.peak <- setNames(data.frame(matrix(ncol = 5, nrow = 1)), 
                                    c("UV1", "UV2", "UV3", "UV4", "UV5"))
             
             #Transposes UVs into row format; more efficient method possible
-            UV_df_peak[1,1] <- raw_UV_ordered[1,1]
-            UV_df_peak[1,2] <- raw_UV_ordered[2,1]
-            UV_df_peak[1,3] <- raw_UV_ordered[3,1]
-            UV_df_peak[1,4] <- raw_UV_ordered[4,1]
-            UV_df_peak[1,5] <- raw_UV_ordered[5,1]
+            UV.df.peak[1,1] <- raw.UV.ordered[1,1]
+            UV.df.peak[1,2] <- raw.UV.ordered[2,1]
+            UV.df.peak[1,3] <- raw.UV.ordered[3,1]
+            UV.df.peak[1,4] <- raw.UV.ordered[4,1]
+            UV.df.peak[1,5] <- raw.UV.ordered[5,1]
             
-            #Lists the UV for the associated peak into the originally setup UV_df
-            UV_df <- rbind(UV_df, UV_df_peak)
+            #Lists the UV for the associated peak into the originally setup UV.df
+            UV.df <- rbind(UV.df, UV.df.peak)
             
         }   else {
             
             #Lists the UVs as nothing instead
-            UV_df_peak <- c(NA, NA, NA, NA, NA)
-            UV_df <- rbind(UV_df, UV_df_peak)
+            UV.df.peak <- c(NA, NA, NA, NA, NA)
+            UV.df <- rbind(UV.df, UV.df.peak)
             
         }   
-        CC_peak<- CC_peak+ 1
+        CC.peak <- CC.peak + 1
     }
     
-    #UV_df is added onto the loaded raw_df object, correlating peaks with UV
-    names(UV_df) <- c("UV1", "UV2", "UV3", "UV4", "UV5")   
-    UV_df <- transform(UV_df, UV1 = as.numeric(UV1))
-    UV_df <- transform(UV_df, UV2 = as.numeric(UV2))
-    UV_df <- transform(UV_df, UV3 = as.numeric(UV3))
-    UV_df <- transform(UV_df, UV4 = as.numeric(UV4))
-    UV_df <- transform(UV_df, UV5 = as.numeric(UV5))
-    raw_df_with_sorted_UV <- cbind(raw_df, UV_df)
-    raw_df_with_sorted_UV <- select(raw_df_with_sorted_UV, 1:4, 20:24)
-    return(raw_df_with_sorted_UV)
+    #UV.df is added onto the loaded raw.df object, correlating peaks with UV
+    names(UV.df) <- c("UV1", "UV2", "UV3", "UV4", "UV5")   
+    UV.df <- transform(UV.df, UV1 = as.numeric(UV1))
+    UV.df <- transform(UV.df, UV2 = as.numeric(UV2))
+    UV.df <- transform(UV.df, UV3 = as.numeric(UV3))
+    UV.df <- transform(UV.df, UV4 = as.numeric(UV4))
+    UV.df <- transform(UV.df, UV5 = as.numeric(UV5))
+    raw.df.with.sorted.UV <- cbind(raw.df, UV.df)
+    raw.df.with.sorted.UV <- select(raw.df.with.sorted.UV, 1:4, 20:24)
+    return(raw.df.with.sorted.UV)
     
 }
 
@@ -100,49 +104,49 @@ ReadExcel <- function(Excel_Name) {
 
 #UVcheck: Comparing CON1 to coculture
 #Inputs are CON1/CON2 and coculture as read from the Interaction_Matrix
-#'CC_peak' refers to the peak no. being compared in Coculture
-#'CON_peak' refers to the peak no. being compared in control
-#UV data is located in columns 5:9, hence 'CON_UV_no' and 'CC_UV_no' set to start at 5.
+#'CC.peak' refers to the peak no. being compared in Coculture
+#'CON.peak' refers to the peak no. being compared in control
+#UV data is located in columns 5:9, hence 'CON.UV.no' and 'CC.UV.no' set to start at 5.
 
-UVCheck <- function(control, Coculture, CC_peak, CON_peak) {
+UVCheck <- function(control, Coculture, CC.peak, CON.peak) {
     
-    uvcount <- 0
-    CC_UV_no <- 5 
-    CON_UV_no <- 5
+    UV.count <- 0
+    CC.UV.no <- 5 
+    CON.UV.no <- 5
     
-    while (CC_UV_no < 10) {
-        CON_UV_no <- 5
-        while (CON_UV_no < 10 && CC_UV_no < 10) {
-            if (CON_UV_no == 9)  {
-                CON_UV_no <- CON_UV_no + 1
-                CC_UV_no <- CC_UV_no + 1
-            }   else if (is.na(Coculture[CC_peak,CC_UV_no])) {
-                CC_UV_no <- CC_UV_no + 1
-            }   else if (is.na(control[CON_peak,CON_UV_no])) {
-                CON_UV_no <- CON_UV_no + 1
-            }   else if (Coculture[CC_peak,CC_UV_no] <= control[CON_peak,CON_UV_no] + 2 && 
-                         Coculture[CC_peak,CC_UV_no] >= control[CON_peak,CON_UV_no] - 2) {
-                uvcount <- uvcount + 1
-                CON_UV_no <- CON_UV_no + 1
+    while (CC.UV.no < 10) {
+        CON.UV.no <- 5
+        while (CON.UV.no < 10 && CC.UV.no < 10) {
+            if (CON.UV.no == 9)  {
+                CON.UV.no <- CON.UV.no + 1
+                CC.UV.no <- CC.UV.no + 1
+            }   else if (is.na(Coculture[CC.peak,CC.UV.no])) {
+                CC.UV.no <- CC.UV.no + 1
+            }   else if (is.na(control[CON.peak,CON.UV.no])) {
+                CON.UV.no <- CON.UV.no + 1
+            }   else if (Coculture[CC.peak,CC.UV.no] <= control[CON.peak,CON.UV.no] + 2 && 
+                         Coculture[CC.peak,CC.UV.no] >= control[CON.peak,CON.UV.no] - 2) {
+                UV.count <- UV.count + 1
+                CON.UV.no <- CON.UV.no + 1
             }   else {
-                CON_UV_no <- CON_UV_no + 1
+                CON.UV.no <- CON.UV.no + 1
             }
         }
     }
-    return(uvcount)
+    return(UV.count)
 }
 
 #############################################
 #3.ReadUV Function: Reads in the raw UV data for every wavelength
 #############################################
 
-#Input is Excel_Name which is read from the Interaction_Matrix object
+#Input is Excel.Name which is read from the Interaction_Matrix object
 #Generates a df with col1 = Wavelength, col2 = Abs for Peak 1, etc.
 
-ReadUV <- function(Excel_Name) {
-    UV_Name <- read_excel(paste0("Testing Broad-Scale Interactions/NovaCfiles/",
-                                 Excel_Name, ".xlsm"), sheet = "NormalisedUVVisData")
-    return(UV_Name)
+ReadUV <- function(Excel.Name) {
+    UV.Name <- read_excel(paste0("Testing Broad-Scale Interactions/NovaCfiles/",
+                                 Excel.Name, ".xlsm"), sheet = "NormalisedUVVisData")
+    return(UV.Name)
 }
 
 #############################################
@@ -152,127 +156,127 @@ ReadUV <- function(Excel_Name) {
 
 #UVsubtract: Comparing control to coculture
 
-UVSubtract <- function(CON_UV, Coculture_UV, CC_peak, CON_peak) {
+UVSubtract <- function(CON.UV, CC.UV, CC.peak, CON.peak) {
     
-    #Inputs are CON1_UV and coculture_UV as created from the Interaction_Matrix
-    #'CC_peak' refers to the peak no. being compared in Coculture
-    #'CON_peak' refers to the peak no. being compared in CONtrol
+    #Inputs are CON1.UV and CC.UV as created from the Interaction_Matrix
+    #'CC.peak' refers to the peak no. being compared in Coculture
+    #'CON.peak' refers to the peak no. being compared in CONtrol
     
-    CC_UV_no <- CC_peak + 1
-    CON_UV_no <- CON_peak + 1
+    CC.UV.no <- CC.peak + 1
+    CON.UV.no <- CON.peak + 1
     
     #Subtracts absorbances at each wavelength and calculates the column mean
-    #'CC_UV_no' refers to the column of abs data being compared in Coculture
-    #'CON_UV_no' refers to the column of abs data being compared in control
+    #'CC.UV.no' refers to the column of abs data being compared in Coculture
+    #'CON.UV.no' refers to the column of abs data being compared in control
     #Note: Col2 = Peak#1, Col3 = Peak#2, etc. hence '+1'
     
-    SubtractedUV <- Coculture_UV[,CC_UV_no]-CON_UV[,CON_UV_no]
-    UV_Mean <- mean(SubtractedUV)
-    return(UV_Mean)
+    SubtractedUV <- CC.UV[,CC.UV.no]-CON.UV[,CON.UV.no]
+    UV.Mean <- mean(SubtractedUV)
+    return(UV.Mean)
 }
 
 #############################################
 #5.PeakMatcher: Finds and compares the nearest matching peak in control
 #############################################
 
-PeakMatcher <- function(CON, Coculture, CON_UV, Coculture_UV) {
+PeakMatcher <- function(CON, Coculture, CON.UV, CC.UV) {
     
     #Sets up a df to with the desired column names.
-    Coculture_df <- setNames(data.frame(matrix(ncol = 9, nrow = 0)), 
+    CC.df <- setNames(data.frame(matrix(ncol = 9, nrow = 0)), 
                              c("PeakNo_CC", "RetTime_CC", "PeakArea_CC", "PeakNo_CON", 
                                "RetTime_CON", "PeakArea_CON", "UV_Count_CON",
                                "Subtracted_UV_Mean_CON", "PeakRatio_CON"))
     
     n <- nrow(Coculture)
-    CC_peak <- 1
+    CC.peak <- 1
     
-    #'CC_peak' corresponds to the peak no. to be compared in the coculture
+    #'CC.peak' corresponds to the peak no. to be compared in the coculture
     
-    while (CC_peak < n + 1) {
-        CON_peak <- which(abs(CON$RetTime-Coculture$RetTime[CC_peak]) ==
-                              min(abs(CON$RetTime-Coculture$RetTime[CC_peak])))
+    while (CC.peak < n + 1) {
+        CON.peak <- which(abs(CON$RetTime-Coculture$RetTime[CC.peak]) ==
+                              min(abs(CON$RetTime-Coculture$RetTime[CC.peak])))
         
-        #'CON_peak' finds the peak in CON1 with the closest ret-time to peak 'CC_peak'
+        #'CON.peak' finds the peak in CON1 with the closest ret-time to peak 'CC.peak'
         
-        ratio = (((Coculture[CC_peak,3] - CON[CON_peak,3])/CON[CON_peak,3])*100) 
+        ratio = (((Coculture[CC.peak,3] - CON[CON.peak,3])/CON[CON.peak,3])*100) 
         
         #Computes the ratio of peak areas as a %
         
-        FinalCount <- UVcheck(CON, Coculture, CC_peak, CON_peak)
-        UV_Mean <- UVSubtract(CON_UV, Coculture_UV, CC_peak, CON_peak)
+        Final.Count <- UVcheck(CON, Coculture, CC.peak, CON.peak)
+        UV.Mean <- UVSubtract(CON.UV, CC.UV, CC.peak, CON.peak)
         
         #Performs both the UVcheck and UVsubtract functions
         
-        if (Coculture$RetTime[CC_peak] < (CON$RetTime[CON_peak] + 0.15) && 
-            Coculture$RetTime[CC_peak] > (CON$RetTime[CON_peak] -0.15) &&
-            (FinalCount > 2 || abs(UV_Mean) < 1.5)) {
+        if (Coculture$RetTime[CC.peak] < (CON$RetTime[CON.peak] + 0.15) && 
+            Coculture$RetTime[CC.peak] > (CON$RetTime[CON.peak] -0.15) &&
+            (Final.Count > 2 || abs(UV.Mean) < 1.5)) {
             
             #Checks if the ret.time is within 0.15 min of each other
-            #Checks the UVcount is at least 3 OR UV_Mean < 1.5
+            #Checks the UV.count is at least 3 OR UV.Mean < 1.5
             #If satisfied, the peak is declared a match and added to df
             
-            Coculture_df <- rbind(Coculture_df, 
-                                  c(PeakNo_CC = Coculture$Peak[CC_peak], 
-                                    RetTime_CC = Coculture$RetTime[CC_peak], 
-                                    PeakArea_CC = Coculture$Area[CC_peak], 
-                                    PeakNo_CON = CON$Peak[CON_peak], 
-                                    RetTime_CON = CON$RetTime[CON_peak],
-                                    PeakArea_CON = CON$Area[CON_peak], 
-                                    UV_Count_CON = FinalCount, 
-                                    Subtracted_UV_Mean_CON = UV_Mean, 
+            CC.df <- rbind(CC.df, 
+                                  c(PeakNo_CC = Coculture$Peak[CC.peak], 
+                                    RetTime_CC = Coculture$RetTime[CC.peak], 
+                                    PeakArea_CC = Coculture$Area[CC.peak], 
+                                    PeakNo_CON = CON$Peak[CON.peak], 
+                                    RetTime_CON = CON$RetTime[CON.peak],
+                                    PeakArea_CON = CON$Area[CON.peak], 
+                                    UV_Count_CON = Final.Count, 
+                                    Subtracted_UV_Mean_CON = UV.Mean, 
                                     PeakRatio_CON = ratio))
             
-        }    else if (Coculture$RetTime[CC_peak] < (CON$RetTime[CON_peak] + 0.15) && 
-                      Coculture$RetTime[CC_peak] > (CON$RetTime[CON_peak] -0.15) &&
-                      FinalCount > 1 && abs(UV_Mean) < 2) {  
+        }    else if (Coculture$RetTime[CC.peak] < (CON$RetTime[CON.peak] + 0.15) && 
+                      Coculture$RetTime[CC.peak] > (CON$RetTime[CON.peak] -0.15) &&
+                      Final.Count > 1 && abs(UV.Mean) < 2) {  
             
             #Checks if the ret.time is within 0.15 min of each other
-            #Checks the UVcount is at least 2 AND UV_Mean < 2
-            #Both UVcount and UV_Mean are less strict requirement
+            #Checks the UV.count is at least 2 AND UV.Mean < 2
+            #Both UV.count and UV.Mean are less strict requirement
             #But requiring satisfaction of both adds stringency
             #If satisfied, the peak is declared a match and added to df
             
-            Coculture_df <- rbind(Coculture_df, 
-                                  c(PeakNo_CC = Coculture$Peak[CC_peak], 
-                                    RetTime_CC = Coculture$RetTime[CC_peak], 
-                                    PeakArea_CC = Coculture$Area[CC_peak], 
-                                    PeakNo_CON = CON$Peak[CON_peak], 
-                                    RetTime_CON = CON$RetTime[CON_peak],
-                                    PeakArea_CON = CON$Area[CON_peak], 
-                                    UV_Count_CON = FinalCount, 
-                                    Subtracted_UV_Mean_CON = UV_Mean, 
+            CC.df <- rbind(CC.df, 
+                                  c(PeakNo_CC = Coculture$Peak[CC.peak], 
+                                    RetTime_CC = Coculture$RetTime[CC.peak], 
+                                    PeakArea_CC = Coculture$Area[CC.peak], 
+                                    PeakNo_CON = CON$Peak[CON.peak], 
+                                    RetTime_CON = CON$RetTime[CON.peak],
+                                    PeakArea_CON = CON$Area[CON.peak], 
+                                    UV_Count_CON = Final.Count, 
+                                    Subtracted_UV_Mean_CON = UV.Mean, 
                                     PeakRatio_CON = ratio))
             
-        }    else if (Coculture$RetTime[CC_peak] < (CON$RetTime[CON_peak] + 0.05) && 
-                      Coculture$RetTime[CC_peak] > (CON$RetTime[CON_peak] -0.05) &&
-                      FinalCount > 1) {  
+        }    else if (Coculture$RetTime[CC.peak] < (CON$RetTime[CON.peak] + 0.05) && 
+                      Coculture$RetTime[CC.peak] > (CON$RetTime[CON.peak] -0.05) &&
+                      Final.Count > 1) {  
             
-            Coculture_df <- rbind(Coculture_df, 
-                                  c(PeakNo_CC = Coculture$Peak[CC_peak], 
-                                    RetTime_CC = Coculture$RetTime[CC_peak], 
-                                    PeakArea_CC = Coculture$Area[CC_peak], 
-                                    PeakNo_CON = CON$Peak[CON_peak], 
-                                    RetTime_CON = CON$RetTime[CON_peak],
-                                    PeakArea_CON = CON$Area[CON_peak], 
-                                    UV_Count_CON = FinalCount, 
-                                    Subtracted_UV_Mean_CON = UV_Mean, 
+            CC.df <- rbind(CC.df, 
+                                  c(PeakNo_CC = Coculture$Peak[CC.peak], 
+                                    RetTime_CC = Coculture$RetTime[CC.peak], 
+                                    PeakArea_CC = Coculture$Area[CC.peak], 
+                                    PeakNo_CON = CON$Peak[CON.peak], 
+                                    RetTime_CON = CON$RetTime[CON.peak],
+                                    PeakArea_CON = CON$Area[CON.peak], 
+                                    UV_Count_CON = Final.Count, 
+                                    Subtracted_UV_Mean_CON = UV.Mean, 
                                     PeakRatio_CON = ratio))
         }   else  { 
             
             #The peak is declared NOT to have a match in the control and given NA
             
-            Coculture_df <- rbind(Coculture_df, 
-                                  c(PeakNo_CC = Coculture$Peak[CC_peak], 
-                                    RetTime_CC = Coculture$RetTime[CC_peak], 
-                                    PeakArea_CC = Coculture$Area[CC_peak], 
+            CC.df <- rbind(CC.df, 
+                                  c(PeakNo_CC = Coculture$Peak[CC.peak], 
+                                    RetTime_CC = Coculture$RetTime[CC.peak], 
+                                    PeakArea_CC = Coculture$Area[CC.peak], 
                                     PeakNo_CON = NA, RetTime_CON = NA, 
                                     PeakArea_CON = NA, UV_Count_CON = NA, 
                                     Subtracted_UV_Mean_CON = NA, 
                                     PeakRatio_CON = NA))
         }   
-        CC_peak <- CC_peak + 1
+        CC.peak <- CC.peak + 1
     }
-    return(Coculture_df)
+    return(CC.df)
 }
 
 #############################################
@@ -288,56 +292,56 @@ PeakMatcher <- function(CON, Coculture, CON_UV, Coculture_UV) {
 #This function will determine which control's matched peak matches
 #closest and remove the assignment for the weakest match.
 
-CONConsolidator <- function(Coculture_df, CON1_Name, CON2_Name) {
+CONConsolidator <- function(CC.df, CON1.Name, CON2.Name) {
     
-    RowNo <- 1
-    Rows <- nrow(Coculture_df)
+    Row.no <- 1
+    Total.Rows <- nrow(CC.df)
     
     #sets up a new tidier version of the df
     
-    MatchedPeak_df <- setNames(data.frame(matrix(ncol = 7, 
-                                                 nrow = nrow(Coculture_df))), 
+    Matched.Peak.df <- setNames(data.frame(matrix(ncol = 7, 
+                                                 nrow = nrow(CC.df))), 
                                c("Matched_CON", "PeakNo_CON", "RetTime_CON", 
                                  "PeakArea_CON", "UV_Count", 
-                                 "Subtracted_UV_Mean", "PeakRatio"))
+                                 "Subtracted_UV.Mean", "PeakRatio"))
     
-    while (RowNo <= Rows+1) {
-        if (is.na(Coculture_df[RowNo, 4]) && 
-            is.na(Coculture_df[RowNo, 10])) {
-        }   else if (!is.na(Coculture_df[RowNo, 4]) && 
-                     !is.na(Coculture_df[RowNo, 10] && 
-                            abs(Coculture_df[RowNo, 8]) < 
-                            abs(Coculture_df[RowNo, 14]))) { 
+    while (Row.no <= Total.Rows + 1) {
+        if (is.na(CC.df[Row.no, 4]) && 
+            is.na(CC.df[Row.no, 10])) {
+        }   else if (!is.na(CC.df[Row.no, 4]) && 
+                     !is.na(CC.df[Row.no, 10] && 
+                            abs(CC.df[Row.no, 8]) < 
+                            abs(CC.df[Row.no, 14]))) { 
             
             #When there are two peaks matched (!is.na for both),
-            #the UV_means are compared, with the higher removed.
+            #the UV.Means are compared, with the higher removed.
             
-            MatchedPeak_df[RowNo, 1] <- CON1_Name
-            MatchedPeak_df[RowNo, 2:7] <- Coculture_df[RowNo, 4:9]
-        }   else if (!is.na(Coculture_df[RowNo, 4]) && 
-                     !is.na(Coculture_df[RowNo, 10] && 
-                            abs(Coculture_df[RowNo, 8]) > 
-                            abs(Coculture_df[RowNo, 14]))) { 
-            MatchedPeak_df[RowNo, 1] <- CON2_Name
-            MatchedPeak_df[RowNo, 2:7] <- Coculture_df[RowNo, 10:15]
-        }   else if (is.na(Coculture_df[RowNo, 10]))   {
+            Matched.Peak.df[Row.no, 1] <- CON1.Name
+            Matched.Peak.df[Row.no, 2:7] <- CC.df[Row.no, 4:9]
+        }   else if (!is.na(CC.df[Row.no, 4]) && 
+                     !is.na(CC.df[Row.no, 10] && 
+                            abs(CC.df[Row.no, 8]) > 
+                            abs(CC.df[Row.no, 14]))) { 
+            Matched.Peak.df[Row.no, 1] <- CON2.Name
+            Matched.Peak.df[Row.no, 2:7] <- CC.df[Row.no, 10:15]
+        }   else if (is.na(CC.df[Row.no, 10]))   {
             
             #If no double-peak mactching but signifies a matched CON1 peak
             #then CON1 peak set as the matched peak
             
-            MatchedPeak_df[RowNo, 1] <- CON1_Name
-            MatchedPeak_df[RowNo, 2:7] <- Coculture_df[RowNo, 4:9]
+            Matched.Peak.df[Row.no, 1] <- CON1.Name
+            Matched.Peak.df[Row.no, 2:7] <- CC.df[Row.no, 4:9]
         }   else {
             
             #If no double-peak mactching or matched CON1 peak
             #then CON2 peak set as the matched peak
             
-            MatchedPeak_df[RowNo, 1] <- CON2_Name
-            MatchedPeak_df[RowNo, 2:7] <- Coculture_df[RowNo, 10:15]
+            Matched.Peak.df[Row.no, 1] <- CON2.Name
+            Matched.Peak.df[Row.no, 2:7] <- CC.df[Row.no, 10:15]
         }
-        RowNo <- RowNo + 1
+        Row.no <- Row.no + 1
     }
-    return(MatchedPeak_df)
+    return(Matched.Peak.df)
 }
 
 #############################################
@@ -347,41 +351,41 @@ CONConsolidator <- function(Coculture_df, CON1_Name, CON2_Name) {
 #The following piece of code adds a column that categorises the peak 
 #areas into suppressions, and enhancements
 
-EffectCategoriser <- function(Refined_Coculture_df, Coculture_Name) {
+EffectCategoriser <- function(Refined.CC.df, CC.Name) {
     
-    RowNo <- 1
-    Rows <- nrow(Refined_Coculture_df)
+    Row.no <- 1
+    Total.Rows <- nrow(Refined.CC.df)
     
     #A df is created to list the effects corresponding to matched peaks
     
-    Metabolite_effect_df <- setNames(data.frame(matrix(ncol=1, nrow=Rows)), 
+    Metabolite.Effect.df <- setNames(data.frame(matrix(ncol=1, nrow=Total.Rows)), 
                                      c("Metabolite_Effect"))
     
-    while (RowNo <= Rows) {
-        if (Refined_Coculture_df[RowNo, 1] == Coculture_Name && 
-            is.na(Refined_Coculture_df[RowNo, 11])) {
-            Metabolite_effect_df[RowNo, 1] <- 6 #Induction
-        }   else if (Refined_Coculture_df[RowNo, 1] == Coculture_Name && 
-                     Refined_Coculture_df[RowNo, 11] > -100
-                     && Refined_Coculture_df[RowNo, 11] <= -20) {
-            Metabolite_effect_df[RowNo, 1] <- 2 #Suppression
-        }   else if (Refined_Coculture_df[RowNo, 1] == Coculture_Name && 
-                     Refined_Coculture_df[RowNo, 11] > -20
-                     && Refined_Coculture_df[RowNo, 11] < 20) {
-            Metabolite_effect_df[RowNo, 1] <- 3 #Little to No Change
-        }   else if (Refined_Coculture_df[RowNo, 1] == Coculture_Name && 
-                     Refined_Coculture_df[RowNo, 11] >= 20
-                     && Refined_Coculture_df[RowNo, 11] < 100) {
-            Metabolite_effect_df[RowNo, 1] <- 4 #Enhancement
-        }   else if (Refined_Coculture_df[RowNo, 1] == Coculture_Name && 
-                     Refined_Coculture_df[RowNo, 11] >= 100) {
-            Metabolite_effect_df[RowNo, 1] <- 5 #Major Enhancement
+    while (Row.no <= Total.Rows) {
+        if (Refined.CC.df[Row.no, 1] == CC.Name && 
+            is.na(Refined.CC.df[Row.no, 11])) {
+            Metabolite.Effect.df[Row.no, 1] <- 6 #Induction
+        }   else if (Refined.CC.df[Row.no, 1] == CC.Name && 
+                     Refined.CC.df[Row.no, 11] > -100
+                     && Refined.CC.df[Row.no, 11] <= -20) {
+            Metabolite.Effect.df[Row.no, 1] <- 2 #Suppression
+        }   else if (Refined.CC.df[Row.no, 1] == CC.Name && 
+                     Refined.CC.df[Row.no, 11] > -20
+                     && Refined.CC.df[Row.no, 11] < 20) {
+            Metabolite.Effect.df[Row.no, 1] <- 3 #Little to No Change
+        }   else if (Refined.CC.df[Row.no, 1] == CC.Name && 
+                     Refined.CC.df[Row.no, 11] >= 20
+                     && Refined.CC.df[Row.no, 11] < 100) {
+            Metabolite.Effect.df[Row.no, 1] <- 4 #Enhancement
+        }   else if (Refined.CC.df[Row.no, 1] == CC.Name && 
+                     Refined.CC.df[Row.no, 11] >= 100) {
+            Metabolite.Effect.df[Row.no, 1] <- 5 #Major Enhancement
         }
-        RowNo <- RowNo + 1
+        Row.no <- Row.no + 1
     }
-    Refined_Coculture_df <- 
-        cbind(Refined_Coculture_df, Metabolite_effect_df)
-    return(Refined_Coculture_df)
+    Refined.CC.df <- 
+        cbind(Refined.CC.df, Metabolite.Effect.df)
+    return(Refined.CC.df)
 }
 
 #############################################
@@ -392,63 +396,63 @@ MIMI <- function() {
     
     #Will not work unless Interaction_Matrix object created by the user.
     
-    Matrix_TotalRows <- nrow(Interaction_Matrix)
-    Matrix_Row_No <- 1
+    Matrix.Total.Rows <- nrow(Interaction_Matrix)
+    Matrix.Row.no <- 1
     
-    while (Matrix_Row_No <= Matrix_TotalRows) {
+    while (Matrix.Row.no <= Matrix.Total.Rows) {
         
-        CON1_Name <- as.character(Interaction_Matrix[Matrix_Row_No,1])
-        CON2_Name <- as.character(Interaction_Matrix[Matrix_Row_No,2])
-        Coculture_Name <- as.character(Interaction_Matrix[Matrix_Row_No,3])
-        Matrix_Row_No <- Matrix_Row_No +1
+        CON1.Name <- as.character(Interaction_Matrix[Matrix.Row.no,1])
+        CON2.Name <- as.character(Interaction_Matrix[Matrix.Row.no,2])
+        CC.Name <- as.character(Interaction_Matrix[Matrix.Row.no,3])
+        Matrix.Row.no <- Matrix.Row.no +1
         
         #Generates 3 dataframes using the ReadExcel function for the first
         #interction to be investigated from the Interaction_Matrix
         
-        CON1 <- as.data.frame(ReadExcel(CON1_Name))
-        CON2 <- as.data.frame(ReadExcel(CON2_Name))
-        Coculture <- as.data.frame(ReadExcel(Coculture_Name))
+        CON1 <- as.data.frame(ReadExcel(CON1.Name))
+        CON2 <- as.data.frame(ReadExcel(CON2.Name))
+        Coculture <- as.data.frame(ReadExcel(CC.Name))
         
         #Generates 3 dataframes using the ReadUV function
         
-        CON1_UV <- as.data.frame(ReadUV(CON1_Name))
-        CON2_UV <- as.data.frame(ReadUV(CON2_Name))
-        Coculture_UV <- as.data.frame(ReadUV(Coculture_Name))
+        CON1.UV <- as.data.frame(ReadUV(CON1.Name))
+        CON2.UV <- as.data.frame(ReadUV(CON2.Name))
+        CC.UV <- as.data.frame(ReadUV(CC.Name))
         
         #Runs the peak matching algorithm for CON1 and CON2 separately.
         #Then merges the two together into a unified df.
         
-        Coculture_df <- PeakMatcher(CON1, Coculture, CON1_UV, Coculture_UV)
-        Coculture_df2 <- PeakMatcher(CON2, Coculture, CON2_UV, Coculture_UV)
-        Coculture_df_merged <- cbind(Coculture_df, Coculture_df2[, 4:9])
+        CC.df <- PeakMatcher(CON1, Coculture, CON1.UV, CC.UV)
+        CC.df2 <- PeakMatcher(CON2, Coculture, CON2.UV, CC.UV)
+        CC.df.merged <- cbind(CC.df, CC.df2[, 4:9])
         
         #Performs a function to correct for double peak matching to a unique
         #peak to peaks from more than one CON
         
-        MatchedPeak_df <- CONConsolidator(Coculture_df_merged, CON1_Name, CON2_Name)
+        Matched.Peak.df <- CONConsolidator(CC.df.merged, CON1.Name, CON2.Name)
         
-        #Final processing steps in creating the tidied df (Refined_Coculture_df)
+        #Final processing steps in creating the tidied df (Refined.CC.df)
         
-        MatchedPeak_df <- MatchedPeak_df[1:nrow(MatchedPeak_df), ]
-        df <- setNames(data.frame(matrix(ncol = 1, nrow = nrow(Coculture_df_merged))), 
+        Matched.Peak.df <- Matched.Peak.df[1:nrow(Matched.Peak.df), ]
+        df <- setNames(data.frame(matrix(ncol = 1, nrow = nrow(CC.df.merged))), 
                        "Sample_Ref")
-        df[1:nrow(df), ] <- Coculture_Name
-        Refined_Coculture_df <- Coculture_df[1:nrow(Coculture_df_merged), 1:3]
-        Refined_Coculture_df <- cbind(df, Refined_Coculture_df)
-        Refined_Coculture_df <- cbind(Refined_Coculture_df, MatchedPeak_df)
+        df[1:nrow(df), ] <- CC.Name
+        Refined.CC.df <- CC.df[1:nrow(CC.df.merged), 1:3]
+        Refined.CC.df <- cbind(df, Refined.CC.df)
+        Refined.CC.df <- cbind(Refined.CC.df, Matched.Peak.df)
         
         #Performs a function to characterise effects onto metabolites
         #and adds this into the tidied data set
         
-        Refined_Coculture_df <- 
-            EffectCategoriser(Refined_Coculture_df, Coculture_Name)
-        names(Refined_Coculture_df)[2:4] <- c("PeakNo_CC", "RetTime_CC", "PeakArea_CC")
+        Refined.CC.df <- 
+            EffectCategoriser(Refined.CC.df, CC.Name)
+        names(Refined.CC.df)[2:4] <- c("PeakNo_CC", "RetTime_CC", "PeakArea_CC")
         
         #Rewrites the tidied dataset to a csv file
         
-        write.csv(Refined_Coculture_df, 
+        write.csv(Refined.CC.df, 
                   paste0("Testing Broad-Scale Interactions/OutputFiles/", 
-                         Coculture_Name, ".CSV"), row.names = FALSE)
+                         CC.Name, ".CSV"), row.names = FALSE)
     }
 }
 
