@@ -67,8 +67,14 @@ library(readxl)
 #############################################
 
 ReadExcel <- function(excel.name) {
+
+#Reads in NovaC excel file and reformats UV column to be more usable.
+
+#Arg: 
+    #excel.name is read in from Interaction_Matrix object as CC or CON name.
     
-    # Input is excel.name which is read from the Interaction_Matrix object
+#Returns:
+    #A df corresponding to the excel file read in.
     
     # Read in a df based on NovaC excel format
     raw.df <- read_excel(paste0("Testing Broad-Scale Interactions/NovaCfiles/", 
@@ -329,7 +335,7 @@ PeakMatcher <- function(con, coculture, con.uv, cc.uv) {
 # This function will determine which control's matched peak matches
 # closest and remove the assignment for the weakest match.
 
-ConConsolidator <- function(cc.df, con1.Name, con2.Name) {
+ConConsolidator <- function(cc.df, con1.df, con2.df) {
     
     row.no <- 1
     total.rows <- nrow(cc.df)
@@ -350,26 +356,26 @@ ConConsolidator <- function(cc.df, con1.Name, con2.Name) {
             # When there are two peaks matched (!is.na for both),
             # the uv.means are compared, with the higher removed.
             
-            matched.peak.df[row.no, 1] <- con1.Name
+            matched.peak.df[row.no, 1] <- con1.df
             matched.peak.df[row.no, 2:7] <- cc.df[row.no, 4:9]
         }   else if (!is.na(cc.df[row.no, 4]) && 
                      !is.na(cc.df[row.no, 10] && 
                      abs(cc.df[row.no, 8]) > abs(cc.df[row.no, 14]))) { 
-            matched.peak.df[row.no, 1] <- con2.Name
+            matched.peak.df[row.no, 1] <- con2.df
             matched.peak.df[row.no, 2:7] <- cc.df[row.no, 10:15]
         }   else if (is.na(cc.df[row.no, 10]))   {
             
             # If no double-peak mactching but signifies a matched con1 peak
             # then con1 peak set as the matched peak
             
-            matched.peak.df[row.no, 1] <- con1.Name
+            matched.peak.df[row.no, 1] <- con1.df
             matched.peak.df[row.no, 2:7] <- cc.df[row.no, 4:9]
         }   else {
             
             #If no double-peak mactching or matched con1 peak
             #then con2 peak set as the matched peak
             
-            matched.peak.df[row.no, 1] <- con2.Name
+            matched.peak.df[row.no, 1] <- con2.df
             matched.peak.df[row.no, 2:7] <- cc.df[row.no, 10:15]
         }
         row.no <- row.no + 1
@@ -433,22 +439,22 @@ MIMI <- function() {
     
     while (matrix.row.no <= matrix.total.rows) {
         
-        con1.Name <- as.character(Interaction_Matrix[matrix.row.no, 1])
-        con2.Name <- as.character(Interaction_Matrix[matrix.row.no, 2])
+        con1.df <- as.character(Interaction_Matrix[matrix.row.no, 1])
+        con2.df <- as.character(Interaction_Matrix[matrix.row.no, 2])
         CC.Name <- as.character(Interaction_Matrix[matrix.row.no, 3])
         matrix.row.no <- matrix.row.no + 1
         
         #Generates 3 dataframes using the ReadExcel function for the first
         #interction to be investigated from the Interaction_Matrix
         
-        con1 <- as.data.frame(ReadExcel(con1.Name))
-        con2 <- as.data.frame(ReadExcel(con2.Name))
+        con1 <- as.data.frame(ReadExcel(con1.df))
+        con2 <- as.data.frame(ReadExcel(con2.df))
         coculture <- as.data.frame(ReadExcel(CC.Name))
         
         # Generates 3 dataframes using the ReadUV function
         
-        con1.uv <- as.data.frame(ReadUV(con1.Name))
-        con2.uv <- as.data.frame(ReadUV(con2.Name))
+        con1.uv <- as.data.frame(ReadUV(con1.df))
+        con2.uv <- as.data.frame(ReadUV(con2.df))
         cc.uv <- as.data.frame(ReadUV(CC.Name))
         
         # Runs the peak matching algorithm for con1 and con2 separately.
@@ -461,7 +467,7 @@ MIMI <- function() {
         # Performs a function to correct for double peak matching to a unique
         # peak to peaks from more than one con
         
-        matched.peak.df <- ConConsolidator(cc.df.merged, con1.Name, con2.Name)
+        matched.peak.df <- ConConsolidator(cc.df.merged, con1.df, con2.df)
         
         # Final processing steps in creating the tidied df (refined.cc.df)
         
