@@ -206,8 +206,8 @@ MatchNonUVs <- function(Interaction_Matrix) {
                 
                 # Checks for peak matching already, and skips to the next peak.
                 
-            }   else if (cc$RetTime[cc.peak] < (con1$RetTime[con1.peak] + 0.05) && 
-                         cc$RetTime[cc.peak] > (con1$RetTime[con1.peak] -0.05) &&
+            }   else if (cc$RetTime[cc.peak] < (con1$RetTime[con1.peak] + 0.02) && 
+                         cc$RetTime[cc.peak] > (con1$RetTime[con1.peak] -0.02) &&
                          final.count.1 < 2)    {
                 
                 # Checks if the closest match incon1 satisfies this test.
@@ -227,8 +227,8 @@ MatchNonUVs <- function(Interaction_Matrix) {
                 df.name$PeakRatio[cc.peak] <- ratio
                 df.name$Metabolite_Effect[cc.peak] <- Effect
                 
-            }   else if (cc$RetTime[cc.peak] < (con2$RetTime[con2.peak] + 0.05) && 
-                         cc$RetTime[cc.peak] > (con2$RetTime[con2.peak] - 0.05) &&
+            }   else if (cc$RetTime[cc.peak] < (con2$RetTime[con2.peak] + 0.02) && 
+                         cc$RetTime[cc.peak] > (con2$RetTime[con2.peak] - 0.02) &&
                          final.count.2 < 2)    {
                 con.peak <-con2.peak
                 ratio = (((cc[cc.peak, 3] -con2[con.peak, 3]) / 
