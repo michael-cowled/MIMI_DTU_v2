@@ -15,6 +15,8 @@ Effect_3 <- filter(full_list, Metabolite_Effect == 3)
 Effect_4 <- filter(full_list, Metabolite_Effect == 4)
 Effect_5 <- filter(full_list, Metabolite_Effect == 5)
 Effect_6 <- filter(full_list, Metabolite_Effect == 6)
+All_Effects_Less_Induction <- filter(full_list, as.numeric(Metabolite_Effect) < 5 & as.numeric(Metabolite_Effect) > 1)
+Effect_5_6 <- filter(full_list, as.numeric(Metabolite_Effect) > 4)
 
 #Generates a sequence of histograms comparing metabolite effect to ret_time
 par(mfrow=c(2,3))
@@ -24,13 +26,18 @@ hist(Effect_3$RetTime_CC, main = "Little to No Change")
 hist(Effect_4$RetTime_CC, main = "Enhancement")
 hist(Effect_5$RetTime_CC, main = "Major Enhancement")
 hist(Effect_6$RetTime_CC, main = "Induction or Unmatched")
+hist(All_Effects_Less_Induction$RetTime_CC, main = "All other effects", xlab = "Retention Time", ylab = "Number of Secondary Metabolites")
+hist(Effect_5_6$RetTime_CC, main = "Induction or Major Enhancement", xlab = "Retention Time", ylab = "Number of Secondary Metabolites")
 
 par(mfrow=c(1,1))
 a <- hist(Effect_6$RetTime_CC, main = "Induction or Unmatched")
-b <- hist(full_list$RetTime_CC, main = "Induction or Unmatched")
-plot( a, col=rgb(0,0,1,1/4), xlim=c(0,11), ylim=c(0,800), main = "Overlay of Induction to All Metabolites")  # first histogram
+b <- hist(full_list$RetTime_CC, main = "Full List")
+c <- hist(All_Effects_Less_Induction$RetTime_CC, main = "All other effects")
+d <- hist(Effect_5_6$RetTime_CC, main = "Induction or Unmatched")
+plot( a, col=rgb(0,0,1,1/4), xlim=c(0,11), ylim=c(0,600), main = "Overlay of Induction to All Metabolites")  # first histogram
 plot( b, col=rgb(1,0,0,1/4), xlim=c(0,11), ylim=c(0,800), add=T)  # second
-plot( c, col=rgb(0,1,0,1/4), xlim=c(0,11), ylim=c(0,800), add=T)  # third
+plot( c, col=rgb(0,1,0,1/4), xlim=c(0,11), ylim=c(0,600), add=T)  # third
+plot( d, col=rgb(1,0,1,1/4), xlim=c(0,11), ylim=c(0,600), add=T)  # third
 
 
 #Separate lists based on Coculturing Fungus
@@ -62,3 +69,15 @@ qplot(full_list$RetTime_CC, full_list$PeakRatio, color = full_list$Matched_CON)
 
 a <- filter(full_list, PeakRatio >2500)
 a
+
+#For finding % between 2 and 7 min
+betweeen2_7 <- filter(All_Effects_Less_Induction, RetTime_CC >= 2 & RetTime_CC <= 7)
+
+
+#Comparison of retention time histograms
+par(mfrow=c(1,2))
+hist(Effect_5_6$RetTime_CC, main = "Induction or Major Enhancement", xlab = "Retention Time", ylab = "Number of Secondary Metabolites")
+hist(All_Effects_Less_Induction$RetTime_CC, main = "All other effects", xlab = "Retention Time", ylab = "Number of Secondary Metabolites")
+
+ggplot(Histogram_data, aes(fill=Range, y=Metabolite_Count, x=Condition)) + geom_bar(position="fill", stat="identity") + xlab("Effect") + 
+    ylab("Proportion of Secondary Metabolites") + scale_fill_discrete(name = "Retention Time Range") + theme_minimal() + theme(legend.position = "bottom")
