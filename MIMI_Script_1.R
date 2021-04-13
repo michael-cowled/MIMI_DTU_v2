@@ -390,7 +390,7 @@ ConConsolidator <- function(cc.df, con1.df, con2.df) {
 # The following piece of code adds a column that categorises the peak 
 # areas into suppressions, and enhancements
 
-EffectCategoriser <- function(refined.cc.df, CC.Name) {
+EffectCategoriser <- function(refined.cc.df, cc.name) {
     
     row.no <- 1
     total.rows <- nrow(refined.cc.df)
@@ -401,22 +401,22 @@ EffectCategoriser <- function(refined.cc.df, CC.Name) {
                                      c("Metabolite_Effect"))
     
     while (row.no <= total.rows) {
-        if (refined.cc.df[row.no, 1] == CC.Name && 
+        if (refined.cc.df[row.no, 1] == cc.name && 
             is.na(refined.cc.df[row.no, 11])) {
             metabolite.effect.df[row.no, 1] <- 6  # Induction
-        }   else if (refined.cc.df[row.no, 1] == CC.Name && 
+        }   else if (refined.cc.df[row.no, 1] == cc.name && 
                      refined.cc.df[row.no, 11] > -100
                      && refined.cc.df[row.no, 11] <= -20) {
             metabolite.effect.df[row.no, 1] <- 2  # Suppression
-        }   else if (refined.cc.df[row.no, 1] == CC.Name && 
+        }   else if (refined.cc.df[row.no, 1] == cc.name && 
                      refined.cc.df[row.no, 11] > -20
                      && refined.cc.df[row.no, 11] < 20) {
             metabolite.effect.df[row.no, 1] <- 3  # Little to No Change
-        }   else if (refined.cc.df[row.no, 1] == CC.Name && 
+        }   else if (refined.cc.df[row.no, 1] == cc.name && 
                      refined.cc.df[row.no, 11] >= 20
                      && refined.cc.df[row.no, 11] < 100) {
             metabolite.effect.df[row.no, 1] <- 4  # Enhancement
-        }   else if (refined.cc.df[row.no, 1] == CC.Name && 
+        }   else if (refined.cc.df[row.no, 1] == cc.name && 
                      refined.cc.df[row.no, 11] >= 100) {
             metabolite.effect.df[row.no, 1] <- 5  # Major Enhancement
         }
@@ -441,21 +441,21 @@ MIMI <- function() {
         
         con1.df <- as.character(Interaction_Matrix[matrix.row.no, 1])
         con2.df <- as.character(Interaction_Matrix[matrix.row.no, 2])
-        CC.Name <- as.character(Interaction_Matrix[matrix.row.no, 3])
+        cc.name <- as.character(Interaction_Matrix[matrix.row.no, 3])
         matrix.row.no <- matrix.row.no + 1
-        
+        print(cc.name)
         #Generates 3 dataframes using the ReadExcel function for the first
         #interction to be investigated from the Interaction_Matrix
         
         con1 <- as.data.frame(ReadExcel(con1.df))
         con2 <- as.data.frame(ReadExcel(con2.df))
-        coculture <- as.data.frame(ReadExcel(CC.Name))
+        coculture <- as.data.frame(ReadExcel(cc.name))
         
         # Generates 3 dataframes using the ReadUV function
         
         con1.uv <- as.data.frame(ReadUV(con1.df))
         con2.uv <- as.data.frame(ReadUV(con2.df))
-        cc.uv <- as.data.frame(ReadUV(CC.Name))
+        cc.uv <- as.data.frame(ReadUV(cc.name))
         
         # Runs the peak matching algorithm for con1 and con2 separately.
         # Then merges the two together into a unified df.
@@ -474,7 +474,7 @@ MIMI <- function() {
         matched.peak.df <- matched.peak.df[1:nrow(matched.peak.df), ]
         df <- setNames(data.frame(matrix(ncol = 1, nrow = nrow(cc.df.merged))), 
                        "Sample_Ref")
-        df[1:nrow(df), ] <- CC.Name
+        df[1:nrow(df), ] <- cc.name
         refined.cc.df <- cc.df[1:nrow(cc.df.merged), 1:3]
         refined.cc.df <- cbind(df, refined.cc.df)
         refined.cc.df <- cbind(refined.cc.df, matched.peak.df)
@@ -483,14 +483,14 @@ MIMI <- function() {
         # and adds this into the tidied data set
         
         refined.cc.df <- 
-            EffectCategoriser(refined.cc.df, CC.Name)
+            EffectCategoriser(refined.cc.df, cc.name)
         names(refined.cc.df)[2:4] <- c("PeakNo_CC", "RetTime_CC", "PeakArea_CC")
         
         # Rewrites the tidied dataset to a csv file
         
         write.csv(refined.cc.df, 
                   paste0("Testing Broad-Scale Interactions/OutputFiles/", 
-                         CC.Name, ".CSV"), row.names = FALSE)
+                         cc.name, ".CSV"), row.names = FALSE)
     }
 }
 
