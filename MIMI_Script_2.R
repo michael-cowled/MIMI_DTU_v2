@@ -21,20 +21,24 @@
 # 1.SimpleEffectCategoriser - Uses the principles of the EffectCategoriser 
 # function to categorise based on a single PeakRatio input.
 
-# 2.RemoveDoubleyAssignedPeaks -Checks for a peak in the control being assigned 
+# 2.IdentifyBadPeak: Decides on which of the doubley assigned peaks to remove
+
+# 3.RemoveDoubleyAssignedPeaks -Checks for a peak in the control being assigned 
 # to more than one peak in the coculture. Uses the number of matching UV maxima 
 # and/or the subtracted UV spectra to make decisions as to which peak is a better 
 # match.
 
-# 3.MatchNonUVs - - Tentatively assigns matched peaks as non UVs 
+# 4.PeakAssigner: Adds the assignment of the matched non UV peak from MatchNonUVs
+
+# 5.MatchNonUVs - - Tentatively assigns matched peaks as non UVs 
 # (or as distorted UVs) if matching the conditions.
  
-# 4.InhibitionChecker - Checks if one culture is inhibited and deposits into a 
+# 6.InhibitionChecker - Checks if one culture is inhibited and deposits into a 
 # separate output file.
 
-# 5.RowBinder2: A variant of RowBinder used for adding missing control peaks
+# 7.RowBinder2: A variant of RowBinder used for adding missing control peaks
 
-# 6.FindMissingcontrolPeaks - Adds in unassigned peaks from the controls to 
+# 8.FindMissingcontrolPeaks - Adds in unassigned peaks from the controls to 
 # provide a single, unified table.
 
 #------------------------------------------------------------------------------#
@@ -63,7 +67,34 @@ SimpleEffectCategoriser <- function(ratio) {
 }
 
 #############################################
-# 2.RemoveDoubleyAssignedPeaks: Removes doubley-assigned peaks from a control.
+# 2.IdentifyBadPeak: Decides on which of the doubley assigned peaks to remove
+#############################################
+
+IdentifyBadPeak <- function(double.peaks.subset) {
+    
+    if (double.peaks.subset[1, 10] > double.peaks.subset[2, 10]) {
+        
+        # Peaks are compared based on UV count first.
+        # The peak with the lowest UV count is removed.
+        
+        bad.peak <- double.peaks.subset[2, 2]
+    }   else if (double.peaks.subset[1, 10] < double.peaks.subset[2, 10]) {
+        bad.peak <- double.peaks.subset[1, 2]
+    }   else if (double.peaks.subset[1, 11] < double.peaks.subset[2, 11]) {
+        
+        # If the UV counts are equal the subtracted UV mean is compared.
+        # The peak with the highest UV mean is removed.
+        
+        bad.peak <- double.peaks.subset[2, 2]
+    }   else {
+        bad.peak <- double.peaks.subset[1, 2]
+    }
+    return(bad.peak)
+}
+
+
+#############################################
+# 3.RemoveDoubleyAssignedPeaks: Removes doubley-assigned peaks from a control.
 #############################################
 
 # An example is that perhaps the peaks 1 and 2 from the coculture match to
@@ -137,22 +168,8 @@ RemoveDoubleyAssignedPeaks <- function(Interaction_Matrix) {
             double.peaks.subset <- filter(double.peaks.df, 
                                           Combined == double.peaks.subset[1, 5])
             
-            if (double.peaks.subset[1, 10] > double.peaks.subset[2, 10]) {
-                
-                # Peaks are compared based on UV count first.
-                # The peak with the lowest UV count is removed.
-                bad.peak <- double.peaks.subset[2, 2]
-            }   else if (double.peaks.subset[1, 10] < double.peaks.subset[2, 10]) {
-                bad.peak <- double.peaks.subset[1, 2]
-            }   else if (double.peaks.subset[1, 11] < double.peaks.subset[2, 11]) {
-                
-                # If the UV counts are equal the subtracted UV mean is compared.
-                # The peak with the highest UV mean is removed.
-                
-                bad.peak <- double.peaks.subset[2, 2]
-            }   else {
-                bad.peak <- double.peaks.subset[1, 2]
-            }
+            bad.peak <- IdentifyBadPeak(double.peaks.subset)
+            
             df.to.manipulate[bad.peak, 5:12] <- NA
             double.peaks.df_removed <- select(df.to.manipulate, -Combined)
             write.csv(double.peaks.df_removed, 
@@ -164,7 +181,23 @@ RemoveDoubleyAssignedPeaks <- function(Interaction_Matrix) {
 }
 
 #############################################
-# 3.MatchNonUVs: Further assigns peaks based on weaker criteria.
+# 4.PeakAssigner: Adds the assignment of the matched non UV peak from MatchNonUVs
+#############################################
+
+PeakAssigner <- function(df.name, cc.peak, con.name, con.peak, con, final.count,
+                         ratio, Effect) {
+    df.name$Matched_con[cc.peak] <-con.name
+    df.name$PeakNo_con[cc.peak] <-con$Peak[con.peak]
+    df.name$RetTime_con[cc.peak] <-con$RetTime[con.peak]
+    df.name$PeakArea_con[cc.peak] <-con$Area[con.peak]
+    df.name$UV_Count[cc.peak] <- final.count
+    df.name$PeakRatio[cc.peak] <- ratio
+    df.name$Metabolite_Effect[cc.peak] <- Effect
+    return(df.name)
+}
+
+#############################################
+# 5.MatchNonUVs: Further assigns peaks based on weaker criteria.
 #############################################
 
 MatchNonUVs <- function(Interaction_Matrix) {
@@ -217,16 +250,8 @@ MatchNonUVs <- function(Interaction_Matrix) {
                 ratio = (((cc[cc.peak, 3] -con1[con.peak, 3]) 
                           / con1[con.peak, 3]) * 100)
                 Effect <- SimpleEffectCategoriser(ratio)
-                
-                # Assignments of the matched peak
-                
-                df.name$Matched_con[cc.peak] <-con1.name
-                df.name$PeakNo_con[cc.peak] <-con1$Peak[con.peak]
-                df.name$RetTime_con[cc.peak] <-con1$RetTime[con.peak]
-                df.name$PeakArea_con[cc.peak] <-con1$Area[con.peak]
-                df.name$UV_Count[cc.peak] <- final.count.1
-                df.name$PeakRatio[cc.peak] <- ratio
-                df.name$Metabolite_Effect[cc.peak] <- Effect
+                df.name <- PeakAssigner(df.name, cc.peak, con1.name, con.peak, 
+                                        con1, final.count.1, ratio, Effect)
                 
             }   else if (cc$RetTime[cc.peak] < (con2$RetTime[con2.peak] + 0.02) && 
                          cc$RetTime[cc.peak] > (con2$RetTime[con2.peak] - 0.02) &&
@@ -235,13 +260,8 @@ MatchNonUVs <- function(Interaction_Matrix) {
                 ratio = (((cc[cc.peak, 3] -con2[con.peak, 3]) / 
                               con2[con.peak, 3]) * 100)
                 Effect <- SimpleEffectCategoriser(ratio)
-                df.name$Matched_con[cc.peak] <- con2.name
-                df.name$PeakNo_con[cc.peak] <- con2$Peak[con.peak]
-                df.name$RetTime_con[cc.peak] <- con2$RetTime[con.peak]
-                df.name$PeakArea_con[cc.peak] <- con2$Area[con.peak]
-                df.name$UV_Count[cc.peak] <- final.count.2
-                df.name$PeakRatio[cc.peak] <- ratio
-                df.name$Metabolite_Effect[cc.peak] <- Effect
+                df.name <- PeakAssigner(df.name, cc.peak, con2.name, con.peak, 
+                                        con2, final.count.2, ratio, Effect)
             }    
             cc.peak <- cc.peak + 1
         }
@@ -252,7 +272,7 @@ MatchNonUVs <- function(Interaction_Matrix) {
 }
 
 #############################################
-# 4.InhibitionChecker: Verifies if one culture is inhibited
+# 6.InhibitionChecker: Verifies if one culture is inhibited
 #############################################
 
 InhibitionChecker <- function(df.name, inhibition.df, cc.name) {
@@ -302,7 +322,7 @@ InhibitionChecker <- function(df.name, inhibition.df, cc.name) {
 }
 
 #############################################
-# 5.RowBinder2: A variant of RowBinder used for adding missing control peaks
+# 7.RowBinder2: A variant of RowBinder used for adding missing control peaks
 #############################################
 
 RowBinder2 <- function(df.name, con.name, con, cc.peak) {
@@ -320,7 +340,7 @@ RowBinder2 <- function(df.name, con.name, con, cc.peak) {
 }
 
 #############################################
-# 6.FindMissingcontrolPeaks: Adds in the unassigned peaks from the control(s)
+# 8.FindMissingcontrolPeaks: Adds in the unassigned peaks from the control(s)
 #############################################
 
 FindMissingcontrolPeaks <- function(Interaction_Matrix) {
