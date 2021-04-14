@@ -28,12 +28,13 @@
 
 # 3.MatchNonUVs - - Tentatively assigns matched peaks as non UVs 
 # (or as distorted UVs) if matching the conditions.
-
  
 # 4.InhibitionChecker - Checks if one culture is inhibited and deposits into a 
 # separate output file.
 
-# 5.FindMissingcontrolPeaks - Adds in unassigned peaks from the controls to 
+# 5.RowBinder2: A variant of RowBinder used for adding missing control peaks
+
+# 6.FindMissingcontrolPeaks - Adds in unassigned peaks from the controls to 
 # provide a single, unified table.
 
 #------------------------------------------------------------------------------#
@@ -301,7 +302,25 @@ InhibitionChecker <- function(df.name, inhibition.df, cc.name) {
 }
 
 #############################################
-# 5.FindMissingcontrolPeaks: Adds in the unassigned peaks from the control(s)
+# 5.RowBinder2: A variant of RowBinder used for adding missing control peaks
+#############################################
+
+RowBinder2 <- function(df.name, con.name, con, cc.peak) {
+    
+    df.name <- rbind(df.name, 
+                     c(Sample_Ref = con.name, PeakNo_CC = NA, 
+                       RetTime_CC = NA, PeakArea_CC = NA, 
+                       Combined = NA, Matched_con = NA, 
+                       PeakNo_con =con$Peak[cc.peak], 
+                       RetTime_con =con$RetTime[cc.peak], 
+                       PeakArea_con =con$Area[cc.peak], 
+                       UV_Count = NA, Subtracted_UV_Mean = NA, 
+                       PeakRatio = -100, Metabolite_Effect = 1))
+    return(df.name)
+}
+
+#############################################
+# 6.FindMissingcontrolPeaks: Adds in the unassigned peaks from the control(s)
 #############################################
 
 FindMissingcontrolPeaks <- function(Interaction_Matrix) {
@@ -341,15 +360,7 @@ FindMissingcontrolPeaks <- function(Interaction_Matrix) {
             if (any(df.name[, 5] == paste0(con1.name, "-", cc.peak), na.rm = TRUE)) {
             }   else if (any(df.name[, 5] != paste0(con1.name, "-", cc.peak), 
                              na.rm = TRUE)) {
-                df.name <- rbind(df.name, 
-                                 c(Sample_Ref =con1.name, PeakNo_CC = NA, 
-                                   RetTime_CC = NA, PeakArea_CC = NA, 
-                                   Combined = NA, Matched_con = NA, 
-                                   PeakNo_con =con1$Peak[cc.peak], 
-                                   RetTime_con =con1$RetTime[cc.peak], 
-                                   PeakArea_con =con1$Area[cc.peak], 
-                                   UV_Count = NA, Subtracted_UV_Mean = NA, 
-                                   PeakRatio = -100, Metabolite_Effect = 1))
+                df.name <- RowBinder2(df.name, con1.name, con1, cc.peak)
             }
             cc.peak <- cc.peak + 1 
         }
@@ -361,15 +372,7 @@ FindMissingcontrolPeaks <- function(Interaction_Matrix) {
             if (any(df.name[, 5] == paste0(con2.name, "-", cc.peak), na.rm = TRUE)) {
             }   else if (any(df.name[, 5] != paste0(con2.name, "-", cc.peak), 
                              na.rm = TRUE)) {
-                df.name <- rbind(df.name, 
-                                 c(Sample_Ref =con2.name, PeakNo_CC = NA, 
-                                   RetTime_CC = NA, PeakArea_CC = NA,
-                                   Combined = NA, Matched_con = NA, 
-                                   PeakNo_con =con2$Peak[cc.peak], 
-                                   RetTime_con =con2$RetTime[cc.peak], 
-                                   PeakArea_con =con2$Area[cc.peak], 
-                                   UV_Count = NA, Subtracted_UV_Mean = NA, 
-                                   PeakRatio = -100, Metabolite_Effect = 1))
+                df.name <- RowBinder2(df.name, con2.name, con2, cc.peak)
             }   
             cc.peak <- cc.peak + 1
         }
