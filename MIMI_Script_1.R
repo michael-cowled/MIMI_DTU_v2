@@ -42,16 +42,18 @@ library(readxl)
 # 4.SubtractUV - Subtracts the UV spectrum of the control of interest from the 
 # coculture, and takes the mean(Abs).
 
-# 5.PeakMatcher - PeakMatcher: Matches and verifies peaks from the control of 
+# 5.RowBinder - Binds the matched peak found in PeakMatcher to a df named cc.df
+
+# 6.PeakMatcher - PeakMatcher: Matches and verifies peaks from the control of 
 # interest to peaks in the coculture, utilising a combination of retention time, 
 # number of matching UV maxima (UVcheck) and the means of the subtracted UV 
 # spectra (UVsubtract).
 
-# 6.ConConsolidator - Consolidates the outcome table to match peaks from coculture 
+# 7.ConConsolidator - Consolidates the outcome table to match peaks from coculture 
 # to a single peak in a control. Compares subtracted UV spectra to make decisions 
 # based on double matching.
 
-# 7.EffectCategoriser - Characterises the Peak Area ratio as an effect to the 
+# 8.EffectCategoriser - Characterises the Peak Area ratio as an effect to the 
 # metabolite in the coculture (induction, suppression, etc.).
 
 #------------------------------------------------------------------------------#
@@ -218,7 +220,39 @@ SubtractUV <- function(con.uv, cc.uv, cc.peak, con.peak) {
 }
 
 #############################################
-# 5.PeakMatcher: Finds and compares the nearest matching peak in control
+# 5.RowBinder: Adds a row with the appropriate matched peak values
+#############################################
+
+RowBinder <- function(cc.df, coculture, con, final.count, uv.mean, ratio, 
+                      cc.peak, con.peak, check.else) {
+
+    if (check.else == TRUE) {
+        cc.df <- rbind(cc.df, 
+                       c(PeakNo_CC = coculture$Peak[cc.peak], 
+                         RetTime_CC = coculture$RetTime[cc.peak], 
+                         PeakArea_CC = coculture$Area[cc.peak], 
+                         PeakNo_con = NA, RetTime_con = NA, 
+                         PeakArea_con = NA, UV_Count_con = NA, 
+                         Subtracted_UV_Mean_con = NA, 
+                         PeakRatio_con = NA))
+    }
+    else {
+        cc.df <- rbind(cc.df, 
+                       c(PeakNo_CC = coculture$Peak[cc.peak], 
+                         RetTime_CC = coculture$RetTime[cc.peak], 
+                         PeakArea_CC = coculture$Area[cc.peak], 
+                         PeakNo_con = con$Peak[con.peak], 
+                         RetTime_con = con$RetTime[con.peak],
+                         PeakArea_con = con$Area[con.peak], 
+                         UV_Count_con = final.count, 
+                         Subtracted_UV_Mean_con = uv.mean, 
+                         PeakRatio_con = ratio))
+    }
+    return(cc.df)
+}
+
+#############################################
+# 6.PeakMatcher: Finds and compares the nearest matching peak in control
 #############################################
 
 PeakMatcher <- function(con, coculture, con.uv, cc.uv) {
@@ -250,6 +284,8 @@ PeakMatcher <- function(con, coculture, con.uv, cc.uv) {
         
         # Performs both the CheckUVCount and SubtractUV functions
         
+        check.else <- FALSE  # A parameter set up for RowBinder function
+        
         if (coculture$RetTime[cc.peak] < (con$RetTime[con.peak] + 0.15) && 
             coculture$RetTime[cc.peak] > (con$RetTime[con.peak] - 0.15) &&
             (final.count > 2 || abs(uv.mean) < 1.5)) {
@@ -257,17 +293,9 @@ PeakMatcher <- function(con, coculture, con.uv, cc.uv) {
             # Checks if the ret.time is within 0.15 min of each other
             # Checks the uv.count is at least 3 OR uv.mean < 1.5
             # If satisfied, the peak is declared a match and added to df
-            
-            cc.df <- rbind(cc.df, 
-                           c(PeakNo_CC = coculture$Peak[cc.peak], 
-                             RetTime_CC = coculture$RetTime[cc.peak], 
-                             PeakArea_CC = coculture$Area[cc.peak], 
-                             PeakNo_con = con$Peak[con.peak], 
-                             RetTime_con = con$RetTime[con.peak],
-                             PeakArea_con = con$Area[con.peak], 
-                             UV_Count_con = final.count, 
-                             Subtracted_UV_Mean_con = uv.mean, 
-                             PeakRatio_con = ratio))
+
+            cc.df <- RowBinder(cc.df, coculture, con, final.count, uv.mean, 
+                               ratio, cc.peak, con.peak, check.else)
             
         }    else if (coculture$RetTime[cc.peak] < (con$RetTime[con.peak] + 0.15) && 
                       coculture$RetTime[cc.peak] > (con$RetTime[con.peak] -0.15) &&
@@ -278,52 +306,32 @@ PeakMatcher <- function(con, coculture, con.uv, cc.uv) {
             # Both uv.count and uv.mean are less strict requirement
             # But requiring satisfaction of both adds stringency
             # If satisfied, the peak is declared a match and added to df
-            
-            cc.df <- rbind(cc.df, 
-                           c(PeakNo_CC = coculture$Peak[cc.peak], 
-                             RetTime_CC = coculture$RetTime[cc.peak], 
-                             PeakArea_CC = coculture$Area[cc.peak], 
-                             PeakNo_con = con$Peak[con.peak], 
-                             RetTime_con = con$RetTime[con.peak],
-                             PeakArea_con = con$Area[con.peak], 
-                             UV_Count_con = final.count, 
-                             Subtracted_UV_Mean_con = uv.mean, 
-                             PeakRatio_con = ratio))
+
+            cc.df <- RowBinder(cc.df, coculture, con, final.count, uv.mean, 
+                               ratio, cc.peak, con.peak, check.else)
             
         }    else if (coculture$RetTime[cc.peak] < (con$RetTime[con.peak] + 0.05) && 
                       coculture$RetTime[cc.peak] > (con$RetTime[con.peak] -0.05) &&
                       final.count > 1) {  
             
-            cc.df <- rbind(cc.df, 
-                           c(PeakNo_CC = coculture$Peak[cc.peak], 
-                             RetTime_CC = coculture$RetTime[cc.peak], 
-                             PeakArea_CC = coculture$Area[cc.peak], 
-                             PeakNo_con = con$Peak[con.peak], 
-                             RetTime_con = con$RetTime[con.peak],
-                             PeakArea_con = con$Area[con.peak], 
-                             UV_Count_con = final.count, 
-                             Subtracted_UV_Mean_con = uv.mean, 
-                             PeakRatio_con = ratio))
+            cc.df <- RowBinder(cc.df, coculture, con, final.count, uv.mean, 
+                               ratio, cc.peak, con.peak, check.else)
+            
         }   else  { 
             
             # The peak is declared NOT to have a match in the control and given NA
-            
-            cc.df <- rbind(cc.df, 
-                           c(PeakNo_CC = coculture$Peak[cc.peak], 
-                             RetTime_CC = coculture$RetTime[cc.peak], 
-                             PeakArea_CC = coculture$Area[cc.peak], 
-                             PeakNo_con = NA, RetTime_con = NA, 
-                             PeakArea_con = NA, UV_Count_con = NA, 
-                             Subtracted_UV_Mean_con = NA, 
-                             PeakRatio_con = NA))
-        }   
+            check.else <- TRUE
+            cc.df <- RowBinder(cc.df, coculture, con, final.count, uv.mean, 
+                               ratio, cc.peak, con.peak, check.else)
+        }
+        check.else <- FALSE
         cc.peak <- cc.peak + 1
     }
     return(cc.df)
 }
 
 #############################################
-# 6.ConConsolidator: Removes double peak matching to a coculture peak
+# 7.ConConsolidator: Removes double peak matching to a coculture peak
 #############################################
 
 # The following code removes double assignments to a coculture peak
@@ -384,7 +392,7 @@ ConConsolidator <- function(cc.df, con1.df, con2.df) {
 }
 
 #############################################
-# 7.Metabolite Effect Characteriser: converting PeakRatio to a Factor
+# 8.Metabolite Effect Characteriser: converting PeakRatio to a Factor
 #############################################
 
 # The following piece of code adds a column that categorises the peak 
