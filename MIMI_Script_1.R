@@ -44,16 +44,18 @@ library(readxl)
 
 # 5.RowBinder - Binds the matched peak found in PeakMatcher to a df named cc.df
 
-# 6.PeakMatcher - PeakMatcher: Matches and verifies peaks from the control of 
+# 6.CalcRatio: Calculates the %Enhancement/Suppresion compared to control levels
+
+# 7.PeakMatcher - PeakMatcher: Matches and verifies peaks from the control of 
 # interest to peaks in the coculture, utilising a combination of retention time, 
 # number of matching UV maxima (UVcheck) and the means of the subtracted UV 
 # spectra (UVsubtract).
 
-# 7.ConConsolidator - Consolidates the outcome table to match peaks from coculture 
+# 8.ConConsolidator - Consolidates the outcome table to match peaks from coculture 
 # to a single peak in a control. Compares subtracted UV spectra to make decisions 
 # based on double matching.
 
-# 8.EffectCategoriser - Characterises the Peak Area ratio as an effect to the 
+# 9.EffectCategoriser - Characterises the Peak Area ratio as an effect to the 
 # metabolite in the coculture (induction, suppression, etc.).
 
 #------------------------------------------------------------------------------#
@@ -252,7 +254,19 @@ RowBinder <- function(cc.df, coculture, con, final.count, uv.mean, ratio,
 }
 
 #############################################
-# 6.PeakMatcher: Finds and compares the nearest matching peak in control
+# 6.CalcRatio: Calculates the %Enhancement/Suppresion compared to control levels
+#############################################
+
+CalcRatio <- function(cc, cc.peak, con, con.peak) {
+    
+    ratio <- (((cc[cc.peak, 3] -con[con.peak, 3]) / 
+                   con[con.peak, 3]) * 100)
+    return(ratio)
+    
+}
+
+#############################################
+# 7.PeakMatcher: Finds and compares the nearest matching peak in control
 #############################################
 
 PeakMatcher <- function(con, coculture, con.uv, cc.uv) {
@@ -267,18 +281,12 @@ PeakMatcher <- function(con, coculture, con.uv, cc.uv) {
     cc.peak <- 1
     
     # 'cc.peak' corresponds to the peak no. to be compared in the coculture
+    # 'con.peak' finds the peak in con1 with the closest RetTime to peak 'cc.peak'
     
     while (cc.peak < n + 1) {
         con.peak <- which(abs(con$RetTime - coculture$RetTime[cc.peak]) ==
                               min(abs(con$RetTime - coculture$RetTime[cc.peak])))
-        
-        # 'con.peak' finds the peak in con1 with the closest RetTime to peak 'cc.peak'
-        
-        ratio <- (((coculture[cc.peak, 3] - con[con.peak, 3]) / 
-                       con[con.peak,3]) * 100) 
-        
-        # Computes the ratio of peak areas as a %
-        
+        ratio <- CalcRatio(coculture, cc.peak, con, con.peak)
         final.count <- CheckUVCount(con, coculture, cc.peak, con.peak)
         uv.mean <- SubtractUV(con.uv, cc.uv, cc.peak, con.peak)
         
@@ -331,7 +339,7 @@ PeakMatcher <- function(con, coculture, con.uv, cc.uv) {
 }
 
 #############################################
-# 7.ConConsolidator: Removes double peak matching to a coculture peak
+# 8.ConConsolidator: Removes double peak matching to a coculture peak
 #############################################
 
 # The following code removes double assignments to a coculture peak
@@ -392,7 +400,7 @@ ConConsolidator <- function(cc.df, con1.df, con2.df) {
 }
 
 #############################################
-# 8.Metabolite Effect Characteriser: converting PeakRatio to a Factor
+# 9.Metabolite Effect Characteriser: converting PeakRatio to a Factor
 #############################################
 
 # The following piece of code adds a column that categorises the peak 
@@ -433,6 +441,20 @@ EffectCategoriser <- function(refined.cc.df, cc.name) {
     refined.cc.df <- cbind(refined.cc.df, metabolite.effect.df)
     return(refined.cc.df)
 }
+
+#############################################
+# 9.CalcPercArea: Calculates the %Peak Area for the peaks in coculture
+#############################################
+
+# The purpose of this function is to give induced peaks a quantifiable parameter
+
+CalcPercArea <- function(refined.cc.df) {
+    refined.cc.df <- mutate(refined.cc.df, PercArea = PeakArea_CC / 
+                                sum(refined.cc.df$PeakArea_CC) * 100)
+    refined.cc.df <- refined.cc.df[c(1:4, 13, 5:12)]
+    return(refined.cc.df)
+}
+
 
 #############################################
 # MIMI_Part_1: The main working-function to compare the peak-matching and refinement
@@ -493,6 +515,7 @@ MIMI <- function() {
         refined.cc.df <- 
             EffectCategoriser(refined.cc.df, cc.name)
         names(refined.cc.df)[2:4] <- c("PeakNo_CC", "RetTime_CC", "PeakArea_CC")
+        refined.cc.df <- CalcPercArea(refined.cc.df)
         
         # Rewrites the tidied dataset to a csv file
         

@@ -95,7 +95,6 @@ LogicTableMaker <- function(Interaction_Matrix) {
                          sep = "-", remove = FALSE)
         df.name <- filter(df.name, Combined !="NA-NA")
         logic <- length(unique(df.name$Combined)) == nrow(df.name)
-        print(logic)
         
         # Compares the no. of unique peaks assigned in the control
         
@@ -159,13 +158,12 @@ RemoveDoubleyAssignedPeaks <- function(Interaction_Matrix) {
         # Note: Only 1 peak is fixed at a time, and so will go back through
         # and regenerate the logic.table and check if more peaks need fixing.
         
-        logic.total.rows <- nrow(logic.table)
-        
         if (is.null(nrow(logic.table))) {
             logic.total.rows <- 0
+            else {
+                logic.total.rows <- nrow(logic.table)
+            }
         }
-        
-        print(logic.total.rows)
         logic.row.no <- 1
         
         while (logic.row.no <= logic.total.rows) {
@@ -264,21 +262,17 @@ MatchNonUVs <- function(Interaction_Matrix) {
                 
                 # Checks if the closest match incon1 satisfies this test.
                 
-                con.peak <-con1.peak
-                ratio = (((cc[cc.peak, 3] -con1[con.peak, 3]) 
-                          / con1[con.peak, 3]) * 100)
+                ratio <- CalcRatio(cc, cc.peak, con1, con1.peak)
                 Effect <- SimpleEffectCategoriser(ratio)
-                df.name <- PeakAssigner(df.name, cc.peak, con1.name, con.peak, 
+                df.name <- PeakAssigner(df.name, cc.peak, con1.name, con1.peak, 
                                         con1, final.count.1, ratio, Effect)
                 
             }   else if (cc$RetTime[cc.peak] < (con2$RetTime[con2.peak] + 0.02) && 
                          cc$RetTime[cc.peak] > (con2$RetTime[con2.peak] - 0.02) &&
                          final.count.2 < 2)    {
-                con.peak <-con2.peak
-                ratio = (((cc[cc.peak, 3] -con2[con.peak, 3]) / 
-                              con2[con.peak, 3]) * 100)
+                ratio <- CalcRatio(cc, cc.peak, con2, con2.peak)
                 Effect <- SimpleEffectCategoriser(ratio)
-                df.name <- PeakAssigner(df.name, cc.peak, con2.name, con.peak, 
+                df.name <- PeakAssigner(df.name, cc.peak, con2.name, con2.peak, 
                                         con2, final.count.2, ratio, Effect)
             }    
             cc.peak <- cc.peak + 1
