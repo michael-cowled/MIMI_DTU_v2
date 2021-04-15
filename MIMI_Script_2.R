@@ -115,15 +115,15 @@ LogicTableMaker <- function(Interaction_Matrix) {
 
 IdentifyBadPeak <- function(double.peaks.subset) {
     
-    if (double.peaks.subset[1, 10] > double.peaks.subset[2, 10]) {
+    if (double.peaks.subset[1, 11] > double.peaks.subset[2, 11]) {
         
         # Peaks are compared based on UV count first.
         # The peak with the lowest UV count is removed.
         
         bad.peak <- double.peaks.subset[2, 2]
-    }   else if (double.peaks.subset[1, 10] < double.peaks.subset[2, 10]) {
-        bad.peak <- double.peaks.subset[1, 2]
     }   else if (double.peaks.subset[1, 11] < double.peaks.subset[2, 11]) {
+        bad.peak <- double.peaks.subset[1, 2]
+    }   else if (double.peaks.subset[1, 12] < double.peaks.subset[2, 12]) {
         
         # If the UV counts are equal the subtracted UV mean is compared.
         # The peak with the highest UV mean is removed.
@@ -182,11 +182,11 @@ RemoveDoubleyAssignedPeaks <- function(Interaction_Matrix) {
             double.peaks.df$Duplicated <- duplicated(double.peaks.df$Combined)
             double.peaks.subset <- filter(double.peaks.df, Duplicated == TRUE)
             double.peaks.subset <- filter(double.peaks.df, 
-                                          Combined == double.peaks.subset[1, 5])
+                                          Combined == double.peaks.subset[1, 6])
             
             bad.peak <- IdentifyBadPeak(double.peaks.subset)
             
-            df.to.manipulate[bad.peak, 5:12] <- NA
+            df.to.manipulate[bad.peak, 5:13] <- NA
             double.peaks.df_removed <- select(df.to.manipulate, -Combined)
             write.csv(double.peaks.df_removed, 
                       paste0("Testing Broad-Scale Interactions/OutputFiles/", 
@@ -341,7 +341,7 @@ RowBinder2 <- function(df.name, con.name, con, cc.peak) {
     
     df.name <- rbind(df.name, 
                      c(Sample_Ref = con.name, PeakNo_CC = NA, 
-                       RetTime_CC = NA, PeakArea_CC = NA, 
+                       RetTime_CC = NA, PeakArea_CC = NA, PercArea = NA, 
                        Combined = NA, Matched_con = NA, 
                        PeakNo_con =con$Peak[cc.peak], 
                        RetTime_con =con$RetTime[cc.peak], 
