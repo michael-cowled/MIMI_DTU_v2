@@ -35,12 +35,9 @@
 # 6.MatchNonUVs - - Tentatively assigns matched peaks as non UVs 
 # (or as distorted UVs) if matching the conditions.
 
-# 7.InhibitionChecker - Checks if one culture is inhibited and deposits into a 
-# separate output file.
+# 7.RowBinder2: A variant of RowBinder used for adding missing control peaks
 
-# 8.RowBinder2: A variant of RowBinder used for adding missing control peaks
-
-# 9.FindMissingcontrolPeaks - Adds in unassigned peaks from the controls to 
+# 8.FindMissingcontrolPeaks - Adds in unassigned peaks from the controls to 
 # provide a single, unified table.
 
 #------------------------------------------------------------------------------#
@@ -192,6 +189,7 @@ RemoveDoubleyAssignedPeaks <- function(Interaction_Matrix) {
                       paste0("Testing Broad-Scale Interactions/OutputFiles/", 
                              cc.name, ".CSV"), row.names = FALSE)
             logic.row.no <- logic.row.no + 1
+            return(double.peaks.df_removed)
         }
     }
 }
@@ -218,7 +216,9 @@ PeakAssigner <- function(df.name, cc.peak, con.name, con.peak, con, final.count,
 
 MatchNonUVs <- function(cc.peak, con1, con2, cc, df.name, con1.name, con2.name) {
     
-    while (cc.peak < n+1) {
+    n <- nrow(df.name)
+    
+    while (cc.peak < n + 1) {
         con1.peak <- which(abs(con1$RetTime-cc$RetTime[cc.peak]) ==
                                min(abs(con1$RetTime-cc$RetTime[cc.peak])))
         con2.peak <- which(abs(con2$RetTime-cc$RetTime[cc.peak]) ==
@@ -252,60 +252,11 @@ MatchNonUVs <- function(cc.peak, con1, con2, cc, df.name, con1.name, con2.name) 
         }    
         cc.peak <- cc.peak + 1
     }
+    return(df.name)
 }
 
 #############################################
-# 7.InhibitionChecker: Verifies if one culture is inhibited
-#############################################
-
-InhibitionChecker <- function(df.name, inhibition.df, cc.name) {
-    
-    #From opened output file
-    
-    match <- as.data.frame(table(df.name$Matched_con))
-    names(match)[2] <- 'match'
-    unmatch <- as.data.frame(table(df.name$Sample_Ref))
-    names(unmatch)[2] <- 'unmatch'
-    combined <- merge(match, unmatch) %>%
-        mutate(ratio = unmatch / match)
-    
-    # Then verify whether inhibition of control indicated
-    
-    if (nrow(combined) == 0) {
-        combined <- match
-        combined$unmatch[[1]] <- 0
-        combined$ratio[[1]] <- 0
-        combined$Inhibition[[1]] <- TRUE
-    } else if (nrow(combined) == 1) {
-        combined$Inhibition[[1]] <- TRUE
-    }   else if (combined$match[1] <= 1 && combined$ratio[1] >= 3) {
-        combined$Inhibition[[1]] <- TRUE
-        combined$Inhibition[[2]] <- FALSE
-    }   else if (combined$match[2] <= 1 && combined$ratio[2] >= 3) {
-        combined$Inhibition[[2]] <- TRUE
-        combined$Inhibition[[1]] <- FALSE
-    }   else {
-        combined$Inhibition[[2]] <- FALSE
-        combined$Inhibition[[1]] <- FALSE
-    }
-    
-    combined <- filter(combined, Inhibition == TRUE)
-    
-    if (nrow(combined) > 0) {
-        temp <- setNames(data.frame(matrix(ncol = 3, nrow = 1)),
-                         c("cc.name", "Inhibition", "Dominating_Culture"))
-        combined$cc.name <- cc.name
-        combined$Var1 <- as.character(combined$Var1)
-        temp$cc.name <- combined[1, 6]
-        temp$Inhibition <- combined[1, 5]
-        temp$Dominating_Culture <- combined[1, 1]
-        inhibition.df <- rbind(inhibition.df, temp)
-    }
-    return(inhibition.df)
-}
-
-#############################################
-# 8.RowBinder2: A variant of RowBinder used for adding missing control peaks
+# 7.RowBinder2: A variant of RowBinder used for adding missing control peaks
 #############################################
 
 RowBinder2 <- function(df.name, con.name, con, cc.peak) {
@@ -323,75 +274,38 @@ RowBinder2 <- function(df.name, con.name, con, cc.peak) {
 }
 
 #############################################
-# 9.FindMissingcontrolPeaks: Adds in the unassigned peaks from the control(s)
+# 8.FindMissingcontrolPeaks: Adds in the unassigned peaks from the control(s)
 #############################################
 
-FindMissingcontrolPeaks <- function(Interaction_Matrix) {
+FindMissingcontrolPeaks <- function(df.name, con1.name, con1, con2.name, con2) {
     
-    # Makes a new table that is used in InhibitionChecker function:
-    inhibition.df <- setNames(data.frame(matrix(ncol = 3, nrow = 0)),
-                              c("cc.name", "Inhibition", "Inhibited_Culture"))
+    n <- nrow(con1)
+    cc.peak <- 1
     
-    matrix.total.rows <- nrow(Interaction_Matrix)
-    matrix.row.no <- 1
+    # Sequentially checkscon1 for peak 'cc.peak' in coculture output file
     
-    while (matrix.row.no <= matrix.total.rows) {
-        
-        # Reads in the first coculture output file to be amended.
-        # Reads in the the corresponding con files from raw NovaC.
-        
-        con1.name <- as.character(Interaction_Matrix[matrix.row.no, 1])
-        con2.name <- as.character(Interaction_Matrix[matrix.row.no, 2])
-        cc.name <- as.character(Interaction_Matrix[matrix.row.no, 3])
-        df.name <- 
-            read.csv(paste0("Testing Broad-Scale Interactions/OutputFiles/", 
-                            cc.name, ".csv"))
-        
-        df.name$Sample_Ref <- as.character(df.name$Sample_Ref)
-        df.name <- unite(df.name, Combined, c(Matched_con, PeakNo_con), 
-                         sep = "-", remove = FALSE)
-        con1 <- as.data.frame(ReadExcel(con1.name))
-        con2 <- as.data.frame(ReadExcel(con2.name))
-        
-        matrix.row.no <- matrix.row.no + 1
-        n <- nrow(con1)
-        cc.peak <- 1
-        
-        # Sequentially checkscon1 for peak 'cc.peak' in coculture output file
-        
-        while (cc.peak <= n) {
-            if (any(df.name[, 5] == paste0(con1.name, "-", cc.peak), na.rm = TRUE)) {
-            }   else if (any(df.name[, 5] != paste0(con1.name, "-", cc.peak), 
-                             na.rm = TRUE)) {
-                df.name <- RowBinder2(df.name, con1.name, con1, cc.peak)
-            }
-            cc.peak <- cc.peak + 1 
+    while (cc.peak <= n) {
+        if (any(df.name[, 5] == paste0(con1.name, "-", cc.peak), na.rm = TRUE)) {
+        }   else if (any(df.name[, 5] != paste0(con1.name, "-", cc.peak), 
+                         na.rm = TRUE)) {
+            df.name <- RowBinder2(df.name, con1.name, con1, cc.peak)
         }
-        
-        n <- nrow(con2)
-        cc.peak <- 1
-        
-        while (cc.peak <= n) {
-            if (any(df.name[, 5] == paste0(con2.name, "-", cc.peak), na.rm = TRUE)) {
-            }   else if (any(df.name[, 5] != paste0(con2.name, "-", cc.peak), 
-                             na.rm = TRUE)) {
-                df.name <- RowBinder2(df.name, con2.name, con2, cc.peak)
-            }   
-            cc.peak <- cc.peak + 1
-        }
-        df.name <- select(df.name, -Combined)
-        
-        # Space to include function to identify inhibition
-        inhibition.df <- InhibitionChecker(df.name, inhibition.df, 
-                                           cc.name)
-        write.csv(df.name, 
-                  paste0("Testing Broad-Scale Interactions/OutputFiles/", 
-                         cc.name, ".CSV"), row.names = FALSE)
+        cc.peak <- cc.peak + 1 
     }
-    inhibition.df <- transform(inhibition.df, Inhibition = as.logical(Inhibition))
-    write.csv(inhibition.df, 
-              paste0("Testing Broad-Scale Interactions/OutputFiles/inhibition.df.CSV"), 
-              row.names = FALSE)
+    
+    n <- nrow(con2)
+    cc.peak <- 1
+    
+    while (cc.peak <= n) {
+        if (any(df.name[, 5] == paste0(con2.name, "-", cc.peak), na.rm = TRUE)) {
+        }   else if (any(df.name[, 5] != paste0(con2.name, "-", cc.peak), 
+                         na.rm = TRUE)) {
+            df.name <- RowBinder2(df.name, con2.name, con2, cc.peak)
+        }   
+        cc.peak <- cc.peak + 1
+    }
+    df.name <- select(df.name, -Combined)
+    return(df.name)
 }
 
 #############################################
@@ -428,16 +342,17 @@ MIMI2 <- function() {
         cc <- as.data.frame(ReadExcel(cc.name))
         
         matrix.row.no <- matrix.row.no + 1
-        n <- nrow(df.name)
         cc.peak <- 1
         
-        MatchNonUVs(cc.peak, con1, con2, cc, df.name, con1.name, con2.name)
+        df.name <- MatchNonUVs(cc.peak, con1, con2, cc, df.name, con1.name, con2.name)
+        df.name$Sample_Ref <- as.character(df.name$Sample_Ref)
+        df.name <- unite(df.name, Combined, c(Matched_con, PeakNo_con), 
+                         sep = "-", remove = FALSE)
+        df.name <- FindMissingcontrolPeaks(df.name, con1.name, con1, con2.name, con2)
         
         write.csv(df.name, 
                   paste0("Testing Broad-Scale Interactions/OutputFiles/", 
                          cc.name, ".CSV"), row.names = FALSE)
     }
-    print("Initiating FindMissingcontrolPeaks")
-    FindMissingcontrolPeaks(Interaction_Matrix)
     print("MIMI2 completed.")
 }
