@@ -60,3 +60,27 @@ ggplot(hist.data, aes(fill=Range, y=Metabolite_Count, x=Condition)) +
     ylab("Proportion of Secondary Metabolites") + 
     scale_fill_discrete(name = "Retention Time Range") + theme_minimal() + 
     theme(legend.position = "bottom")
+
+# Comparing Inductions to all other effects in 3-4 min range
+
+effect.6 <- filter(full.list, as.numeric(Metabolite_Effect) > 5)
+all.other.effects <- filter(full.list, as.numeric(Metabolite_Effect) < 6 
+                            & as.numeric(Metabolite_Effect) > 1)
+a <- nrow(filter(effect.6, RetTime_CC >= 3 & RetTime_CC <= 4))
+b <- nrow(effect.6)
+c <- nrow(filter(all.other.effects, RetTime_CC >= 3 & RetTime_CC <= 4))
+d <- nrow(all.other.effects)
+Metabolite_Count <- c(a, b, c, d)
+Range <- c("3-4 min", "0-3 min, 4-11 min", "3-4 min", "0-3 min, 4-11 min")
+Condition <- c("Induced", "Induced", 
+               "Other effects", "Other effects")
+hist.data <- data.frame(Metabolite_Count, Range, Condition)
+
+# Boxplot comparisons of metabolite effect vs retention time
+
+full.list.minus.effect.1 <- filter(full.list, as.numeric(Metabolite_Effect) <7 & as.numeric(Metabolite_Effect) > 1)
+effect.names <- c("Suppression", "Little to no change", "Enhancement", "Major enhancement", "Induction")
+ggplot(data=full.list.minus.effect.1, aes(x=Metabolite_Effect, y=RetTime_CC)) + geom_boxplot(aes(fill=Metabolite_Effect)) + 
+    ylab("Retention Time (min)") + xlab("Metabolite Effect") +
+    stat_summary(fun.y=mean, geom="point", shape=1, size=3) +
+    theme(axis.text.x = element_text(angle = 90, face = "italic")) + scale_x_discrete(labels = effect.names)
