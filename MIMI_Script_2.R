@@ -21,24 +21,26 @@
 # 1.SimpleEffectCategoriser - Uses the principles of the EffectCategoriser 
 # function to categorise based on a single PeakRatio input.
 
-# 2.IdentifyBadPeak: Decides on which of the doubley assigned peaks to remove
+# 2.LogicTableMaker: Finds and reports instances of double peak matching
 
-# 3.RemoveDoubleyAssignedPeaks -Checks for a peak in the control being assigned 
+# 3.IdentifyBadPeak: Decides on which of the doubley assigned peaks to remove
+
+# 4.RemoveDoubleyAssignedPeaks -Checks for a peak in the control being assigned 
 # to more than one peak in the coculture. Uses the number of matching UV maxima 
 # and/or the subtracted UV spectra to make decisions as to which peak is a better 
 # match.
 
-# 4.PeakAssigner: Adds the assignment of the matched non UV peak from MatchNonUVs
+# 5.PeakAssigner: Adds the assignment of the matched non UV peak from MatchNonUVs
 
-# 5.MatchNonUVs - - Tentatively assigns matched peaks as non UVs 
+# 6.MatchNonUVs - - Tentatively assigns matched peaks as non UVs 
 # (or as distorted UVs) if matching the conditions.
- 
-# 6.InhibitionChecker - Checks if one culture is inhibited and deposits into a 
+
+# 7.InhibitionChecker - Checks if one culture is inhibited and deposits into a 
 # separate output file.
 
-# 7.RowBinder2: A variant of RowBinder used for adding missing control peaks
+# 8.RowBinder2: A variant of RowBinder used for adding missing control peaks
 
-# 8.FindMissingcontrolPeaks - Adds in unassigned peaks from the controls to 
+# 9.FindMissingcontrolPeaks - Adds in unassigned peaks from the controls to 
 # provide a single, unified table.
 
 #------------------------------------------------------------------------------#
@@ -67,7 +69,49 @@ SimpleEffectCategoriser <- function(ratio) {
 }
 
 #############################################
-# 2.IdentifyBadPeak: Decides on which of the doubley assigned peaks to remove
+# 2.LogicTableMaker: Finds and reports instances of double peak matching
+#############################################
+
+LogicTableMaker <- function(Interaction_Matrix) {
+    
+    # A df is set up to list the instances where double-peak matching occurs.
+    
+    logic.table <- setNames(data.frame(matrix(ncol = 1, nrow = 0)),
+                            c("cc.name"))
+    
+    matrix.total.rows <- nrow(Interaction_Matrix)
+    matrix.row.no <- 1
+    
+    while (matrix.row.no <= matrix.total.rows) {
+        
+        cc.name <- as.character(Interaction_Matrix[matrix.row.no,3])
+        cc.name.list <- setNames(data.frame(matrix(ncol = 1, nrow = 0)), 
+                                 c("cc.name"))
+        cc.name.list[1, 1] <- cc.name
+        df.name <- 
+            read.csv(paste0("Testing Broad-Scale Interactions/OutputFiles/", 
+                            cc.name, ".csv"))
+        df.name <- unite(df.name, Combined, c(Matched_con, PeakNo_con), 
+                         sep = "-", remove = FALSE)
+        df.name <- filter(df.name, Combined !="NA-NA")
+        logic <- length(unique(df.name$Combined)) == nrow(df.name)
+        print(logic)
+        
+        # Compares the no. of unique peaks assigned in the control
+        
+        # If the no. of unique peaks differs to the no. of peaks in the
+        # coculture, then it will be incorporated in the logic.table
+        
+        if (logic == TRUE) {
+        } else {
+            logic.table <- rbind(logic.table, cc.name.list)
+        }
+        matrix.row.no <- matrix.row.no +1
+    }
+}
+
+#############################################
+# 3.IdentifyBadPeak: Decides on which of the doubley assigned peaks to remove
 #############################################
 
 IdentifyBadPeak <- function(double.peaks.subset) {
@@ -92,9 +136,8 @@ IdentifyBadPeak <- function(double.peaks.subset) {
     return(bad.peak)
 }
 
-
 #############################################
-# 3.RemoveDoubleyAssignedPeaks: Removes doubley-assigned peaks from a control.
+# 4.RemoveDoubleyAssignedPeaks: Removes doubley-assigned peaks from a control.
 #############################################
 
 # An example is that perhaps the peaks 1 and 2 from the coculture match to
@@ -109,38 +152,7 @@ RemoveDoubleyAssignedPeaks <- function(Interaction_Matrix) {
     
     while (logic.total.rows > 0) {
         
-        matrix.total.rows <- nrow(Interaction_Matrix)
-        matrix.row.no <- 1
-        logic.table <- setNames(data.frame(matrix(ncol = 1, nrow = 0)),
-                                c("cc.name"))
-        
-        # A df is set up to list the instances where double-peak matching occurs.
-        
-        while (matrix.row.no <= matrix.total.rows) {
-            
-            cc.name <- as.character(Interaction_Matrix[matrix.row.no,3])
-            cc.name.list <- setNames(data.frame(matrix(ncol = 1, nrow = 0)), 
-                                     c("cc.name"))
-            cc.name.list[1, 1] <- cc.name
-            df.name <- 
-                read.csv(paste0("Testing Broad-Scale Interactions/OutputFiles/", 
-                                cc.name, ".csv"))
-            df.name <- unite(df.name, Combined, c(Matched_con, PeakNo_con), 
-                             sep = "-", remove = FALSE)
-            df.name <- filter(df.name, Combined !="NA-NA")
-            logic <- length(unique(df.name$Combined)) == nrow(df.name)
-            
-            # Compares the no. of unique peaks assigned in the control
-            
-            # If the no. of unique peaks differs to the no. of peaks in the
-            # coculture, then it will be incorporated in the logic.table
-            
-            if (logic == TRUE) {
-            } else {
-                logic.table <- rbind(logic.table, cc.name.list)
-            }
-            matrix.row.no <- matrix.row.no +1
-        }
+        logic.table <- LogicTableMaker(Interaction_Matrix)
         
         # Now to use the logic.table to read in the files that need fixing.
         
@@ -148,6 +160,12 @@ RemoveDoubleyAssignedPeaks <- function(Interaction_Matrix) {
         # and regenerate the logic.table and check if more peaks need fixing.
         
         logic.total.rows <- nrow(logic.table)
+        
+        if (is.null(nrow(logic.table))) {
+            logic.total.rows <- 0
+        }
+        
+        print(logic.total.rows)
         logic.row.no <- 1
         
         while (logic.row.no <= logic.total.rows) {
@@ -181,7 +199,7 @@ RemoveDoubleyAssignedPeaks <- function(Interaction_Matrix) {
 }
 
 #############################################
-# 4.PeakAssigner: Adds the assignment of the matched non UV peak from MatchNonUVs
+# 5.PeakAssigner: Adds the assignment of the matched non UV peak from MatchNonUVs
 #############################################
 
 PeakAssigner <- function(df.name, cc.peak, con.name, con.peak, con, final.count,
@@ -197,7 +215,7 @@ PeakAssigner <- function(df.name, cc.peak, con.name, con.peak, con, final.count,
 }
 
 #############################################
-# 5.MatchNonUVs: Further assigns peaks based on weaker criteria.
+# 6.MatchNonUVs: Further assigns peaks based on weaker criteria.
 #############################################
 
 MatchNonUVs <- function(Interaction_Matrix) {
@@ -232,8 +250,8 @@ MatchNonUVs <- function(Interaction_Matrix) {
                                    min(abs(con1$RetTime-cc$RetTime[cc.peak])))
             con2.peak <- which(abs(con2$RetTime-cc$RetTime[cc.peak]) ==
                                    min(abs(con2$RetTime-cc$RetTime[cc.peak])))
-            final.count.1 <- UVcheck(con1, cc, cc.peak,con1.peak)
-            final.count.2 <- UVCheck(con2, cc, cc.peak,con2.peak)
+            final.count.1 <- CheckUVCount(con1, cc, cc.peak,con1.peak)
+            final.count.2 <- CheckUVCount(con2, cc, cc.peak,con2.peak)
             if (!is.na(df.name$Matched_con[cc.peak]) | 
                 (any(df.name[, 7] ==con1$RetTime[con1.peak], na.rm = TRUE)) |
                 (any(df.name[, 7] ==con2$RetTime[con2.peak], na.rm = TRUE))) {
@@ -272,7 +290,7 @@ MatchNonUVs <- function(Interaction_Matrix) {
 }
 
 #############################################
-# 6.InhibitionChecker: Verifies if one culture is inhibited
+# 7.InhibitionChecker: Verifies if one culture is inhibited
 #############################################
 
 InhibitionChecker <- function(df.name, inhibition.df, cc.name) {
@@ -322,7 +340,7 @@ InhibitionChecker <- function(df.name, inhibition.df, cc.name) {
 }
 
 #############################################
-# 7.RowBinder2: A variant of RowBinder used for adding missing control peaks
+# 8.RowBinder2: A variant of RowBinder used for adding missing control peaks
 #############################################
 
 RowBinder2 <- function(df.name, con.name, con, cc.peak) {
@@ -340,7 +358,7 @@ RowBinder2 <- function(df.name, con.name, con, cc.peak) {
 }
 
 #############################################
-# 8.FindMissingcontrolPeaks: Adds in the unassigned peaks from the control(s)
+# 9.FindMissingcontrolPeaks: Adds in the unassigned peaks from the control(s)
 #############################################
 
 FindMissingcontrolPeaks <- function(Interaction_Matrix) {
