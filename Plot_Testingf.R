@@ -47,7 +47,19 @@ F1v <- rbindlist(my.data, use.names=TRUE, fill=FALSE)
 F1v <- transform(F1v, Metabolite_Effect = factor(Metabolite_Effect))
 
 #e.g. boxplot
-boxplot(full.list$RetTime_CON ~ full.list$Metabolite_Effect)
+boxplot(full.list$RetTime_CC ~ full.list$Metabolite_Effect)
+boxplot(full.list$RetTime_CC ~ full.list$Metabolite_Effect, las = 2,
+        ylab = "Retention Time (min)", xlim = c(1.5,6.5), 
+        names = c("Not present", "Suppression", "Little to no change", "Enhancement", "Major enhancement", "Induction"))
+mtext("Metabolite Effect", side = 1, line = 7)
+
+full.list.minus.effect.1 <- filter(full.list, as.numeric(Metabolite_Effect) <7 & as.numeric(Metabolite_Effect) > 1)
+effect.names <- c("Suppression", "Little to no change", "Enhancement", "Major enhancement", "Induction")
+ggplot(data=full.list.minus.effect.1, aes(x=Metabolite_Effect, y=RetTime_CC)) + geom_boxplot(aes(fill=Metabolite_Effect)) + 
+    ylab("Retention Time (min)") + xlab("Metabolite Effect") +
+    stat_summary(fun.y=mean, geom="point", shape=1, size=4) +
+    theme(axis.text.x = element_text(angle = 90, face = "italic")) + scale_x_discrete(labels = effect.names)
+
 
 
 #Separate lists based on Coculturing Fungus
