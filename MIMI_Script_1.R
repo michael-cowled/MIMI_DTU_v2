@@ -351,7 +351,7 @@ PeakMatcher <- function(con, coculture, con.uv, cc.uv) {
 # This function will determine which control's matched peak matches
 # closest and remove the assignment for the weakest match.
 
-ConConsolidator <- function(cc.df, con1.df, con2.df) {
+ConConsolidator <- function(cc.df, con1.name, con2.name) {
     
     row.no <- 1
     total.rows <- nrow(cc.df)
@@ -372,26 +372,26 @@ ConConsolidator <- function(cc.df, con1.df, con2.df) {
             # When there are two peaks matched (!is.na for both),
             # the uv.means are compared, with the higher removed.
             
-            matched.peak.df[row.no, 1] <- con1.df
+            matched.peak.df[row.no, 1] <- con1.name
             matched.peak.df[row.no, 2:7] <- cc.df[row.no, 4:9]
         }   else if (!is.na(cc.df[row.no, 4]) && 
                      !is.na(cc.df[row.no, 10] && 
                      abs(cc.df[row.no, 8]) > abs(cc.df[row.no, 14]))) { 
-            matched.peak.df[row.no, 1] <- con2.df
+            matched.peak.df[row.no, 1] <- con2.name
             matched.peak.df[row.no, 2:7] <- cc.df[row.no, 10:15]
         }   else if (is.na(cc.df[row.no, 10]))   {
             
             # If no double-peak mactching but signifies a matched con1 peak
             # then con1 peak set as the matched peak
             
-            matched.peak.df[row.no, 1] <- con1.df
+            matched.peak.df[row.no, 1] <- con1.name
             matched.peak.df[row.no, 2:7] <- cc.df[row.no, 4:9]
         }   else {
             
             #If no double-peak mactching or matched con1 peak
             #then con2 peak set as the matched peak
             
-            matched.peak.df[row.no, 1] <- con2.df
+            matched.peak.df[row.no, 1] <- con2.name
             matched.peak.df[row.no, 2:7] <- cc.df[row.no, 10:15]
         }
         row.no <- row.no + 1
@@ -406,10 +406,10 @@ ConConsolidator <- function(cc.df, con1.df, con2.df) {
 # The following piece of code adds a column that categorises the peak 
 # areas into suppressions, and enhancements
 
-EffectCategoriser <- function(refined.cc.df, cc.name) {
+EffectCategoriser <- function(tidied.cc.df, cc.name) {
     
     row.no <- 1
-    total.rows <- nrow(refined.cc.df)
+    total.rows <- nrow(tidied.cc.df)
     
     # A df is created to list the effects corresponding to matched peaks
     
@@ -417,29 +417,29 @@ EffectCategoriser <- function(refined.cc.df, cc.name) {
                                      c("Metabolite_Effect"))
     
     while (row.no <= total.rows) {
-        if (refined.cc.df[row.no, 1] == cc.name && 
-            is.na(refined.cc.df[row.no, 11])) {
+        if (tidied.cc.df[row.no, 1] == cc.name && 
+            is.na(tidied.cc.df[row.no, 11])) {
             metabolite.effect.df[row.no, 1] <- 6  # Induction
-        }   else if (refined.cc.df[row.no, 1] == cc.name && 
-                     refined.cc.df[row.no, 11] > -100
-                     && refined.cc.df[row.no, 11] <= -20) {
+        }   else if (tidied.cc.df[row.no, 1] == cc.name && 
+                     tidied.cc.df[row.no, 11] > -100
+                     && tidied.cc.df[row.no, 11] <= -20) {
             metabolite.effect.df[row.no, 1] <- 2  # Suppression
-        }   else if (refined.cc.df[row.no, 1] == cc.name && 
-                     refined.cc.df[row.no, 11] > -20
-                     && refined.cc.df[row.no, 11] < 20) {
+        }   else if (tidied.cc.df[row.no, 1] == cc.name && 
+                     tidied.cc.df[row.no, 11] > -20
+                     && tidied.cc.df[row.no, 11] < 20) {
             metabolite.effect.df[row.no, 1] <- 3  # Little to No Change
-        }   else if (refined.cc.df[row.no, 1] == cc.name && 
-                     refined.cc.df[row.no, 11] >= 20
-                     && refined.cc.df[row.no, 11] < 100) {
+        }   else if (tidied.cc.df[row.no, 1] == cc.name && 
+                     tidied.cc.df[row.no, 11] >= 20
+                     && tidied.cc.df[row.no, 11] < 100) {
             metabolite.effect.df[row.no, 1] <- 4  # Enhancement
-        }   else if (refined.cc.df[row.no, 1] == cc.name && 
-                     refined.cc.df[row.no, 11] >= 100) {
+        }   else if (tidied.cc.df[row.no, 1] == cc.name && 
+                     tidied.cc.df[row.no, 11] >= 100) {
             metabolite.effect.df[row.no, 1] <- 5  # Major Enhancement
         }
         row.no <- row.no + 1
     }
-    refined.cc.df <- cbind(refined.cc.df, metabolite.effect.df)
-    return(refined.cc.df)
+    tidied.cc.df <- cbind(tidied.cc.df, metabolite.effect.df)
+    return(tidied.cc.df)
 }
 
 #############################################
@@ -448,11 +448,11 @@ EffectCategoriser <- function(refined.cc.df, cc.name) {
 
 # The purpose of this function is to give induced peaks a quantifiable parameter
 
-CalcPercArea <- function(refined.cc.df) {
-    refined.cc.df <- mutate(refined.cc.df, PercArea = PeakArea_CC / 
-                                sum(refined.cc.df$PeakArea_CC) * 100)
-    refined.cc.df <- refined.cc.df[c(1:4, 13, 5:12)]
-    return(refined.cc.df)
+CalcPercArea <- function(characterised.cc.df) {
+    characterised.cc.df <- mutate(characterised.cc.df, PercArea = PeakArea_CC / 
+                                sum(characterised.cc.df$PeakArea_CC) * 100)
+    characterised.cc.df <- characterised.cc.df[c(1:4, 13, 5:12)]
+    return(characterised.cc.df)
 }
 
 
@@ -463,21 +463,22 @@ CalcPercArea <- function(refined.cc.df) {
 MIMI <- function() {           
     
 # Will not work unless Interaction_Matrix object created by the user.
-# Reads in 3 dataframes for each interaction one-by-one, 2 controls and 1 cc.
-# Also reads in 3 UV datafiles for each sample.
+    # 1. Defines the name of the coculture and 2 controls.
+    # 2. Reads in the peak data (rt, area, etc.) for each sample from a NovaC file.
+    # 3. Reads in the UV data for each peak of each sample.
     
     matrix.total.rows <- nrow(Interaction_Matrix)
     matrix.row.no <- 1
     
     while (matrix.row.no <= matrix.total.rows) {
         
-        con1.df <- as.character(Interaction_Matrix[matrix.row.no, 1])
-        con1 <- as.data.frame(ReadExcel(con1.df))
-        con1.uv <- as.data.frame(ReadUV(con1.df))
+        con1.name <- as.character(Interaction_Matrix[matrix.row.no, 1])
+        con1.df <- as.data.frame(ReadExcel(con1.name))
+        con1.uv <- as.data.frame(ReadUV(con1.name))
         
-        con2.df <- as.character(Interaction_Matrix[matrix.row.no, 2])
-        con2 <- as.data.frame(ReadExcel(con2.df))
-        con2.uv <- as.data.frame(ReadUV(con2.df))
+        con2.name <- as.character(Interaction_Matrix[matrix.row.no, 2])
+        con2.df <- as.data.frame(ReadExcel(con2.name))
+        con2.uv <- as.data.frame(ReadUV(con2.name))
         
         cc.name <- as.character(Interaction_Matrix[matrix.row.no, 3])
         coculture <- as.data.frame(ReadExcel(cc.name))
@@ -489,39 +490,32 @@ MIMI <- function() {
         # Runs the peak matching algorithm for con1 and con2 separately.
         # Then merges the two together into a unified df.
         
-        cc.df <- PeakMatcher(con1, coculture, con1.uv, cc.uv)
-        cc.df2 <- PeakMatcher(con2, coculture, con2.uv, cc.uv)
+        cc.df <- PeakMatcher(con1.df, coculture, con1.uv, cc.uv)
+        cc.df2 <- PeakMatcher(con2.df, coculture, con2.uv, cc.uv)
         cc.df.merged <- cbind(cc.df, cc.df2[, 4:9])
         
         # Performs a function to correct for double peak matching to a unique
-        # peak to peaks from more than one con
+        # peak to peaks from more than one con; then tidies resulting df
         
-        matched.peak.df <- ConConsolidator(cc.df.merged, con1.df, con2.df)
-        
-        # Final processing steps in creating the tidied df (refined.cc.df)
-        
+        matched.peak.df <- ConConsolidator(cc.df.merged, con1.name, con2.name)
         matched.peak.df <- matched.peak.df[1:nrow(matched.peak.df), ]
         df <- setNames(data.frame(matrix(ncol = 1, nrow = nrow(cc.df.merged))), 
                        "Sample_Ref")
         df[1:nrow(df), ] <- cc.name
-        refined.cc.df <- cc.df[1:nrow(cc.df.merged), 1:3]
-        refined.cc.df <- cbind(df, refined.cc.df)
-        refined.cc.df <- cbind(refined.cc.df, matched.peak.df)
+        tidied.cc.df <- cc.df[1:nrow(cc.df.merged), 1:3]
+        tidied.cc.df <- cbind(df, tidied.cc.df)
+        tidied.cc.df <- cbind(tidied.cc.df, matched.peak.df)
+        characterised.cc.df <- 
+            EffectCategoriser(tidied.cc.df, cc.name)
+        names(characterised.cc.df)[2:4] <- c("PeakNo_CC", "RetTime_CC", "PeakArea_CC")
+        characterised.cc.df <- CalcPercArea(characterised.cc.df)
         
-        # Performs a function to characterise effects onto metabolites
-        # and adds this into the tidied data set
+        # Rewrites the final dataset to a csv file
         
-        refined.cc.df <- 
-            EffectCategoriser(refined.cc.df, cc.name)
-        names(refined.cc.df)[2:4] <- c("PeakNo_CC", "RetTime_CC", "PeakArea_CC")
-        refined.cc.df <- CalcPercArea(refined.cc.df)
-        
-        # Rewrites the tidied dataset to a csv file
-        
-        write.csv(refined.cc.df, 
+        write.csv(characterised.cc.df, 
                   paste0("Testing Broad-Scale Interactions/OutputFiles/", 
                          cc.name, ".CSV"), row.names = FALSE)
     }
 }
 
-# Load in excel file named Interaction_Matrix and use MIMI() function:
+# NOTE: Load in excel file named Interaction_Matrix and use MIMI() function:
