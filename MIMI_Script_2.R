@@ -157,40 +157,39 @@ RemoveDoubleyAssignedPeaks <- function(Interaction_Matrix) {
         
         if (is.null(nrow(logic.table))) {
             logic.total.rows <- 0
-            else {
-                logic.total.rows <- nrow(logic.table)
-            }
+        }   else {
+            logic.total.rows <- nrow(logic.table)
         }
-        logic.row.no <- 1
+    }
+    logic.row.no <- 1
+    
+    while (logic.row.no <= logic.total.rows) {
         
-        while (logic.row.no <= logic.total.rows) {
-            
-            #Preprocessing code to read and manipulate the file of interest
-            
-            cc.name <- as.character(logic.table[logic.row.no, 1])
-            double.peaks.df <- 
-                read.csv(paste0("Testing Broad-Scale Interactions/OutputFiles/", 
-                                cc.name, ".csv"))
-            double.peaks.df <- unite(double.peaks.df, Combined, 
-                                     c(Matched_con, PeakNo_con), sep = "-", 
-                                     remove = FALSE)
-            df.to.manipulate <- double.peaks.df
-            double.peaks.df <- filter(double.peaks.df, Combined != "NA-NA")
-            double.peaks.df$Duplicated <- duplicated(double.peaks.df$Combined)
-            double.peaks.subset <- filter(double.peaks.df, Duplicated == TRUE)
-            double.peaks.subset <- filter(double.peaks.df, 
-                                          Combined == double.peaks.subset[1, 6])
-            
-            bad.peak <- IdentifyBadPeak(double.peaks.subset)
-            
-            df.to.manipulate[bad.peak, 5:13] <- NA
-            double.peaks.df_removed <- select(df.to.manipulate, -Combined)
-            write.csv(double.peaks.df_removed, 
-                      paste0("Testing Broad-Scale Interactions/OutputFiles/", 
-                             cc.name, ".CSV"), row.names = FALSE)
-            logic.row.no <- logic.row.no + 1
-            return(double.peaks.df_removed)
-        }
+        #Preprocessing code to read and manipulate the file of interest
+        
+        cc.name <- as.character(logic.table[logic.row.no, 1])
+        double.peaks.df <- 
+            read.csv(paste0("Testing Broad-Scale Interactions/OutputFiles/", 
+                            cc.name, ".csv"))
+        double.peaks.df <- unite(double.peaks.df, Combined, 
+                                 c(Matched_con, PeakNo_con), sep = "-", 
+                                 remove = FALSE)
+        df.to.manipulate <- double.peaks.df
+        double.peaks.df <- filter(double.peaks.df, Combined != "NA-NA")
+        double.peaks.df$Duplicated <- duplicated(double.peaks.df$Combined)
+        double.peaks.subset <- filter(double.peaks.df, Duplicated == TRUE)
+        double.peaks.subset <- filter(double.peaks.df, 
+                                      Combined == double.peaks.subset[1, 6])
+        
+        bad.peak <- IdentifyBadPeak(double.peaks.subset)
+        
+        df.to.manipulate[bad.peak, 5:13] <- NA
+        double.peaks.df_removed <- select(df.to.manipulate, -Combined)
+        write.csv(double.peaks.df_removed, 
+                  paste0("Testing Broad-Scale Interactions/OutputFiles/", 
+                         cc.name, ".CSV"), row.names = FALSE)
+        logic.row.no <- logic.row.no + 1
+        return(double.peaks.df_removed)
     }
 }
 
