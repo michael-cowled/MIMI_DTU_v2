@@ -19,23 +19,39 @@ library(ggplot2)
 
 #------------------------------------------------------------------------------#
 
+#############################################
+# 1.ReadOutput
+#############################################
+
 # Combines all output files into a list of all metabolites from all cocultures
 
-filenames <- list.files(path = "Testing Broad-Scale Interactions/OutputFiles/", 
+# Args:
+    # dataset - specifies a subsetted dataset folder. Leave blank if N/A.
+
+# Returns:
+    # full.list - a dataframe consisting of ALL output files combined into one.
+
+ReadOutput <- function(dataset) {
+filenames <- list.files(path = paste0("Testing Broad-Scale Interactions/OutputFiles/", dataset),
                         pattern = "F", full.names = TRUE)
 my.data <- lapply(filenames, read.csv)
 full.list <- rbindlist(my.data, use.names=TRUE, fill=FALSE)
 full.list <- transform(full.list, Metabolite_Effect = factor(Metabolite_Effect))
+return(full.list)
+}
 
 # Subsets full.list into specific effect categories
-
+effect.2 <- all.other.effects <- filter(full.list, as.numeric(Metabolite_Effect) < 3 
+                                        & as.numeric(Metabolite_Effect) > 1)
 effect.5.and.6 <- filter(full.list, as.numeric(Metabolite_Effect) > 4)
 all.other.effects <- filter(full.list, as.numeric(Metabolite_Effect) < 5 
-                            & as.numeric(Metabolite_Effect) > 1)
+                            & as.numeric(Metabolite_Effect) > 2)
 
 # Generates a side-by-side histogram comparison of RetTime vs. # of metabolites
 
-par(mfrow=c(1,2))
+par(mfrow=c(1,3))
+hist(effect.2$RetTime_CC, main = "Suppressed", 
+     xlab = "Retention Time", ylab = "Number of Secondary Metabolites")
 hist(effect.5.and.6$RetTime_CC, main = "Induction or Major Enhancement", 
      xlab = "Retention Time", ylab = "Number of Secondary Metabolites")
 hist(all.other.effects$RetTime_CC, main = "All other effects", 
@@ -44,9 +60,9 @@ hist(all.other.effects$RetTime_CC, main = "All other effects",
 # Produces a df comparing the number of metabolites in specific RetTime ranges.
 
 a <- nrow(filter(effect.5.and.6, RetTime_CC >= 2 & RetTime_CC <= 7))
-b <- nrow(effect.5.and.6)
+b <- nrow(effect.5.and.6) - a
 c <- nrow(filter(all.other.effects, RetTime_CC >= 2 & RetTime_CC <= 7))
-d <- nrow(all.other.effects)
+d <- nrow(all.other.effects) - c
 Metabolite_Count <- c(a, b, c, d)
 Range <- c("2-7 min", "0-2 min, 7-11 min", "2-7 min", "0-2 min, 7-11 min")
 Condition <- c("Induced or majorly enhanced", "Induced or majorly enhanced", 
