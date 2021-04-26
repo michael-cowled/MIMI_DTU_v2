@@ -3,7 +3,7 @@
 # Microbial Interaction Metabolite Integrator - Script 1 #
 ##########################################################
 ##########################################################
- 
+
 # COPYWRIGHT: © Macquarie University - Michael Cowled and contributors [2021]
 
 # AUTHOR COMMENT: MIMI is a program developed as part of my PhD and was supported
@@ -67,18 +67,18 @@ library(readxl)
 # Reading in the functions:
 
 #############################################
-# 1.ReadExcel: Creates 3 data frames for the 3 samples to be compared.
+# 1.ReadExcel
 #############################################
-
-ReadExcel <- function(excel.name) {
 
 #Reads in NovaC excel file and reformats UV column to be more usable.
 
 #Arg: 
-    #excel.name is read in from Interaction_Matrix object as CC or CON name.
-    
+# excel.name is read in from Interaction_Matrix object as CC or CON name.
+
 #Returns:
-    #A df corresponding to the excel file read in.
+# raw.df.with.sorted.uv - a df corresponding to the excel file read in.
+
+ReadExcel <- function(excel.name) {
     
     # Read in a df based on NovaC excel format
     raw.df <- read_excel(paste0("Testing Broad-Scale Interactions/NovaCfiles/", 
@@ -145,14 +145,21 @@ ReadExcel <- function(excel.name) {
 }
 
 #############################################
-# 2.CheckUVCount: Verifies the matching UV maxima for peaks in con1/2 & coculture
+# 2.CheckUVCount
 #############################################
 
-# CheckUVCount: Comparing con1 to coculture
-# Inputs are con1/con2 and coculture as read from the Interaction_Matrix
-# 'cc.peak' refers to the peak no. being compared in coculture
-# 'con.peak' refers to the peak no. being compared in control
+# Compares the number of matching UV maxima in the con to cc.
 # UV data is located in columns 5:9, hence 'con.uv.no' and 'cc.uv.no' starts at 5.
+
+# Args:
+# con can be either the df generated for control 1 or control 2.
+# cc is the df generated for the coculture.
+# cc.peak is the coculture peak no. to be compared.
+# con.peak is the control peak no. to be compared.
+
+# Returns:
+# uv.count - the number of matching uv maxima for the peaks being compared
+# in the control and the coculture.
 
 CheckUVCount <- function(con, cc, cc.peak, con.peak) {
     
@@ -183,11 +190,16 @@ CheckUVCount <- function(con, cc, cc.peak, con.peak) {
 }
 
 #############################################
-# 3.ReadUV Function: Reads in the raw UV data for every wavelength
+# 3.ReadUV Function
 #############################################
 
-# Input is excel.name which is read from the Interaction_Matrix object
-# Generates a df with col1 = Wavelength, col2 = Abs for Peak 1, etc.
+# Interprets and reads the raw UV data for every wavelength.
+
+# Args:
+# excel.name is the name of the cc or con read in from the Interaction_Matrix.
+
+# Returns:
+# uv.name - a df with col1 = Wavelength, col2 = Abs for peak 1, etc.
 
 ReadUV <- function(excel.name) {
     uv.name <- read_excel(paste0("Testing Broad-Scale Interactions/NovaCfiles/",
@@ -196,22 +208,28 @@ ReadUV <- function(excel.name) {
 }
 
 #############################################
-# 4.SubtractUV: Subtracts whole UV spectra and calculates the mean for peaks 
-# in con1/2 & coculture
+# 4.SubtractUV: 
 #############################################
 
-# SubtractUV: Comparing control to coculture
+# Subtracts whole UV spectra and calculates the mean for peaks being compared
+# in the control and coculture. The resulting subtraction will provide a value
+# close to ZERO if the UV spectra are close in shape.
+
+# Args:
+# con.uv is the uv df generated for the control being compared.
+# cc.uv is the uv df generated for the coculture being compared.
+# cc.peak is the peak no. being compared in the coculture.
+# con.peak is the peak no. being compared in the control.
+
+# Returns:
+# uv.mean - the mean of UV absorbances of the con subtracted from the cc.
+
 
 SubtractUV <- function(con.uv, cc.uv, cc.peak, con.peak) {
-    
-    # Inputs are con1.uv and cc.uv as created from the Interaction_Matrix
-    # 'cc.peak' refers to the peak no. being compared in coculture
-    # 'con.peak' refers to the peak no. being compared in control
     
     cc.uv.no <- cc.peak + 1
     con.uv.no <- con.peak + 1
     
-    # Subtracts absorbances at each wavelength and calculates the column mean
     # 'cc.uv.no' refers to the column of abs data being compared in coculture
     # 'con.uv.no' refers to the column of abs data being compared in control
     # Note: Col2 = Peak#1, Col3 = Peak#2, etc. hence '+1'
@@ -222,12 +240,28 @@ SubtractUV <- function(con.uv, cc.uv, cc.peak, con.peak) {
 }
 
 #############################################
-# 5.RowBinder: Adds a row with the appropriate matched peak values
+# 5.RowBinder
 #############################################
+
+# Adds a row with the appropriate matched peak values.
+
+# Args:
+# cc.df is the core df being worked on to generate the end output file.
+# coculture is the generated df for the coculture being compared.
+# con is the generated df for the control for which the peak is matching.
+# final.count is the number of matching maxima between the matched peaks.
+# uv.mean is the average of the subtracted UV specral absorbances.
+# ratio is the computed ratio of peak areas for the matched peaks.
+# cc.peak is the peak no. being compared in the coculture.
+# con.peak is the peak no. being compared in the control.
+# check.else is a defining parameter to indicate whether the peaks match.
+
+# Returns:
+# cc.df - an updated cc.df with a new row indicating the matched peaks.
 
 RowBinder <- function(cc.df, coculture, con, final.count, uv.mean, ratio, 
                       cc.peak, con.peak, check.else) {
-
+    
     if (check.else == TRUE) {
         cc.df <- rbind(cc.df, 
                        c(PeakNo_CC = coculture$Peak[cc.peak], 
@@ -254,8 +288,19 @@ RowBinder <- function(cc.df, coculture, con, final.count, uv.mean, ratio,
 }
 
 #############################################
-# 6.CalcRatio: Calculates the %Enhancement/Suppresion compared to control levels
+# 6.CalcRatio
 #############################################
+
+# Calculates the %Enhancement/Suppresion compared to control levels.
+
+# Args:
+# cc is the generated df of the coculture.
+# cc.peak is the peak number of the matched peak in the coculture.
+# con is the generated df of the matching control.
+# con.peak is the peak number of the matched peak in the control.
+
+# Returns:
+# ratio - The ratio of peak ares of the matched peaks as a percentage.
 
 CalcRatio <- function(cc, cc.peak, con, con.peak) {
     
@@ -266,8 +311,21 @@ CalcRatio <- function(cc, cc.peak, con, con.peak) {
 }
 
 #############################################
-# 7.PeakMatcher: Finds and compares the nearest matching peak in control
+# 7.PeakMatcher
 #############################################
+
+# Finds the nearest matching peak in control based on retention time.
+# Then verifies whether the matching peak is valid based on number of matching
+# UV maxima and/or the subtracted UV spectra of the two peaks is close to 0.
+
+# Args:
+# con is the generated df of the control to be compared.
+# coculture is the generated df of the coculture to be compared.
+# con.uv is the generated df of UV absorbaces for each peak in th con.
+# cc.uv is the generated df of UV absorbances for each peak in the cc.
+
+# Returns:
+# cc.df - a generated df to catalogue the matching peaks in the cc and con.
 
 PeakMatcher <- function(con, coculture, con.uv, cc.uv) {
     
@@ -301,7 +359,7 @@ PeakMatcher <- function(con, coculture, con.uv, cc.uv) {
             # Checks if the ret.time is within 0.15 min of each other
             # Checks the uv.count is at least 3 OR uv.mean < 1.5
             # If satisfied, the peak is declared a match and added to df
-
+            
             cc.df <- RowBinder(cc.df, coculture, con, final.count, uv.mean, 
                                ratio, cc.peak, con.peak, check.else)
             
@@ -314,7 +372,7 @@ PeakMatcher <- function(con, coculture, con.uv, cc.uv) {
             # Both uv.count and uv.mean are less strict requirement
             # But requiring satisfaction of both adds stringency
             # If satisfied, the peak is declared a match and added to df
-
+            
             cc.df <- RowBinder(cc.df, coculture, con, final.count, uv.mean, 
                                ratio, cc.peak, con.peak, check.else)
             
@@ -339,7 +397,7 @@ PeakMatcher <- function(con, coculture, con.uv, cc.uv) {
 }
 
 #############################################
-# 8.ConConsolidator: Removes double peak matching to a coculture peak
+# 8.ConConsolidator
 #############################################
 
 # The following code removes double assignments to a coculture peak
@@ -351,7 +409,15 @@ PeakMatcher <- function(con, coculture, con.uv, cc.uv) {
 # This function will determine which control's matched peak matches
 # closest and remove the assignment for the weakest match.
 
-ConConsolidator <- function(cc.df, con1.name, con2.name) {
+# Args:
+# cc.df is df being worked on summarising all matched peaks in cc and cons.
+# con1.df is the generated df for control 1.
+# con2.df is the generated df for control 2.
+
+# Returns:
+# matched.peak.df - a tidied version of cc.df matching to single con peaks.
+
+ConConsolidator <- function(cc.df, con1.df, con2.df) {
     
     row.no <- 1
     total.rows <- nrow(cc.df)
@@ -367,31 +433,31 @@ ConConsolidator <- function(cc.df, con1.name, con2.name) {
         if (is.na(cc.df[row.no, 4]) && is.na(cc.df[row.no, 10])) {
         }   else if (!is.na(cc.df[row.no, 4]) && 
                      !is.na(cc.df[row.no, 10] && 
-                     abs(cc.df[row.no, 8]) < abs(cc.df[row.no, 14]))) { 
+                            abs(cc.df[row.no, 8]) < abs(cc.df[row.no, 14]))) { 
             
             # When there are two peaks matched (!is.na for both),
             # the uv.means are compared, with the higher removed.
             
-            matched.peak.df[row.no, 1] <- con1.name
+            matched.peak.df[row.no, 1] <- con1.df
             matched.peak.df[row.no, 2:7] <- cc.df[row.no, 4:9]
         }   else if (!is.na(cc.df[row.no, 4]) && 
                      !is.na(cc.df[row.no, 10] && 
-                     abs(cc.df[row.no, 8]) > abs(cc.df[row.no, 14]))) { 
-            matched.peak.df[row.no, 1] <- con2.name
+                            abs(cc.df[row.no, 8]) > abs(cc.df[row.no, 14]))) { 
+            matched.peak.df[row.no, 1] <- con2.df
             matched.peak.df[row.no, 2:7] <- cc.df[row.no, 10:15]
         }   else if (is.na(cc.df[row.no, 10]))   {
             
             # If no double-peak mactching but signifies a matched con1 peak
             # then con1 peak set as the matched peak
             
-            matched.peak.df[row.no, 1] <- con1.name
+            matched.peak.df[row.no, 1] <- con1.df
             matched.peak.df[row.no, 2:7] <- cc.df[row.no, 4:9]
         }   else {
             
             #If no double-peak mactching or matched con1 peak
             #then con2 peak set as the matched peak
             
-            matched.peak.df[row.no, 1] <- con2.name
+            matched.peak.df[row.no, 1] <- con2.df
             matched.peak.df[row.no, 2:7] <- cc.df[row.no, 10:15]
         }
         row.no <- row.no + 1
@@ -400,16 +466,24 @@ ConConsolidator <- function(cc.df, con1.name, con2.name) {
 }
 
 #############################################
-# 9.Metabolite Effect Characteriser: converting PeakRatio to a Factor
+# 9.Metabolite Effect Characteriser
 #############################################
 
-# The following piece of code adds a column that categorises the peak 
-# areas into suppressions, and enhancements
+# Characterises the ratios of peak area changes to a categorical factor.
 
-EffectCategoriser <- function(tidied.cc.df, cc.name) {
+# Args:
+# refined.cc.df is the tidied version of the df being worked on summarising 
+# all matched peaks in cc and cons. 
+# cc.name is the name of the coculture being investigated.
+
+#Returns:
+# refined.cc.df - includes a new column identifies matched peaks as inductions,
+# suppressions, etc.
+
+EffectCategoriser <- function(refined.cc.df, cc.name) {
     
     row.no <- 1
-    total.rows <- nrow(tidied.cc.df)
+    total.rows <- nrow(refined.cc.df)
     
     # A df is created to list the effects corresponding to matched peaks
     
@@ -417,105 +491,133 @@ EffectCategoriser <- function(tidied.cc.df, cc.name) {
                                      c("Metabolite_Effect"))
     
     while (row.no <= total.rows) {
-        if (tidied.cc.df[row.no, 1] == cc.name && 
-            is.na(tidied.cc.df[row.no, 11])) {
+        if (refined.cc.df[row.no, 1] == cc.name && 
+            is.na(refined.cc.df[row.no, 11])) {
             metabolite.effect.df[row.no, 1] <- 6  # Induction
-        }   else if (tidied.cc.df[row.no, 1] == cc.name && 
-                     tidied.cc.df[row.no, 11] > -100
-                     && tidied.cc.df[row.no, 11] <= -20) {
+        }   else if (refined.cc.df[row.no, 1] == cc.name && 
+                     refined.cc.df[row.no, 11] > -100
+                     && refined.cc.df[row.no, 11] <= -20) {
             metabolite.effect.df[row.no, 1] <- 2  # Suppression
-        }   else if (tidied.cc.df[row.no, 1] == cc.name && 
-                     tidied.cc.df[row.no, 11] > -20
-                     && tidied.cc.df[row.no, 11] < 20) {
+        }   else if (refined.cc.df[row.no, 1] == cc.name && 
+                     refined.cc.df[row.no, 11] > -20
+                     && refined.cc.df[row.no, 11] < 20) {
             metabolite.effect.df[row.no, 1] <- 3  # Little to No Change
-        }   else if (tidied.cc.df[row.no, 1] == cc.name && 
-                     tidied.cc.df[row.no, 11] >= 20
-                     && tidied.cc.df[row.no, 11] < 100) {
+        }   else if (refined.cc.df[row.no, 1] == cc.name && 
+                     refined.cc.df[row.no, 11] >= 20
+                     && refined.cc.df[row.no, 11] < 100) {
             metabolite.effect.df[row.no, 1] <- 4  # Enhancement
-        }   else if (tidied.cc.df[row.no, 1] == cc.name && 
-                     tidied.cc.df[row.no, 11] >= 100) {
+        }   else if (refined.cc.df[row.no, 1] == cc.name && 
+                     refined.cc.df[row.no, 11] >= 100) {
             metabolite.effect.df[row.no, 1] <- 5  # Major Enhancement
         }
         row.no <- row.no + 1
     }
-    tidied.cc.df <- cbind(tidied.cc.df, metabolite.effect.df)
-    return(tidied.cc.df)
+    refined.cc.df <- cbind(refined.cc.df, metabolite.effect.df)
+    return(refined.cc.df)
 }
 
 #############################################
-# 9.CalcPercArea: Calculates the %Peak Area for the peaks in coculture
+# 9.CalcPercArea
 #############################################
 
+# Calculates the %Peak Area for the peaks in coculture
 # The purpose of this function is to give induced peaks a quantifiable parameter
 
-CalcPercArea <- function(characterised.cc.df) {
-    characterised.cc.df <- mutate(characterised.cc.df, PercArea = PeakArea_CC / 
-                                sum(characterised.cc.df$PeakArea_CC) * 100)
-    characterised.cc.df <- characterised.cc.df[c(1:4, 13, 5:12)]
-    return(characterised.cc.df)
+# Args:
+# refined.cc.df is the tidied version of the df being worked on summarising 
+# all matched peaks in cc and cons. 
+
+# Returns:
+# refined.cc.df - includes a new column with the calculated PercArea of peaks.
+
+CalcPercArea <- function(refined.cc.df) {
+    refined.cc.df <- mutate(refined.cc.df, PercArea = PeakArea_CC / 
+                                sum(refined.cc.df$PeakArea_CC) * 100)
+    refined.cc.df <- refined.cc.df[c(1:4, 13, 5:12)]
+    return(refined.cc.df)
 }
 
 
 #############################################
-# MIMI_Part_1: The main working-function to compare the peak-matching and refinement
+# MIMI_Part_1
 #############################################
 
+# Microbial Interaction Metabolite Integrator.
+# The main function to peak match and compare the coculture to the two controls.
+
+# Args:
+# Interaction_Matrix is a user defined matrix contraining the column names:
+# CON1
+# CON2	
+# Coculture
+# Note: NovaC files (a refined version of the raw HPLC data) should be 
+# present for each control and coculture.
+
+# Returns:
+# Output files derived from refined.cc.df which summarise all matched peaks
+# in each coculture and its corresponding controls.
+
 MIMI <- function() {           
-    
-# Will not work unless Interaction_Matrix object created by the user.
-    # 1. Defines the name of the coculture and 2 controls.
-    # 2. Reads in the peak data (rt, area, etc.) for each sample from a NovaC file.
-    # 3. Reads in the UV data for each peak of each sample.
     
     matrix.total.rows <- nrow(Interaction_Matrix)
     matrix.row.no <- 1
     
     while (matrix.row.no <= matrix.total.rows) {
         
-        con1.name <- as.character(Interaction_Matrix[matrix.row.no, 1])
-        con1.df <- as.data.frame(ReadExcel(con1.name))
-        con1.uv <- as.data.frame(ReadUV(con1.name))
-        
-        con2.name <- as.character(Interaction_Matrix[matrix.row.no, 2])
-        con2.df <- as.data.frame(ReadExcel(con2.name))
-        con2.uv <- as.data.frame(ReadUV(con2.name))
-        
+        con1.df <- as.character(Interaction_Matrix[matrix.row.no, 1])
+        con2.df <- as.character(Interaction_Matrix[matrix.row.no, 2])
         cc.name <- as.character(Interaction_Matrix[matrix.row.no, 3])
-        coculture <- as.data.frame(ReadExcel(cc.name))
-        cc.uv <- as.data.frame(ReadUV(cc.name))
-        
         matrix.row.no <- matrix.row.no + 1
         print(cc.name)
+        #Generates 3 dataframes using the ReadExcel function for the first
+        #interaction to be investigated from the Interaction_Matrix
+        
+        con1 <- as.data.frame(ReadExcel(con1.df))
+        con2 <- as.data.frame(ReadExcel(con2.df))
+        coculture <- as.data.frame(ReadExcel(cc.name))
+        
+        # Generates 3 dataframes using the ReadUV function
+        
+        con1.uv <- as.data.frame(ReadUV(con1.df))
+        con2.uv <- as.data.frame(ReadUV(con2.df))
+        cc.uv <- as.data.frame(ReadUV(cc.name))
         
         # Runs the peak matching algorithm for con1 and con2 separately.
         # Then merges the two together into a unified df.
         
-        cc.df <- PeakMatcher(con1.df, coculture, con1.uv, cc.uv)
-        cc.df2 <- PeakMatcher(con2.df, coculture, con2.uv, cc.uv)
+        cc.df <- PeakMatcher(con1, coculture, con1.uv, cc.uv)
+        cc.df2 <- PeakMatcher(con2, coculture, con2.uv, cc.uv)
         cc.df.merged <- cbind(cc.df, cc.df2[, 4:9])
         
         # Performs a function to correct for double peak matching to a unique
-        # peak to peaks from more than one con; then tidies resulting df
+        # peak to peaks from more than one con
         
-        matched.peak.df <- ConConsolidator(cc.df.merged, con1.name, con2.name)
+        matched.peak.df <- ConConsolidator(cc.df.merged, con1.df, con2.df)
+        
+        # Final processing steps in creating the tidied df (refined.cc.df)
+        
         matched.peak.df <- matched.peak.df[1:nrow(matched.peak.df), ]
         df <- setNames(data.frame(matrix(ncol = 1, nrow = nrow(cc.df.merged))), 
                        "Sample_Ref")
         df[1:nrow(df), ] <- cc.name
-        tidied.cc.df <- cc.df[1:nrow(cc.df.merged), 1:3]
-        tidied.cc.df <- cbind(df, tidied.cc.df)
-        tidied.cc.df <- cbind(tidied.cc.df, matched.peak.df)
-        characterised.cc.df <- 
-            EffectCategoriser(tidied.cc.df, cc.name)
-        names(characterised.cc.df)[2:4] <- c("PeakNo_CC", "RetTime_CC", "PeakArea_CC")
-        characterised.cc.df <- CalcPercArea(characterised.cc.df)
+        refined.cc.df <- cc.df[1:nrow(cc.df.merged), 1:3]
+        refined.cc.df <- cbind(df, refined.cc.df)
+        refined.cc.df <- cbind(refined.cc.df, matched.peak.df)
         
-        # Rewrites the final dataset to a csv file
+        # Performs a function to characterise effects onto metabolites
+        # and adds this into the tidied data set
         
-        write.csv(characterised.cc.df, 
+        refined.cc.df <- 
+            EffectCategoriser(refined.cc.df, cc.name)
+        names(refined.cc.df)[2:4] <- c("PeakNo_CC", "RetTime_CC", "PeakArea_CC")
+        refined.cc.df <- CalcPercArea(refined.cc.df)
+        
+        # Rewrites the tidied dataset to a csv file
+        
+        write.csv(refined.cc.df, 
                   paste0("Testing Broad-Scale Interactions/OutputFiles/", 
                          cc.name, ".CSV"), row.names = FALSE)
     }
 }
 
-# NOTE: Load in excel file named Interaction_Matrix and use MIMI() function:
+# Load in excel file named Interaction_Matrix and use MIMI() function:
