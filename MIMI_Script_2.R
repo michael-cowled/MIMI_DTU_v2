@@ -369,8 +369,8 @@ FindMissingcontrolPeaks <- function(df.name, con1.name, con1, con2.name, con2) {
     # Sequentially checks con1 for peak 'cc.peak' in coculture output file
     
     while (cc.peak <= n) {
-        if (any(df.name[, 5] == paste0(con1.name, "-", cc.peak), na.rm = TRUE)) {
-        }   else if (any(df.name[, 5] != paste0(con1.name, "-", cc.peak), 
+        if (any(df.name[, 6] == paste0(con1.name, "-", cc.peak), na.rm = TRUE)) {
+        }   else if (any(df.name[, 6] != paste0(con1.name, "-", cc.peak), 
                          na.rm = TRUE)) {
             df.name <- RowBinder2(df.name, con1.name, con1, cc.peak)
         }
@@ -381,8 +381,8 @@ FindMissingcontrolPeaks <- function(df.name, con1.name, con1, con2.name, con2) {
     cc.peak <- 1
     
     while (cc.peak <= n) {
-        if (any(df.name[, 5] == paste0(con2.name, "-", cc.peak), na.rm = TRUE)) {
-        }   else if (any(df.name[, 5] != paste0(con2.name, "-", cc.peak), 
+        if (any(df.name[, 6] == paste0(con2.name, "-", cc.peak), na.rm = TRUE)) {
+        }   else if (any(df.name[, 6] != paste0(con2.name, "-", cc.peak), 
                          na.rm = TRUE)) {
             df.name <- RowBinder2(df.name, con2.name, con2, cc.peak)
         }   
