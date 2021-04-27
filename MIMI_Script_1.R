@@ -427,7 +427,7 @@ ConConsolidator <- function(cc.df, con1.df, con2.df) {
     matched.peak.df <- setNames(data.frame(matrix(ncol = 7, nrow = nrow(cc.df))), 
                                 c("Matched_con", "PeakNo_con", "RetTime_con", 
                                   "PeakArea_con", "UV_Count", 
-                                  "Subtracted_uv.mean", "PeakRatio"))
+                                  "Subtracted_UV_Mean", "PeakRatio"))
     
     while (row.no <= total.rows + 1) {
         if (is.na(cc.df[row.no, 4]) && is.na(cc.df[row.no, 10])) {
