@@ -21,7 +21,7 @@
 # 1.SimpleEffectCategoriser - Uses the principles of the EffectCategoriser 
 # function to categorise based on a single PeakRatio input.
 
-# 2.LogicTableMaker: Finds and reports instances of double peak matching
+# 2.DoublePeakChecker: Finds and reports instances of double peak matching
 
 # 3.IdentifyBadPeak: Decides on which of the doubley assigned peaks to remove
 
@@ -47,10 +47,17 @@
 # Reading in the functions:
 
 #############################################
-# 1.SimpleEffectCategoriser:
+# 1.SimpleEffectCategoriser
 #############################################
 
-# This is a simple version of the Effect categoriser with a single ratio input
+# Characterises the ratios of peak area changes to a categorical factor.
+# Only returns the "Effect" variable, rather than updating the df.
+
+# Args:
+# ratio is calculated from peak area previously
+
+# Returns:
+# Effect - a categorised effect on the metabolite based on ratio range.
 
 SimpleEffectCategoriser <- function(ratio) {
     if (ratio > -100 && ratio <= 20) {
@@ -66,14 +73,20 @@ SimpleEffectCategoriser <- function(ratio) {
 }
 
 #############################################
-# 2.LogicTableMaker: Finds and reports instances of double peak matching
+# 2.DoublePeakChecker
 #############################################
 
-LogicTableMaker <- function(Interaction_Matrix) {
+# Finds and reports instances of double peak matching in a "peak.misassignment.list"
+
+# Args:
+# Interaction_Matrix to determine output files to check
+
+# Returns:
+# peak.misassignment.list - lists the output files containing doubley assigned peaks.
+
+DoublePeakChecker <- function(Interaction_Matrix) {
     
-    # A df is set up to list the instances where double-peak matching occurs.
-    
-    logic.table <- setNames(data.frame(matrix(ncol = 1, nrow = 0)),
+    peak.misassignment.list <- setNames(data.frame(matrix(ncol = 1, nrow = 0)),
                             c("cc.name"))
     
     matrix.total.rows <- nrow(Interaction_Matrix)
@@ -96,19 +109,29 @@ LogicTableMaker <- function(Interaction_Matrix) {
         # Compares the no. of unique peaks assigned in the control
         
         # If the no. of unique peaks differs to the no. of peaks in the
-        # coculture, then it will be incorporated in the logic.table
+        # coculture, then it will be incorporated in the peak.misassignment.list
         
         if (logic == TRUE) {
         } else {
-            logic.table <- rbind(logic.table, cc.name.list)
+            peak.misassignment.list<- rbind(peak.misassignment.list, cc.name.list)
         }
         matrix.row.no <- matrix.row.no +1
     }
+    return(peak.misassignment.list)
 }
 
 #############################################
-# 3.IdentifyBadPeak: Decides on which of the doubley assigned peaks to remove
+# 3.IdentifyBadPeak
 #############################################
+
+# Decides on which of the doubley assigned peaks to remove
+
+# Args:
+# double.peaks.subset is the row subset of two peaks in the coculture which have 
+# been assigned to more than one peak in the control.
+
+# Returns:
+# bad.peak - the peak to be removed.
 
 IdentifyBadPeak <- function(double.peaks.subset) {
     
@@ -122,7 +145,7 @@ IdentifyBadPeak <- function(double.peaks.subset) {
         bad.peak <- double.peaks.subset[1, 2]
     }   else if (double.peaks.subset[1, 12] < double.peaks.subset[2, 12]) {
         
-        # If the UV counts are equal the subtracted UV mean is compared.
+        # If the UV counts are equal the subtracted UV mean is then compared.
         # The peak with the highest UV mean is removed.
         
         bad.peak <- double.peaks.subset[2, 2]
@@ -133,8 +156,10 @@ IdentifyBadPeak <- function(double.peaks.subset) {
 }
 
 #############################################
-# 4.RemoveDoubleyAssignedPeaks: Removes doubley-assigned peaks from a control.
+# 4.RemoveDoubleyAssignedPeaks
 #############################################
+
+# Removes doubley-assigned peaks from a control.
 
 # An example is that perhaps the peaks 1 and 2 from the coculture match to
 # twice to peak 1 in the control.
@@ -142,23 +167,30 @@ IdentifyBadPeak <- function(double.peaks.subset) {
 # This function will determine which peak from the control matches closest
 # and remove the assignment for the weakest match.
 
+# Args:
+# Interaction_Matrix to be fed into the DoublePeakChecker function.
+
+# Returns:
+# double.peaks.df_removed - an updated df with one instance of double peak
+# matching fixed; but is reiterated through function.
+
 RemoveDoubleyAssignedPeaks <- function(Interaction_Matrix) {
     
     logic.total.rows <- 1
     
     while (logic.total.rows > 0) {
         
-        logic.table <- LogicTableMaker(Interaction_Matrix)
+        peak.misassignment.list <- DoublePeakChecker(Interaction_Matrix)
         
-        # Now to use the logic.table to read in the files that need fixing.
+        # Now to use the peak.misassignment.list to read in the files that need fixing.
         
         # Note: Only 1 peak is fixed at a time, and so will go back through
-        # and regenerate the logic.table and check if more peaks need fixing.
+        # and regenerate the peak.misassignment.list and check if more peaks need fixing.
         
-        if (is.null(nrow(logic.table))) {
+        if (is.null(nrow(peak.misassignment.list))) {
             logic.total.rows <- 0
         }   else {
-            logic.total.rows <- nrow(logic.table)
+            logic.total.rows <- nrow(peak.misassignment.list)
         }
     }
     logic.row.no <- 1
@@ -167,7 +199,7 @@ RemoveDoubleyAssignedPeaks <- function(Interaction_Matrix) {
         
         #Preprocessing code to read and manipulate the file of interest
         
-        cc.name <- as.character(logic.table[logic.row.no, 1])
+        cc.name <- as.character(peak.misassignment.list[logic.row.no, 1])
         double.peaks.df <- 
             read.csv(paste0("Testing Broad-Scale Interactions/OutputFiles/", 
                             cc.name, ".csv"))
@@ -194,8 +226,23 @@ RemoveDoubleyAssignedPeaks <- function(Interaction_Matrix) {
 }
 
 #############################################
-# 5.PeakAssigner: Adds the assignment of the matched non UV peak from MatchNonUVs
+# 5.PeakAssigner
 #############################################
+
+# Adds the assignment of the matched non UV peak from MatchNonUVs
+
+# Args:
+# df.name is the output file to be edited.
+# cc.peak is the peak number of the coculture to be matched.
+# con.name is the name of the control to which the matched peak corresponds.
+# con.peak is the peak number of the control to with the matched peak corresponds.
+# con is the df generated for the control to which the matched peak corresponds.
+# final.count is the number of matching uv maxima between cc and con peaks.
+# ratio is the peak area ratio for the matching cc and con peaks.
+# Effect is the categorised effect on the metabolite as stipulated by the ratio.
+
+# Returns:
+# df.name - the updated df with the new peak assigned.
 
 PeakAssigner <- function(df.name, cc.peak, con.name, con.peak, con, final.count,
                          ratio, Effect) {
@@ -210,8 +257,22 @@ PeakAssigner <- function(df.name, cc.peak, con.name, con.peak, con, final.count,
 }
 
 #############################################
-# 6.MatchNonUVs: Further assigns peaks based on weaker criteria.
+# 6.MatchNonUVs
 #############################################
+
+# Further assigns peaks based on weaker criteria.
+
+# Args: 
+# cc.peak is the peak number of the coculture to be matched.
+# con1 is the df generated for con1.
+# con2 is the df generated for con2.
+# cc is the df generated for cc.
+# df.name is the df to be manipulated.
+# con1.name is the name of con1.
+# con2.name is the name of con2.
+
+# Returns:
+# df.name - the updated df with the non-UV peak assigned.
 
 MatchNonUVs <- function(cc.peak, con1, con2, cc, df.name, con1.name, con2.name) {
     
@@ -234,7 +295,7 @@ MatchNonUVs <- function(cc.peak, con1, con2, cc, df.name, con1.name, con2.name) 
                      cc$RetTime[cc.peak] > (con1$RetTime[con1.peak] -0.02) &&
                      final.count.1 < 2)    {
             
-            # Checks if the closest match incon1 satisfies this test.
+            # Checks if the closest match in con1 satisfies this test.
             
             ratio <- CalcRatio(cc, cc.peak, con1, con1.peak)
             Effect <- SimpleEffectCategoriser(ratio)
@@ -255,8 +316,20 @@ MatchNonUVs <- function(cc.peak, con1, con2, cc, df.name, con1.name, con2.name) 
 }
 
 #############################################
-# 7.RowBinder2: A variant of RowBinder used for adding missing control peaks
+# 7.RowBinder2
 #############################################
+
+# A variant of the RowBinder function; to be used for adding missing control peaks
+# Notably there is NA values associated with the cc as no match found.
+
+# Args:
+# df.name is the df to be manipulated.
+# con.name is the name of the control to which the matched peak corresponds.
+# con is the df generated for the control to which the matched peak corresponds. 
+# cc.peak is the peak number of the coculture to be matched.
+
+# Returns:
+# df.name - the updated df with the new peak assigned.
 
 RowBinder2 <- function(df.name, con.name, con, cc.peak) {
     
@@ -273,15 +346,27 @@ RowBinder2 <- function(df.name, con.name, con, cc.peak) {
 }
 
 #############################################
-# 8.FindMissingcontrolPeaks: Adds in the unassigned peaks from the control(s)
+# 8.FindMissingcontrolPeaks
 #############################################
+
+# Adds in the unassigned peaks from the control(s).
+
+# Args:
+# df.name is the df to be manipulated.
+# con1.name is the name of con1.
+# con1 is the df generated for con1.
+# con2.name is the name of con2. 
+# con2 is the df generated for con2.
+
+#Returns:
+# # df.name - the updated df with the missing control peaks assigned.
 
 FindMissingcontrolPeaks <- function(df.name, con1.name, con1, con2.name, con2) {
     
     n <- nrow(con1)
     cc.peak <- 1
     
-    # Sequentially checkscon1 for peak 'cc.peak' in coculture output file
+    # Sequentially checks con1 for peak 'cc.peak' in coculture output file
     
     while (cc.peak <= n) {
         if (any(df.name[, 5] == paste0(con1.name, "-", cc.peak), na.rm = TRUE)) {
@@ -311,11 +396,22 @@ FindMissingcontrolPeaks <- function(df.name, con1.name, con1, con2.name, con2) {
 # MIMI_Part_2: Carries out the main dereplication processes
 #############################################
 
-# Carries out the last two functions:
-# 1.RemoveDoubleyAssignedPeaks: Multiple peaks in a coculture matched to the same
-# unique peak of a control
-# 2.FindMissingcontrolPeaks: Unique peaks from control(s) not matched to a peak
-# in the coculture, are added into a single, unified df
+# Microbial Interaction Metabolite Integrator.
+# The secondary function to dereplicate peak matching, add non-UVs and missing
+# control peaks.
+
+# Args:
+# Interaction_Matrix is a user defined matrix contraining the column names:
+# CON1
+# CON2	
+# Coculture
+# Note: Output files generated from MIMI script 1 should be present for each cc.
+# Also note: NovaC files (a refined version of the raw HPLC data) should be 
+# present for each control and coculture.
+
+# Returns:
+# Finalised output files derived from df.name which summarise all matched peaks
+# in each coculture and its corresponding controls.
 
 MIMI2 <- function() {  
     
