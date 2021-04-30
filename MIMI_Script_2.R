@@ -91,7 +91,7 @@ DoublePeakChecker <- function(Interaction_Matrix) {
     
     matrix.total.rows <- nrow(Interaction_Matrix)
     matrix.row.no <- 1
-    
+
     while (matrix.row.no <= matrix.total.rows) {
         
         cc.name <- as.character(Interaction_Matrix[matrix.row.no,3])
@@ -116,6 +116,7 @@ DoublePeakChecker <- function(Interaction_Matrix) {
             peak.misassignment.list<- rbind(peak.misassignment.list, cc.name.list)
         }
         matrix.row.no <- matrix.row.no +1
+        
     }
     return(peak.misassignment.list)
 }
@@ -179,7 +180,7 @@ RemoveDoubleyAssignedPeaks <- function(Interaction_Matrix) {
     logic.total.rows <- 1
     
     while (logic.total.rows > 0) {
-        
+        print("initiating doublepeakchecker")
         peak.misassignment.list <- DoublePeakChecker(Interaction_Matrix)
         
         # Now to use the peak.misassignment.list to read in the files that need fixing.
@@ -192,11 +193,12 @@ RemoveDoubleyAssignedPeaks <- function(Interaction_Matrix) {
         }   else {
             logic.total.rows <- nrow(peak.misassignment.list)
         }
-    }
-    logic.row.no <- 1
+        print(logic.total.rows)
     
+    logic.row.no <- 1
+    print(peak.misassignment.list)
     while (logic.row.no <= logic.total.rows) {
-        
+        print("doing peak correction")
         #Preprocessing code to read and manipulate the file of interest
         
         cc.name <- as.character(peak.misassignment.list[logic.row.no, 1])
@@ -221,8 +223,9 @@ RemoveDoubleyAssignedPeaks <- function(Interaction_Matrix) {
                   paste0("Testing Broad-Scale Interactions/OutputFiles/", 
                          cc.name, ".CSV"), row.names = FALSE)
         logic.row.no <- logic.row.no + 1
-        return(double.peaks.df_removed)
+        }
     }
+    return(double.peaks.df_removed)
 }
 
 #############################################
