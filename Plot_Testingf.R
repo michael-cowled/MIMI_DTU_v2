@@ -106,8 +106,8 @@ heatmap_fvf
 ggsave(heatmap_fvf,filename="heatmap_fvf.png",height=1.75,width=10.20,units="in",dpi=200)
 
 #By countfactor
-subset.list <- filter(full.list, Matched_con == "FP1927CON") %>%
-    select(Sample_Ref, PeakNo_con, PeakRatio) %>%
+subset.list <- filter(full.list, Matched_con == "FP1927CON", Metabolite_Effect == 1 | Metabolite_Effect == 6) %>%
+    select(Sample_Ref, PeakNo_con, PeakRatio, Metabolite_Effect) %>%
     mutate(logPeakRatio = log((PeakRatio/100) + 1)) %>%
 mutate(countfactor=cut(PeakRatio,breaks=c(-100,-10,10,100,max(PeakRatio,na.rm=T)),
                        labels=c("suppression","no change","minor enhancement","major enhancement"))) %>%
@@ -120,3 +120,22 @@ heatmap_fvf <- ggplot(data = subset.list, aes(x=PeakNo_con, y=Sample_Ref)) +
     theme_grey(base_size=8)
 heatmap_fvf
 ggsave(heatmap_fvf,filename="heatmap_fvf.png",height=5.5,width=8.8,units="in",dpi=200)
+
+#Just inductions
+filenames <- list.files(path = "Testing Broad-Scale Interactions/OutputFiles/Tal_fvf", pattern = "FP1927v", full.names = TRUE)
+my.data <- lapply(filenames, read.csv)
+full.list <- rbindlist(my.data, use.names=TRUE, fill=FALSE)
+full.list$Metabolite_Effect <- as.numeric(full.list$Metabolite_Effect)
+subset.list <- filter(full.list, is.na(Matched_con) & Metabolite_Effect == 6) %>%
+    select(Sample_Ref, PeakNo_CC, PeakRatio, Metabolite_Effect)
+
+
+heatmap_fvf_inductions <- ggplot(data = subset.list, aes(x=PeakNo_CC, y=Sample_Ref)) + 
+    geom_tile(aes(fill=Metabolite_Effect)) +
+    scale_fill_gradient2(low = "purple", high = "dark green", mid = "dark green", 
+                         midpoint = 0, space = "Lab", name="Inductions") +
+    labs(x="Peak Number", y="Coculture") +
+    theme_grey(base_size=8)
+heatmap_fvf_inductions
+ggsave(heatmap_fvf_inductions,filename="heatmap_fvf_inductions.png",height=1.75,width=10.20,units="in",dpi=200)
+    
