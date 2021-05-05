@@ -225,7 +225,6 @@ RemoveDoubleyAssignedPeaks <- function(Interaction_Matrix) {
         logic.row.no <- logic.row.no + 1
         }
     }
-    return(double.peaks.df_removed)
 }
 
 #############################################
