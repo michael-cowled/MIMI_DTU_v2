@@ -1,14 +1,16 @@
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
 ---
 title: "MIMI: Microbial Interaction Metabolite Integrator"
 author: "Michael Cowled"
-date: "30/03/2021"
 output:
   html_document:
     df_print: paged
 ---
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r, echo = FALSE}
+paste0("Date is: ", format(Sys.time(), "%a %d %b %Y"))
 ```
 
 ## R Packages required to be loaded in:
@@ -42,22 +44,27 @@ head(Interaction_Matrix)
 The following functions are to be pre-loaded prior to use of the main function, MIMI()
 
 1. **Read_Excel:** Reads in the NovaC files corresponding to a particular row number in the Interaction_Matrix.
-2. **UVcheck:** Compares the top 5 UV maxima of a matched peak in the control of interest and the coculture.
-3. **Read_UV:** Reads in the UV spectral data (abs vs. wavelength) for the corresponding 3 samples being compared.
-4. **UVSubtract:** Subtracts the UV spectrum of the control of interest from the coculture, and takes the mean(Abs).
-5. **PeakMatcher:** Matches and verifies peaks from the control of interest to peaks in the coculture, utilising a combination of retention time, number of matching UV maxima (UVcheck) and the means of the subtracted UV spectra (UVsubtract).
-6. **CON_Consolidator:** Consolidates the outcome table to match peaks from coculture to a single peak in a control. Compares subtracted UV spectra to make decisions based on double matching.
-7. **Effect_Categoriser:** Characterises the Peak Area ratio as an effect to the metabolite in the coculture (induction, suppression, etc.).
+2. **CheckUVCount:** Compares the top 5 UV maxima of a matched peak in the control of interest and the coculture.
+3. **ReadUV:** Reads in the UV spectral data (abs vs. wavelength) for the corresponding 3 samples being compared.
+4. **SubtractUV:** Subtracts the UV spectrum of the control of interest from the coculture, and takes the mean(Abs).
+5. **RowBinder:** Binds the matched peak found in PeakMatcher to a df named cc.df.
+6. **CalcRatio:** Calculates the %Enhancement/Suppresion compared to control levels.
+7. **PeakMatcher:** Matches and verifies peaks from the control of interest to peaks in the coculture, utilising a combination of retention time, number of matching UV maxima (UVcheck) and the means of the subtracted UV spectra (UVsubtract).
+8. **CON_Consolidator:** Consolidates the outcome table to match peaks from coculture to a single peak in a control. Compares subtracted UV spectra to make decisions based on double matching.
+9. **Effect_Categoriser:** Characterises the Peak Area ratio as an effect to the metabolite in the coculture (induction, suppression, etc.).
 
 ## MIMI - Script #2/2
 
 The following functions are to be pre-loaded prior to use of the main function, MIMI2()
 
 1. **Simple_Effect_Characteriser:** Uses the principles of the Effect_Categoriser function to categorise based on a single PeakRatio input.
-2. **NON_UV_Peak_Matcher:** Tentatively assigns matched peaks as non UVs (or as distorted UVs) if matching the conditions.
-3. **Double_Peak_Remover:** Checks for a peak in the control being assigned to more than one peak in the coculture. Uses the number of matching UV maxima and/or the subtracted UV spectra to make decisions as to which peak is a better match.
-4. **Inhibition_Checker:** Checks if one culture is inhibited and deposits into a separate output file.
-5. **Missing_Control_Peaks:** Adds in unassigned peaks from the controls to provide a single, unified table.
+2. **DoublePeakChecker:** Finds and reports instances of double peak matching.
+3. **IdentifyBadPeak:** Decides on which of the doubley assigned peaks to remove.
+4. **RemoveDoubleyAssignedPeaks:** Checks for a peak in the control being assigned to more than one peak in the coculture. Uses the number of matching UV maxima and/or the subtracted UV spectra to make decisions as to which peak is a better match.
+5. **PeakAssigner:** Adds the assignment of the matched non UV peak from MatchNonUVs.
+6. **MatchNonUVs:** Tentatively assigns matched peaks as non UVs (or as distorted UVs) if matching the conditions.
+7. **RowBinder2:** A variant of RowBinder used for adding missing control peaks.
+8. **FindMissingcontrolPeaks:** Adds in unassigned peaks from the controls to provide a single, unified table.
 
 Please see the full script to load in the whole suite of functions and review annotations for extra details.
 The final main functions, **MIMI()** and **MIMI2()**, combines the use of all 12 functions in providing the final tidied output files.
@@ -67,7 +74,7 @@ The final main functions, **MIMI()** and **MIMI2()**, combines the use of all 12
 An example output file is as follows:
 
 ```{r, echo = FALSE}
-head(read.csv("Testing Broad-Scale Interactions/OutputFiles/F1vF2.csv"))
+head(read.csv("Testing Broad-Scale Interactions/OutputFiles/F1vF3.csv"))
 ```
 
 The resulting output file contains the following columns containing:
@@ -76,14 +83,15 @@ The resulting output file contains the following columns containing:
 2. **PeakNo_CC:** The peak number as present in the coculture sample.
 3. **RetTime_CC:** The retention time (in min) for the peak in the coculture sample.
 4. **PeakArea_CC:** The peak area for the peak in the coculture sample.
-5. **Matched_CON:** The control sample with a matching peak to the sample reference.
-6. **PeakNo_CON:** The peak number as present in the matched control or reference control sample.
-7. **RetTime_CON:** The retention time (in min) for the peak in the control sample.
-8. **PeakArea_CON:** The peak area for the peak in the control sample.
-9. **UV_Count:** The number of UV maxima that match between the control and coculture peaks.
-10. **Subtracted_UV_Mean:** The mean of the subtracted UV spectra (in Absorbance units) of the control from the coculture.
-11. **PeakRatio:** The relative ratio (in %) of the reference sample compared to the control.
-12. **Metabolite_Effect:** A categorised effect on the metabolite in the reference sample as determined by the PeakRatio.
+5. **PercArea:** The percentage the peak area associated with this peak accounts for compared to the rest of the peaks in the sample.
+6. **Matched_CON:** The control sample with a matching peak to the sample reference.
+7. **PeakNo_CON:** The peak number as present in the matched control or reference control sample.
+8. **RetTime_CON:** The retention time (in min) for the peak in the control sample.
+9. **PeakArea_CON:** The peak area for the peak in the control sample.
+10. **UV_Count:** The number of UV maxima that match between the control and coculture peaks.
+11. **Subtracted_UV_Mean:** The mean of the subtracted UV spectra (in Absorbance units) of the control from the coculture.
+12. **PeakRatio:** The relative ratio (in %) of the reference sample compared to the control.
+13. **Metabolite_Effect:** A categorised effect on the metabolite in the reference sample as determined by the PeakRatio.
 These effects are:
 *Complete Suppression:* Peak Area = -100%
 | *Suppression:* -100% < Peak Area <= -20%
@@ -91,65 +99,3 @@ These effects are:
 *Enhancement:* 20 <= Peak Area < 100%
 | *Major enhancement:* Peak area >=100%
 | *Induction:* NA (No peak area to compare to in CON)
-
-*An extra note for analysis*: Tentative assignments of non-UVs/distorted-UVs can be determined by the following piece of code. It is worthwhile performing the analysis with and without these matches.
-
-```{r}
-#Let x <- Coculture_Name (of interest)
-x <- "F15vF5"
-df_Name <- read.csv(paste0("Testing Broad-Scale Interactions/OutputFiles/", x, ".csv"))
-filter(df_Name, !is.na(Matched_CON) & is.na(Subtracted_UV_Mean))
-```
-
-Hence, there are 4 peaks identified as Non-UVs or distorted-UVs.
-
-## Inhibition_Checker Output file:
-
-A separate output file is created during MIMI which identifies cultures likely to have been inhibited based on low matched peaks and a dominating culture.
-
-An example output file for the single coculture "F15vF5" is produced below.
-
-```{r}
-
-Inhibition_df <- setNames(data.frame(matrix(ncol = 3, nrow = 0)),
-                        c("Coculture_Name", "Inhibition", "Inhibited_Culture"))
-Coculture_Name <- "F15vF5"
-df_Name <- read.csv(paste0("Testing Broad-Scale Interactions/OutputFiles/", Coculture_Name, ".csv"))
-
-    match <- as.data.frame(table(df_Name$Matched_CON))
-    names(match)[2] <- 'match'
-    unmatch <- as.data.frame(table(df_Name$Sample_Ref))
-    names(unmatch)[2] <- 'unmatch'
-    combined <- merge(match, unmatch) %>%
-        mutate(ratio = unmatch / match)
-    #Then verify whether inhibition of control indicated
-    
-    if (nrow(combined) == 0) {
-        combined <- match
-        combined$unmatch[[1]] <- 0
-        combined$ratio[[1]] <- 0
-        combined$Inhibition[[1]] <- TRUE
-    } else if (nrow(combined) == 1) {
-        combined$Inhibition[[1]] <- TRUE
-    }   else if (combined$match[1] <= 1 && combined$ratio[1] >= 3) {
-        combined$Inhibition[[1]] <- TRUE
-        combined$Inhibition[[2]] <- FALSE
-    }   else if (combined$match[2] <= 1 && combined$ratio[2] >= 3) {
-        combined$Inhibition[[2]] <- TRUE
-        combined$Inhibition[[1]] <- FALSE
-    }   else {
-        combined$Inhibition[[2]] <- FALSE
-        combined$Inhibition[[1]] <- FALSE
-    }
-
-    combined <- filter(combined, Inhibition == TRUE)
-    if (nrow(combined) > 0) {
-        combined$Coculture_Name <- Coculture_Name
-        combined$Var1 <- as.character(combined$Var1)
-        temp <- as.data.frame(c(combined[1,6], combined[1,5], combined[1,1]))
-        names(temp) <- c("Coculture_Name", "Inhibition", "Inhibited_Culture")
-        Inhibition_df <- rbind(Inhibition_df, temp)
-    }
-
-print(Inhibition_df)
-```

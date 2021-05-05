@@ -1,22 +1,24 @@
 library(data.table)
 library(ggplot2)
+library("ggdendro")
+library("reshape2")
 
 #Combines all output files into a list of all metabolites from all cocultures
 
 filenames <- list.files(path = "Testing Broad-Scale Interactions/OutputFiles/", pattern = "F", full.names = TRUE)
-my_data <- lapply(filenames, read.csv)
-full_list <- rbindlist(my_data, use.names=TRUE, fill=FALSE)
-full_list <- transform(full_list, Metabolite_Effect = factor(Metabolite_Effect))
+my.data <- lapply(filenames, read.csv)
+full.list <- rbindlist(my.data, use.names=TRUE, fill=FALSE)
+full.list <- transform(full.list, Metabolite_Effect = factor(Metabolite_Effect))
 
 #Filters into different lists based on metabolite_effect
-Effect_1 <- filter(full_list, Metabolite_Effect == 1)
-Effect_2 <- filter(full_list, Metabolite_Effect == 2)
-Effect_3 <- filter(full_list, Metabolite_Effect == 3)
-Effect_4 <- filter(full_list, Metabolite_Effect == 4)
-Effect_5 <- filter(full_list, Metabolite_Effect == 5)
-Effect_6 <- filter(full_list, Metabolite_Effect == 6)
-All_Effects_Less_Induction <- filter(full_list, as.numeric(Metabolite_Effect) < 5 & as.numeric(Metabolite_Effect) > 1)
-Effect_5_6 <- filter(full_list, as.numeric(Metabolite_Effect) > 4)
+Effect_1 <- filter(full.list, Metabolite_Effect == 1)
+Effect_2 <- filter(full.list, Metabolite_Effect == 2)
+Effect_3 <- filter(full.list, Metabolite_Effect == 3)
+Effect_4 <- filter(full.list, Metabolite_Effect == 4)
+Effect_5 <- filter(full.list, Metabolite_Effect == 5)
+Effect_6 <- filter(full.list, Metabolite_Effect == 6)
+All_Effects_Less_Induction <- filter(full.list, as.numeric(Metabolite_Effect) < 5 & as.numeric(Metabolite_Effect) > 1)
+Effect_5_6 <- filter(full.list, as.numeric(Metabolite_Effect) > 4)
 
 #Generates a sequence of histograms comparing metabolite effect to ret_time
 par(mfrow=c(2,3))
@@ -31,7 +33,7 @@ hist(Effect_5_6$RetTime_CC, main = "Induction or Major Enhancement", xlab = "Ret
 
 par(mfrow=c(1,1))
 a <- hist(Effect_6$RetTime_CC, main = "Induction or Unmatched")
-b <- hist(full_list$RetTime_CC, main = "Full List")
+b <- hist(full.list$RetTime_CC, main = "Full List")
 c <- hist(All_Effects_Less_Induction$RetTime_CC, main = "All other effects")
 d <- hist(Effect_5_6$RetTime_CC, main = "Induction or Unmatched")
 plot( a, col=rgb(0,0,1,1/4), xlim=c(0,11), ylim=c(0,600), main = "Overlay of Induction to All Metabolites")  # first histogram
@@ -42,42 +44,79 @@ plot( d, col=rgb(1,0,1,1/4), xlim=c(0,11), ylim=c(0,600), add=T)  # third
 
 #Separate lists based on Coculturing Fungus
 filenames <- list.files(path = "Testing Broad-Scale Interactions/OutputFiles/", pattern = "F1v", full.names = TRUE)
-my_data <- lapply(filenames, read.csv)
-F1v <- rbindlist(my_data, use.names=TRUE, fill=FALSE)
+my.data <- lapply(filenames, read.csv)
+F1v <- rbindlist(my.data, use.names=TRUE, fill=FALSE)
 F1v <- transform(F1v, Metabolite_Effect = factor(Metabolite_Effect))
 
 #e.g. boxplot
-boxplot(full_list$RetTime_CON ~ full_list$Metabolite_Effect)
+boxplot(full.list$RetTime_CC ~ full.list$Metabolite_Effect)
+boxplot(full.list$RetTime_CC ~ full.list$Metabolite_Effect, las = 2,
+        ylab = "Retention Time (min)", xlim = c(1.5,6.5), 
+        names = c("Not present", "Suppression", "Little to no change", "Enhancement", "Major enhancement", "Induction"))
+mtext("Metabolite Effect", side = 1, line = 7)
+
+full.list.minus.effect.1 <- filter(full.list, as.numeric(Metabolite_Effect) <7 & as.numeric(Metabolite_Effect) > 1)
+effect.names <- c("Suppression", "Little to no change", "Enhancement", "Major enhancement", "Induction")
+ggplot(data=full.list.minus.effect.1, aes(x=Metabolite_Effect, y=RetTime_CC)) + geom_boxplot(aes(fill=Metabolite_Effect)) + 
+    ylab("Retention Time (min)") + xlab("Metabolite Effect") +
+    stat_summary(fun.y=mean, geom="point", shape=1, size=4) +
+    theme(axis.text.x = element_text(angle = 90, face = "italic")) + scale_x_discrete(labels = effect.names)
+
 
 
 #Separate lists based on Coculturing Fungus
 par(mfrow=c(3,5), mar=c(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1))
 for (i in 1:15) {
 filenames <- list.files(path = "Testing Broad-Scale Interactions/OutputFiles/", pattern = paste0("F", i, "v"), full.names = TRUE)
-my_data <- lapply(filenames, read.csv)
-a <- rbindlist(my_data, use.names=TRUE, fill=FALSE)
+my.data <- lapply(filenames, read.csv)
+a <- rbindlist(my.data, use.names=TRUE, fill=FALSE)
 a  <- transform(a , Metabolite_Effect = factor(Metabolite_Effect))
 boxplot(a$RetTime_CC ~ a$Metabolite_Effect, main = paste0("F", i, "v"), xlab="", ylab="") }
 
 
 #SCatterplot with colour
-full_list <- filter(full_list, PeakRatio != -100)
-full_list <- transform(full_list, Sample_Ref = factor(Sample_Ref))
-full_list <- transform(full_list, Matched_CON = factor(Matched_CON))
-qplot(full_list$RetTime_CC, full_list$PeakRatio, color = full_list$Sample_Ref)
-qplot(full_list$RetTime_CC, full_list$PeakRatio, color = full_list$Matched_CON)
+full.list <- filter(full.list, PeakRatio != -100)
+full.list <- transform(full.list, Sample_Ref = factor(Sample_Ref))
+full.list <- transform(full.list, Matched_con = factor(Matched_con))
+qplot(full.list$RetTime_CC, full.list$PeakRatio, color = full.list$Sample_Ref)
+qplot(full.list$RetTime_CC, full.list$PeakRatio, color = full.list$Matched_con)
 
-a <- filter(full_list, PeakRatio >2500)
+a <- filter(full.list, PeakRatio >2500)
 a
 
-#For finding % between 2 and 7 min
-betweeen2_7 <- filter(All_Effects_Less_Induction, RetTime_CC >= 2 & RetTime_CC <= 7)
 
+#For looking at a single fungus
+filenames <- list.files(path = "Testing Broad-Scale Interactions/OutputFiles/Tal_fvf", pattern = "FP1927v", full.names = TRUE)
+my.data <- lapply(filenames, read.csv)
+full.list <- rbindlist(my.data, use.names=TRUE, fill=FALSE)
+subset.list <- filter(full.list, Matched_con == "FP1927CON") %>%
+    select(Sample_Ref, PeakNo_con, PeakRatio) %>%
+    mutate(logPeakRatio = log((PeakRatio/100) + 1))
+    
 
-#Comparison of retention time histograms
-par(mfrow=c(1,2))
-hist(Effect_5_6$RetTime_CC, main = "Induction or Major Enhancement", xlab = "Retention Time", ylab = "Number of Secondary Metabolites")
-hist(All_Effects_Less_Induction$RetTime_CC, main = "All other effects", xlab = "Retention Time", ylab = "Number of Secondary Metabolites")
+heatmap_fvf <- ggplot(data = subset.list, aes(x=PeakNo_con, y=Sample_Ref)) + 
+    geom_tile(aes(fill=logPeakRatio)) +
+    scale_fill_gradient2(low = "dark blue", high = "dark red", mid = "white", 
+                         midpoint = 0, limit = c(min(subset.list$logPeakRatio), 
+                                                 max(subset.list$logPeakRatio)), 
+                         space = "Lab", name="log(%PeakArea)") +
+    labs(x="Peak Number", y="Coculture") +
+    theme_grey(base_size=8)
+heatmap_fvf
+ggsave(heatmap_fvf,filename="heatmap_fvf.png",height=1.75,width=10.20,units="in",dpi=200)
 
-ggplot(Histogram_data, aes(fill=Range, y=Metabolite_Count, x=Condition)) + geom_bar(position="fill", stat="identity") + xlab("Effect") + 
-    ylab("Proportion of Secondary Metabolites") + scale_fill_discrete(name = "Retention Time Range") + theme_minimal() + theme(legend.position = "bottom")
+#By countfactor
+subset.list <- filter(full.list, Matched_con == "FP1927CON") %>%
+    select(Sample_Ref, PeakNo_con, PeakRatio) %>%
+    mutate(logPeakRatio = log((PeakRatio/100) + 1)) %>%
+mutate(countfactor=cut(PeakRatio,breaks=c(-100,-10,10,100,max(PeakRatio,na.rm=T)),
+                       labels=c("suppression","no change","minor enhancement","major enhancement"))) %>%
+    mutate(countfactor=factor(as.character(countfactor),levels=rev(levels(countfactor))))
+
+heatmap_fvf <- ggplot(data = subset.list, aes(x=PeakNo_con, y=Sample_Ref)) + 
+    geom_tile(aes(fill=countfactor)) +
+    scale_fill_manual(values=c("dark red","dark orange", "white","dark blue"),na.value = "grey90")+
+    labs(x="Peak Number", y="Coculture") +
+    theme_grey(base_size=8)
+heatmap_fvf
+ggsave(heatmap_fvf,filename="heatmap_fvf.png",height=5.5,width=8.8,units="in",dpi=200)
