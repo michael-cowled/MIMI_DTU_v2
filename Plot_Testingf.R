@@ -86,13 +86,14 @@ a
 
 
 #For looking at a single fungus
-filenames <- list.files(path = "Testing Broad-Scale Interactions/OutputFiles/Tal_fvf", pattern = "FP1927v", full.names = TRUE)
+filenames <- list.files(path = "Testing Broad-Scale Interactions/OutputFiles/NT_fvf_mixed", 
+                        pattern = "F1", full.names = TRUE)
 my.data <- lapply(filenames, read.csv)
 full.list <- rbindlist(my.data, use.names=TRUE, fill=FALSE)
-subset.list <- filter(full.list, Matched_con == "FP1927CON") %>%
+
+subset.list <- filter(full.list, Matched_con == "F1CON") %>%
     select(Sample_Ref, PeakNo_con, PeakRatio) %>%
     mutate(logPeakRatio = log((PeakRatio/100) + 1))
-    
 
 heatmap_fvf <- ggplot(data = subset.list, aes(x=PeakNo_con, y=Sample_Ref)) + 
     geom_tile(aes(fill=logPeakRatio)) +
@@ -122,7 +123,7 @@ heatmap_fvf
 ggsave(heatmap_fvf,filename="heatmap_fvf.png",height=5.5,width=8.8,units="in",dpi=200)
 
 #Just inductions
-filenames <- list.files(path = "Testing Broad-Scale Interactions/OutputFiles/Tal_fvf", pattern = "FP1927v", full.names = TRUE)
+filenames <- list.files(path = "Testing Broad-Scale Interactions/OutputFiles/Tal_fvf_mixed", pattern = "F", full.names = TRUE)
 my.data <- lapply(filenames, read.csv)
 full.list <- rbindlist(my.data, use.names=TRUE, fill=FALSE)
 full.list$Metabolite_Effect <- as.numeric(full.list$Metabolite_Effect)
