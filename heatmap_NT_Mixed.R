@@ -5,10 +5,10 @@ full.list <- rbindlist(my.data, use.names=TRUE, fill=FALSE)
 full.list$Sample_Ref <- gsub("F1v", "", full.list$Sample_Ref, perl = TRUE)
 full.list$Sample_Ref <- gsub("(?<![0-9])([0-9])(?![0-9])", "0\\1", full.list$Sample_Ref, perl = TRUE)
 subset.list <- filter(full.list, Matched_con == "F1CON") %>%
-    select(Sample_Ref, PeakNo_con, PeakRatio) %>%
+    select(Sample_Ref, PeakNo_con, RetTime_con, PeakRatio) %>%
     mutate(logPeakRatio = log((PeakRatio/100) + 1))
 
-heatmap_fvf <- ggplot(data = subset.list, aes(x=PeakNo_con, y=Sample_Ref)) + 
+heatmap_fvf_mixed <- ggplot(data = subset.list, aes(x=PeakNo_con, y=Sample_Ref)) + 
     geom_tile(aes(fill=logPeakRatio)) +
     scale_fill_gradient2(low = "dark blue", high = "dark red", mid = "white", 
                          midpoint = 0, limit = c(min(subset.list$logPeakRatio), 
@@ -16,5 +16,20 @@ heatmap_fvf <- ggplot(data = subset.list, aes(x=PeakNo_con, y=Sample_Ref)) +
                          space = "Lab", name="log(%PeakArea)") +
     labs(x="Peak Number", y="Interacting Culture") +
     theme_grey(base_size=8)
-heatmap_fvf
-ggsave(heatmap_fvf,filename="heatmap_fvf.png",height=1.75,width=10.20,units="in",dpi=200)
+heatmap_fvf_mixed
+ggsave(heatmap_fvf_mixed,filename="heatmap_fvf_mixed.png",height=3.5,width=10.20,units="in",dpi=200)
+
+# Making an accompany table to go alongside heatmap
+
+unique.peaks <- unique(subset.list$PeakNo_con)
+unique.peaks <- sort(unique.peaks)
+summary.table <- data.frame(matrix(ncol = 2, nrow = length(unique.peaks)))
+summary.table[,1] <- unique.peaks
+
+for (i in unique.peaks[1:length(unique.peaks)]) {
+temp <- filter(subset.list, PeakNo_con == i)
+tempRT <- temp$RetTime_con[1]
+summary.table[i,2] <- tempRT
+}
+summary.table <- setNames(summary.table, c("PeakNo", "RetTime"))
+print(summary.table, digits = 2)
