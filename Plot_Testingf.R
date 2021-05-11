@@ -140,3 +140,29 @@ heatmap_fvf_inductions <- ggplot(data = subset.list, aes(x=PeakNo_CC, y=Sample_R
 heatmap_fvf_inductions
 ggsave(heatmap_fvf_inductions,filename="heatmap_fvf_inductions.png",height=1.75,width=10.20,units="in",dpi=200)
     
+
+## Testing for single fungus loop
+# Post importing full.list
+
+coculture.list <- filter(full.list, is.na(PeakNo_CC))
+fungus.list <- separate(coculture.list, Sample_Ref, into = c("Ref_Culture", "Int_Culture"), sep = "v")
+fungus <- unique(fungus.list$Ref_Culture)
+
+for (i in length(fungus)) {
+subset.list <- filter(full.list, Matched_con == fungus[i]) %>%
+    select(Sample_Ref, PeakNo_con, PeakRatio) %>%
+    mutate(logPeakRatio = log((PeakRatio/100) + 1))
+
+
+heatmap_fvf <- ggplot(data = subset.list, aes(x=PeakNo_con, y=Sample_Ref)) + 
+    geom_tile(aes(fill=logPeakRatio)) +
+    scale_fill_gradient2(low = "dark blue", high = "dark red", mid = "white", 
+                         midpoint = 0, limit = c(min(subset.list$logPeakRatio), 
+                                                 max(subset.list$logPeakRatio)), 
+                         space = "Lab", name="log(%PeakArea)") +
+    labs(x="Peak Number", y="Coculture") +
+    theme_grey(base_size=8)
+heatmap_fvf
+}
+
+ggsave(heatmap_fvf,filename="heatmap_fvf.png",height=1.75,width=10.20,units="in",dpi=200)
