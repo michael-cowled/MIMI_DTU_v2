@@ -2,8 +2,8 @@ library(data.table)
 library(dplyr)
 library(tidyr)
 
-filenames <- list.files(path = "Testing Broad-Scale Interactions/OutputFiles/NT_FvA", 
-                        pattern = "NT", full.names = TRUE)
+filenames <- list.files(path = "Testing Broad-Scale Interactions/OutputFiles/Tal_FvF", 
+                        pattern = "F", full.names = TRUE)
 my.data <- lapply(filenames, read.csv)
 full.list <- rbindlist(my.data, use.names=TRUE, fill=FALSE)
 
@@ -48,5 +48,7 @@ names(induction.df2) <- c("Sample_Ref", "Num_Inductions", "Num_Sig_Inductions")
 print(induction.df2)
 induction.sum <- sum(as.numeric(induction.df2$Num_Inductions))
 induction.mean <- induction.sum/length(filenames)
+error <- qnorm(.95)*(sd(induction.df$Num_Inductions)/sqrt(length(induction.df$Ref_Culture)))
 induction.sum
 induction.mean
+error
