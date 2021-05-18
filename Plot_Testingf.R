@@ -1,7 +1,10 @@
+library(dplyr)
+library(tidyr)
 library(data.table)
 library(ggplot2)
-library("ggdendro")
-library("reshape2")
+library(ggdendro)
+library(reshape2)
+library(viridis)
 
 #Combines all output files into a list of all metabolites from all cocultures
 
@@ -41,7 +44,6 @@ plot( b, col=rgb(1,0,0,1/4), xlim=c(0,11), ylim=c(0,800), add=T)  # second
 plot( c, col=rgb(0,1,0,1/4), xlim=c(0,11), ylim=c(0,600), add=T)  # third
 plot( d, col=rgb(1,0,1,1/4), xlim=c(0,11), ylim=c(0,600), add=T)  # third
 
-
 #Separate lists based on Coculturing Fungus
 filenames <- list.files(path = "Testing Broad-Scale Interactions/OutputFiles/", pattern = "F1v", full.names = TRUE)
 my.data <- lapply(filenames, read.csv)
@@ -62,8 +64,6 @@ ggplot(data=full.list.minus.effect.1, aes(x=Metabolite_Effect, y=RetTime_CC)) + 
     stat_summary(fun.y=mean, geom="point", shape=1, size=4) +
     theme(axis.text.x = element_text(angle = 90, face = "italic")) + scale_x_discrete(labels = effect.names)
 
-
-
 #Separate lists based on Coculturing Fungus
 par(mfrow=c(3,5), mar=c(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1))
 for (i in 1:15) {
@@ -72,7 +72,6 @@ my.data <- lapply(filenames, read.csv)
 a <- rbindlist(my.data, use.names=TRUE, fill=FALSE)
 a  <- transform(a , Metabolite_Effect = factor(Metabolite_Effect))
 boxplot(a$RetTime_CC ~ a$Metabolite_Effect, main = paste0("F", i, "v"), xlab="", ylab="") }
-
 
 #SCatterplot with colour
 full.list <- filter(full.list, PeakRatio != -100)

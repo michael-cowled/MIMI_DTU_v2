@@ -1,4 +1,9 @@
-filenames <- list.files(path = "Testing Broad-Scale Interactions/OutputFiles/NT_FvF_Mixed", pattern = "F", full.names = TRUE)
+library(dplyr)
+library(tidyr)
+library(data.table)
+library(ggplot2)
+
+filenames <- list.files(path = "Testing Broad-Scale Interactions/OutputFiles/Tal_AvA", pattern = "", full.names = TRUE)
 my.data <- lapply(filenames, read.csv)
 full.list <- rbindlist(my.data, use.names=TRUE, fill=FALSE)
 
@@ -7,6 +12,13 @@ full.list$Sample_Ref <- gsub("NT", "F", full.list$Sample_Ref, perl = TRUE)
 full.list$Sample_Ref <- gsub("F17", "B1", full.list$Sample_Ref, perl = TRUE)
 full.list$Sample_Ref <- gsub("F18", "B2", full.list$Sample_Ref, perl = TRUE)
 full.list$Sample_Ref <- gsub("F19", "B3", full.list$Sample_Ref, perl = TRUE)
+#Correcting for culture "86280v3"
+full.list[full.list == "86280v3vRA14283c"] <- "86280V3vRA14283c"
+full.list[full.list == "86280v3vMA9095"] <- "86280V3vMA9095"
+full.list[full.list == "86280v3vAS6166"] <- "86280V3vAS6166"
+full.list[full.list == "86280v3vAS5549"] <- "86280V3vAS5549"
+full.list[full.list == "86280v3vAS4461"] <- "86280V3vAS4461"
+full.list[full.list == "86280v3v8651"] <- "86280V3v8651"
 
 refined.list <- filter(full.list, Metabolite_Effect < 6 & Metabolite_Effect > 1)
 Cocultures <- c(unique(refined.list$Sample_Ref))
@@ -85,6 +97,9 @@ ratio.df$Avg_Ratio <- as.numeric(ratio.df$Avg_Ratio)
 ratio.df$Ref_Culture <- gsub("(?<![0-9])([0-9])(?![0-9])", "0\\1", ratio.df$Ref_Culture, perl = TRUE)
 ratio.df$Int_Culture <- gsub("(?<![0-9])([0-9])(?![0-9])", "0\\1", ratio.df$Int_Culture, perl = TRUE)
 
+#Correcting for "86280v3"
+ratio.df[ratio.df == "86280V03"] <- "82680"
+
 heatmap.fvf.avg <- ggplot(data = ratio.df, aes(x=Int_Culture, y=Ref_Culture)) + 
     geom_tile(aes(fill=Avg_Ratio)) +
     scale_fill_gradient2(low = "dark blue", high = "dark red", mid = "white", 
@@ -94,3 +109,5 @@ heatmap.fvf.avg <- ggplot(data = ratio.df, aes(x=Int_Culture, y=Ref_Culture)) +
     theme(axis.text.x=element_text(angle=45, hjust = 1))
 heatmap.fvf.avg
 ggsave(heatmap.fvf.avg,filename="heatmap.fvf.avg.png",height=2.24,width=3,units="in",dpi=200)
+
+mean(ratio.df$Avg_Ratio, na.rm = TRUE)
