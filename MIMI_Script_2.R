@@ -333,12 +333,12 @@ MatchNonUVs <- function(cc.peak, con1, con2, cc, df.name, con1.name, con2.name) 
 # Returns:
 # df.name - the updated df with the new peak assigned.
 
-RowBinder2 <- function(df.name, con.name, con, cc.peak) {
+RowBinder2 <- function(df.name, con.name, con, cc.peak, cc.name) {
     
     df.name <- rbind(df.name, 
-                     c(Sample_Ref = con.name, PeakNo_CC = NA, 
+                     c(Sample_Ref = cc.name, PeakNo_CC = NA, 
                        RetTime_CC = NA, PeakArea_CC = NA, PercArea = NA, 
-                       Combined = NA, Matched_con = NA, 
+                       Combined = NA, Matched_con = con.name, 
                        PeakNo_con =con$Peak[cc.peak], 
                        RetTime_con =con$RetTime[cc.peak], 
                        PeakArea_con =con$Area[cc.peak], 
@@ -363,7 +363,7 @@ RowBinder2 <- function(df.name, con.name, con, cc.peak) {
 #Returns:
 # # df.name - the updated df with the missing control peaks assigned.
 
-FindMissingcontrolPeaks <- function(df.name, con1.name, con1, con2.name, con2) {
+FindMissingcontrolPeaks <- function(df.name, con1.name, con1, con2.name, con2, cc.name) {
     
     n <- nrow(con1)
     cc.peak <- 1
@@ -374,7 +374,7 @@ FindMissingcontrolPeaks <- function(df.name, con1.name, con1, con2.name, con2) {
         if (any(df.name[, 6] == paste0(con1.name, "-", cc.peak), na.rm = TRUE)) {
         }   else if (any(df.name[, 6] != paste0(con1.name, "-", cc.peak), 
                          na.rm = TRUE)) {
-            df.name <- RowBinder2(df.name, con1.name, con1, cc.peak)
+            df.name <- RowBinder2(df.name, con1.name, con1, cc.peak, cc.name)
         }
         cc.peak <- cc.peak + 1 
     }
@@ -386,7 +386,7 @@ FindMissingcontrolPeaks <- function(df.name, con1.name, con1, con2.name, con2) {
         if (any(df.name[, 6] == paste0(con2.name, "-", cc.peak), na.rm = TRUE)) {
         }   else if (any(df.name[, 6] != paste0(con2.name, "-", cc.peak), 
                          na.rm = TRUE)) {
-            df.name <- RowBinder2(df.name, con2.name, con2, cc.peak)
+            df.name <- RowBinder2(df.name, con2.name, con2, cc.peak, cc.name)
         }   
         cc.peak <- cc.peak + 1
     }
@@ -445,7 +445,7 @@ MIMI2 <- function() {
         df.name$Sample_Ref <- as.character(df.name$Sample_Ref)
         df.name <- unite(df.name, Combined, c(Matched_con, PeakNo_con), 
                          sep = "-", remove = FALSE)
-        df.name <- FindMissingcontrolPeaks(df.name, con1.name, con1, con2.name, con2)
+        df.name <- FindMissingcontrolPeaks(df.name, con1.name, con1, con2.name, con2, cc.name)
         
         write.csv(df.name, 
                   paste0("Testing Broad-Scale Interactions/OutputFiles/", 

@@ -8,7 +8,7 @@ library(viridis)
 
 #Combines all output files into a list of all metabolites from all cocultures
 
-filenames <- list.files(path = "Testing Broad-Scale Interactions/OutputFiles/Tal_FvF", pattern = "F", full.names = TRUE)
+filenames <- list.files(path = "Testing Broad-Scale Interactions/OutputFiles/NT_FvF_v2", pattern = "F", full.names = TRUE)
 my.data <- lapply(filenames, read.csv)
 full.list <- rbindlist(my.data, use.names=TRUE, fill=FALSE)
 full.list <- transform(full.list, Metabolite_Effect = factor(Metabolite_Effect))
@@ -148,8 +148,8 @@ fungus.list <- separate(coculture.list, Sample_Ref, into = c("Ref_Culture", "Int
 fungus <- unique(fungus.list$Ref_Culture)
 
 for (i in length(fungus)) {
-subset.list <- filter(full.list, Matched_con == fungus[i]) %>%
-    select(Sample_Ref, PeakNo_con, PeakRatio) %>%
+subset.list <- filter(full.list, Matched_con == paste0(fungus[i], "CON")) %>%
+    select(Sample_Ref, PeakNo_con, PeakRatio, Metabolite_Effect) %>%
     mutate(logPeakRatio = log((PeakRatio/100) + 1))
 
 
@@ -165,3 +165,51 @@ heatmap_fvf
 }
 
 ggsave(heatmap_fvf,filename="heatmap_fvf.png",height=1.75,width=10.20,units="in",dpi=200)
+
+#Testing
+
+coculture.list <- filter(full.list, is.na(PeakNo_CC))
+fungus.list <- separate(coculture.list, Sample_Ref, into = c("Ref_Culture", "Int_Culture"), sep = "v")
+fungus <- unique(fungus.list$Ref_Culture)
+fungus.of.interest <- paste0(substr(fungus[1],1,nchar(fungus[1])-3), "v")
+    subset.list <- filter(full.list, grepl(fungus.of.interest, Sample_Ref)) %>%
+        select(Sample_Ref, PeakNo_con, PeakRatio, Metabolite_Effect) %>%
+        mutate(logPeakRatio = log((PeakRatio/100) + 1))
+    
+    
+    heatmap_fvf <- ggplot(data = subset.list, aes(x=PeakNo_con, y=Sample_Ref)) + 
+        geom_tile(aes(fill=logPeakRatio)) +
+        scale_fill_gradient2(low = "dark blue", high = "dark red", mid = "white", 
+                             midpoint = 0, limit = c(min(subset.list$logPeakRatio), 
+                                                     max(subset.list$logPeakRatio)), 
+                             space = "Lab", name="log(%PeakArea)") +
+        labs(x="Peak Number", y="Coculture") +
+        theme_grey(base_size=8)
+    heatmap_fvf
+    
+    
+    ## testing
+    coculture.list <- filter(full.list, !is.na(PeakNo_CC)) %>%
+        separate(Sample_Ref, into = c("Ref_Culture", "Int_Culture"), sep = "v")
+    coculture.list$Ref_Culture <- gsub("(?<![0-9])([0-9])(?![0-9])", "0\\1", coculture.list$Ref_Culture, perl = TRUE)
+    coculture.list$Int_Culture <- gsub("(?<![0-9])([0-9])(?![0-9])", "0\\1", coculture.list$Int_Culture, perl = TRUE)
+    coculture.list$Matched_con <- gsub("(?<![0-9])([0-9])(?![0-9])", "0\\1", coculture.list$Matched_con, perl = TRUE)
+     coculture.list <- arrange(coculture.list, Ref_Culture)
+    fungus <- unique(coculture.list$Ref_Culture)
+
+        subset.list <- filter(coculture.list, Ref_Culture == fungus[1], Matched_con == fungus[1]) %>%
+            select(Int_Culture, PeakNo_con, Matched_con, PeakRatio) %>%
+            mutate(logPeakRatio = log((PeakRatio/100) + 1.01))
+        
+        hm.title <- i
+        heatmap_fvf <- ggplot(data = subset.list, aes(x=PeakNo_con, y=Int_Culture)) + 
+            geom_tile(aes(fill=logPeakRatio)) +
+            scale_fill_gradient2(low = "dark blue", high = "dark red", mid = "white", 
+                                 midpoint = 0, limit = c(min(subset.list$logPeakRatio), 
+                                                         max(subset.list$logPeakRatio)), 
+                                 space = "Lab", name="log(%PeakArea)") +
+            labs(x="Peak Number", y="Coculture") +
+            theme_grey(base_size=8) +
+            ggtitle(label = paste0("Interactions involving ", i))
+        print(heatmap_fvf)
+    

@@ -29,7 +29,7 @@ library(reshape2)
 Note: Ignores both inductions and complete suppressions since the corresponding metabolites are not present in both monoculture and coculture.
 
 ```{r, echo = FALSE}
-filenames <- list.files(path = "Testing Broad-Scale Interactions/OutputFiles/NT_FvF", pattern = "F", full.names = TRUE)
+filenames <- list.files(path = "Testing Broad-Scale Interactions/OutputFiles/NT_FvF_v2", pattern = "F", full.names = TRUE)
 my.data <- lapply(filenames, read.csv)
 full.list <- rbindlist(my.data, use.names=TRUE, fill=FALSE)
 
@@ -78,13 +78,15 @@ coculture.list <- filter(full.list, !is.na(PeakNo_CC)) %>%
     separate(Sample_Ref, into = c("Ref_Culture", "Int_Culture"), sep = "v")
 coculture.list$Ref_Culture <- gsub("(?<![0-9])([0-9])(?![0-9])", "0\\1", coculture.list$Ref_Culture, perl = TRUE)
 coculture.list$Int_Culture <- gsub("(?<![0-9])([0-9])(?![0-9])", "0\\1", coculture.list$Int_Culture, perl = TRUE)
+coculture.list$Matched_con <- gsub("(?<![0-9])([0-9])(?![0-9])", "0\\1", coculture.list$Matched_con, perl = TRUE)
 coculture.list <- arrange(coculture.list, Ref_Culture)
 fungus <- unique(coculture.list$Ref_Culture)
 
 for (i in fungus[1:length(fungus)]) {
 subset.list <- filter(coculture.list, Ref_Culture == i) %>%
+  filter(Matched_con == paste0(i, "CON") | is.na(Matched_con)) %>%
     select(Int_Culture, PeakNo_con, PeakRatio) %>%
-    mutate(logPeakRatio = log((PeakRatio/100) + 1))
+    mutate(logPeakRatio = log((PeakRatio/100) + 1.01))
            
 hm.title <- i
 heatmap_fvf <- ggplot(data = subset.list, aes(x=PeakNo_con, y=Int_Culture)) + 
