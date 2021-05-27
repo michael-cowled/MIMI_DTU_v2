@@ -5,6 +5,7 @@ library(ggplot2)
 library(ggdendro)
 library(reshape2)
 library(viridis)
+library(RColorBrewer)
 
 #Combines all output files into a list of all metabolites from all cocultures
 
