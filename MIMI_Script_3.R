@@ -33,7 +33,7 @@ library(ggplot2)
 
 ReadOutput <- function(dataset) {
 filenames <- list.files(path = paste0("Testing Broad-Scale Interactions/OutputFiles/", dataset),
-                        pattern = "F", full.names = TRUE)
+                        pattern = "NT", full.names = TRUE)
 my.data <- lapply(filenames, read.csv)
 full.list <- rbindlist(my.data, use.names=TRUE, fill=FALSE)
 full.list <- transform(full.list, Metabolite_Effect = factor(Metabolite_Effect))

@@ -10,7 +10,7 @@ library(gplots)
 
 #Combines all output files into a list of all metabolites from all cocultures
 
-filenames <- list.files(path = "Testing Broad-Scale Interactions/OutputFiles/NT_FvF_v2", pattern = "F", full.names = TRUE)
+filenames <- list.files(path = "Testing Broad-Scale Interactions/OutputFiles/NT_FvA", pattern = "NT", full.names = TRUE)
 my.data <- lapply(filenames, read.csv)
 full.list <- rbindlist(my.data, use.names=TRUE, fill=FALSE)
 full.list <- transform(full.list, Metabolite_Effect = factor(Metabolite_Effect))

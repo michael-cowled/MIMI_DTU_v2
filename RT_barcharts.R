@@ -2,8 +2,8 @@ mean.list <- setnames(data.frame(matrix(ncol = 8, nrow = 15)), c("mE5", "mE6", "
                                                                  "eE5", "eE6", "eE5&6", "eAll"))
 
 for (i in 1:15) {
-x <- paste0("F", i, "v")
-filenames <- list.files(path = "Testing Broad-Scale Interactions/OutputFiles/NT_FvF", pattern = x, full.names = TRUE)
+x <- paste0("NT", i, "v")
+filenames <- list.files(path = "Testing Broad-Scale Interactions/OutputFiles/NT_FvA", pattern = x, full.names = TRUE)
 my.data <- lapply(filenames, read.csv)
 full.list <- rbindlist(my.data, use.names=TRUE, fill=FALSE)
 full.list <- transform(full.list, Metabolite_Effect = factor(Metabolite_Effect))
@@ -34,14 +34,18 @@ for (i in 1:15) {
     } else {
         extraction <- cbind(col1, c("E5", "E6", "E5 & E6", "All"), 
                             transpose(mean.list[i,1:4]), transpose(mean.list[i,5:8]))
-        names(extraction) <- c("fungus", "effect", "mean", "se")
+        names(extraction) <- c("fungus", "Effect", "mean", "se")
         }
 }
 
 extraction$fungus <- gsub("(?<![0-9])([0-9])(?![0-9])", "0\\1", extraction$fungus, perl = TRUE)
 
-p<- ggplot(extraction, aes(x=fungus, y=mean, fill=effect)) + 
+p<- ggplot(extraction, aes(x=fungus, y=mean, fill=Effect)) + 
     geom_bar(stat="identity", color="black", 
              position=position_dodge()) +
-    geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width=.2,
+    geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width=.4,
                   position=position_dodge(.9)) 
+barchart <- p+labs(x="Reference Fungus", y = "Retention Time")+
+    theme_classic()
+barchart
+ggsave(barchart,filename="barchart_fvf_tal.png",height=3.5,width=10.20,units="in",dpi=200)
