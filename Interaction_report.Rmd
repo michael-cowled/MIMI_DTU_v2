@@ -86,7 +86,7 @@ for (i in fungus[1:length(fungus)]) {
 subset.list <- filter(coculture.list, Ref_Culture == i) %>%
   filter(Matched_con == paste0(i, "CON") | is.na(Matched_con)) %>%
     select(Int_Culture, PeakNo_con, PeakRatio) %>%
-    mutate(logPeakRatio = log((PeakRatio/100) + 1.01))
+    mutate(logPeakRatio = log((PeakRatio/100) + 1))
            
 hm.title <- i
 heatmap_fvf <- ggplot(data = subset.list, aes(x=PeakNo_con, y=Int_Culture)) + 
@@ -99,5 +99,6 @@ heatmap_fvf <- ggplot(data = subset.list, aes(x=PeakNo_con, y=Int_Culture)) +
     theme_grey(base_size=8) +
     ggtitle(label = paste0("Interactions involving ", i))
 print(heatmap_fvf)
+ggsave(heatmap_fvf,filename=paste0("heatmap_fvf", i, ".png"),height=1.75,width=10.20,units="in",dpi=200)
 }
 ```

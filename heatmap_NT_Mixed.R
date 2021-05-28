@@ -41,7 +41,10 @@ df.as.matrix <- select(subset.list, Sample_Ref, PeakNo_con, logPeakRatio)
 df.as.matrix <- spread(df.as.matrix, PeakNo_con, logPeakRatio)
 names <- as.vector(df.as.matrix$Sample_Ref)
 df.as.matrix <- select(df.as.matrix, -Sample_Ref)
+
 df.as.matrix <- as.matrix(df.as.matrix)
 row.names(df.as.matrix) <- names
-col <- colorRampPalette(brewer.pal(10, "RdYlBu"))(256)
-heatmap(df.as.matrix, col = col)
+
+colfunc <- colorRampPalette(c("dark blue", "white", "dark red"))
+
+heatmap.2(df.as.matrix, col=colfunc(15), xlab = "Peak Number", ylab = "Interacting Fungus", scale = "none", trace = "none")
