@@ -1,0 +1,104 @@
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+---
+title: "Interaction Report: NT FvF Dataset"
+author: "Michael Cowled"
+output:
+  html_document:
+    df_print: paged
+---
+```{r, echo = FALSE}
+paste0("Date is: ", format(Sys.time(), "%a %d %b %Y"))
+```
+
+## R Packages required to be loaded in:
+
+```{r, message=FALSE, warning=FALSE}
+library(dplyr)
+library(tidyr)
+library(data.table)
+library(ggplot2)
+library(ggdendro)
+library(reshape2)
+```
+
+## Heatmap showing the average effect on the metabolome of each interaction
+
+Note: Ignores both inductions and complete suppressions since the corresponding metabolites are not present in both monoculture and coculture.
+
+```{r, echo = FALSE}
+filenames <- list.files(path = "Testing Broad-Scale Interactions/OutputFiles/NT_FvF_v2", pattern = "F", full.names = TRUE)
+my.data <- lapply(filenames, read.csv)
+full.list <- rbindlist(my.data, use.names=TRUE, fill=FALSE)
+
+#For changing NT to F in NT_FvA
+full.list$Sample_Ref <- gsub("NT", "F", full.list$Sample_Ref, perl = TRUE)
+full.list$Sample_Ref <- gsub("F17", "B1", full.list$Sample_Ref, perl = TRUE)
+full.list$Sample_Ref <- gsub("F18", "B2", full.list$Sample_Ref, perl = TRUE)
+full.list$Sample_Ref <- gsub("F19", "B3", full.list$Sample_Ref, perl = TRUE)
+
+refined.list <- filter(full.list, Metabolite_Effect < 5 & Metabolite_Effect > 1)
+cond.5.list <- filter(full.list, Metabolite_Effect == 5)
+cond.5.list$PeakRatio <- 100
+refined.list <- rbind(refined.list, cond.5.list)
+Cocultures <- c(unique(refined.list$Sample_Ref))
+
+ratio.df <- data.frame(matrix(ncol = 2, nrow = 0))
+for (i in Cocultures[1:length(Cocultures)]) {
+    temp <- filter(refined.list, Sample_Ref == i)
+    ratio.df <- rbind(ratio.df, 
+                      c(Sample_Ref = i, Avg_Ratio = mean(temp$PeakRatio)))
+}
+
+names(ratio.df) <- c("Sample_Ref", "Avg_Ratio")
+ratio.df <- separate(ratio.df, Sample_Ref, into = c("Ref_Culture", "Int_Culture"), sep = "v")
+ratio.df$Avg_Ratio <- as.numeric(ratio.df$Avg_Ratio)
+
+#For NT fungi
+ratio.df$Ref_Culture <- gsub("(?<![0-9])([0-9])(?![0-9])", "0\\1", ratio.df$Ref_Culture, perl = TRUE)
+ratio.df$Int_Culture <- gsub("(?<![0-9])([0-9])(?![0-9])", "0\\1", ratio.df$Int_Culture, perl = TRUE)
+
+heatmap.fvf.avg <- ggplot(data = ratio.df, aes(x=Int_Culture, y=Ref_Culture)) + 
+    geom_tile(aes(fill=Avg_Ratio)) +
+    scale_fill_gradient2(low = "dark blue", high = "dark red", mid = "white", 
+                         midpoint = 0, space = "Lab", name="Ratio (%)") +
+    labs(x="Interacting Culture", y="Reference Culture") +
+    theme_grey(base_size=8) +
+    theme(axis.text.x=element_text(angle=45, hjust = 1))
+heatmap.fvf.avg
+ggsave(heatmap.fvf.avg,filename="heatmap.fvf.avg.png",height=2.24,width=3,units="in",dpi=200)
+```
+
+## Heatmaps showing the effect of each interaction on a particular fungus
+
+```{r, echo = FALSE, warning = FALSE}
+coculture.list <- filter(full.list, !is.na(PeakNo_CC)) %>%
+    separate(Sample_Ref, into = c("Ref_Culture", "Int_Culture"), sep = "v")
+coculture.list$Ref_Culture <- gsub("(?<![0-9])([0-9])(?![0-9])", "0\\1", coculture.list$Ref_Culture, perl = TRUE)
+coculture.list$Int_Culture <- gsub("(?<![0-9])([0-9])(?![0-9])", "0\\1", coculture.list$Int_Culture, perl = TRUE)
+coculture.list$Matched_con <- gsub("(?<![0-9])([0-9])(?![0-9])", "0\\1", coculture.list$Matched_con, perl = TRUE)
+coculture.list <- arrange(coculture.list, Ref_Culture)
+fungus <- unique(coculture.list$Ref_Culture)
+
+for (i in fungus[1:length(fungus)]) {
+subset.list <- filter(coculture.list, Ref_Culture == i) %>%
+  filter(Matched_con == paste0(i, "CON") | is.na(Matched_con)) %>%
+    select(Int_Culture, PeakNo_con, PeakRatio) %>%
+    mutate(logPeakRatio = log((PeakRatio/100) + 1))
+           
+hm.title <- i
+heatmap_fvf <- ggplot(data = subset.list, aes(x=PeakNo_con, y=Int_Culture)) + 
+    geom_tile(aes(fill=logPeakRatio)) +
+    scale_fill_gradient2(low = "dark blue", high = "dark red", mid = "white", 
+                         midpoint = 0, limit = c(min(subset.list$logPeakRatio), 
+                                                 max(subset.list$logPeakRatio)), 
+                         space = "Lab", name="log(%PeakArea)") +
+    labs(x="Peak Number", y="Coculture") +
+    theme_grey(base_size=8) +
+    ggtitle(label = paste0("Interactions involving ", i))
+print(heatmap_fvf)
+ggsave(heatmap_fvf,filename=paste0("heatmap_fvf", i, ".png"),height=1.75,width=10.20,units="in",dpi=200)
+}
+```

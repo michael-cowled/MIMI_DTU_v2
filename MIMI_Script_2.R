@@ -225,7 +225,6 @@ RemoveDoubleyAssignedPeaks <- function(Interaction_Matrix) {
         logic.row.no <- logic.row.no + 1
         }
     }
-    return(double.peaks.df_removed)
 }
 
 #############################################
@@ -280,6 +279,7 @@ PeakAssigner <- function(df.name, cc.peak, con.name, con.peak, con, final.count,
 MatchNonUVs <- function(cc.peak, con1, con2, cc, df.name, con1.name, con2.name) {
     
     n <- nrow(df.name)
+    print(df.name)
     
     while (cc.peak < n + 1) {
         con1.peak <- which(abs(con1$RetTime-cc$RetTime[cc.peak]) ==
@@ -288,6 +288,12 @@ MatchNonUVs <- function(cc.peak, con1, con2, cc, df.name, con1.name, con2.name) 
                                min(abs(con2$RetTime-cc$RetTime[cc.peak])))
         final.count.1 <- CheckUVCount(con1, cc, cc.peak,con1.peak)
         final.count.2 <- CheckUVCount(con2, cc, cc.peak,con2.peak)
+        print("cc.peak")
+        print(cc.peak)
+        print(!is.na(df.name$Matched_con[cc.peak]))
+        print(any(df.name[, 7] ==con1$RetTime[con1.peak], na.rm = TRUE))
+        print(any(df.name[, 7] ==con2$RetTime[con2.peak], na.rm = TRUE))
+        
         if (!is.na(df.name$Matched_con[cc.peak]) | 
             (any(df.name[, 7] ==con1$RetTime[con1.peak], na.rm = TRUE)) |
             (any(df.name[, 7] ==con2$RetTime[con2.peak], na.rm = TRUE))) {
@@ -300,18 +306,31 @@ MatchNonUVs <- function(cc.peak, con1, con2, cc, df.name, con1.name, con2.name) 
             
             # Checks if the closest match in con1 satisfies this test.
             
-            ratio <- CalcRatio(cc, cc.peak, con1, con1.peak)
-            Effect <- SimpleEffectCategoriser(ratio)
-            df.name <- PeakAssigner(df.name, cc.peak, con1.name, con1.peak, 
-                                    con1, final.count.1, ratio, Effect)
+            reduced.df <- filter(df.name, Matched_con == con1.name)
+            
+                if (any(reduced.df[, 7] == con1.peak, na.rm = TRUE)) {
+                }
+                    else {
+                        ratio <- CalcRatio(cc, cc.peak, con1, con1.peak)
+                        Effect <- SimpleEffectCategoriser(ratio)
+                        df.name <- PeakAssigner(df.name, cc.peak, con1.name, con1.peak, 
+                                                con1, final.count.1, ratio, Effect) 
+                    }
             
         }   else if (cc$RetTime[cc.peak] < (con2$RetTime[con2.peak] + 0.02) && 
                      cc$RetTime[cc.peak] > (con2$RetTime[con2.peak] - 0.02) &&
                      final.count.2 < 2)    {
-            ratio <- CalcRatio(cc, cc.peak, con2, con2.peak)
-            Effect <- SimpleEffectCategoriser(ratio)
-            df.name <- PeakAssigner(df.name, cc.peak, con2.name, con2.peak, 
-                                    con2, final.count.2, ratio, Effect)
+            
+            reduced.df <- filter(df.name, Matched_con == con2.name)
+            
+                if (any(reduced.df[, 7] == con2.peak, na.rm = TRUE)) {
+                }
+                else {
+                    ratio <- CalcRatio(cc, cc.peak, con2, con2.peak)
+                    Effect <- SimpleEffectCategoriser(ratio)
+                    df.name <- PeakAssigner(df.name, cc.peak, con2.name, con2.peak, 
+                                            con2, final.count.2, ratio, Effect)
+                }
         }    
         cc.peak <- cc.peak + 1
     }
@@ -334,12 +353,12 @@ MatchNonUVs <- function(cc.peak, con1, con2, cc, df.name, con1.name, con2.name) 
 # Returns:
 # df.name - the updated df with the new peak assigned.
 
-RowBinder2 <- function(df.name, con.name, con, cc.peak) {
+RowBinder2 <- function(df.name, con.name, con, cc.peak, cc.name) {
     
     df.name <- rbind(df.name, 
-                     c(Sample_Ref = con.name, PeakNo_CC = NA, 
+                     c(Sample_Ref = cc.name, PeakNo_CC = NA, 
                        RetTime_CC = NA, PeakArea_CC = NA, PercArea = NA, 
-                       Combined = NA, Matched_con = NA, 
+                       Combined = NA, Matched_con = con.name, 
                        PeakNo_con =con$Peak[cc.peak], 
                        RetTime_con =con$RetTime[cc.peak], 
                        PeakArea_con =con$Area[cc.peak], 
@@ -364,7 +383,7 @@ RowBinder2 <- function(df.name, con.name, con, cc.peak) {
 #Returns:
 # # df.name - the updated df with the missing control peaks assigned.
 
-FindMissingcontrolPeaks <- function(df.name, con1.name, con1, con2.name, con2) {
+FindMissingcontrolPeaks <- function(df.name, con1.name, con1, con2.name, con2, cc.name) {
     
     n <- nrow(con1)
     cc.peak <- 1
@@ -375,7 +394,7 @@ FindMissingcontrolPeaks <- function(df.name, con1.name, con1, con2.name, con2) {
         if (any(df.name[, 6] == paste0(con1.name, "-", cc.peak), na.rm = TRUE)) {
         }   else if (any(df.name[, 6] != paste0(con1.name, "-", cc.peak), 
                          na.rm = TRUE)) {
-            df.name <- RowBinder2(df.name, con1.name, con1, cc.peak)
+            df.name <- RowBinder2(df.name, con1.name, con1, cc.peak, cc.name)
         }
         cc.peak <- cc.peak + 1 
     }
@@ -387,7 +406,7 @@ FindMissingcontrolPeaks <- function(df.name, con1.name, con1, con2.name, con2) {
         if (any(df.name[, 6] == paste0(con2.name, "-", cc.peak), na.rm = TRUE)) {
         }   else if (any(df.name[, 6] != paste0(con2.name, "-", cc.peak), 
                          na.rm = TRUE)) {
-            df.name <- RowBinder2(df.name, con2.name, con2, cc.peak)
+            df.name <- RowBinder2(df.name, con2.name, con2, cc.peak, cc.name)
         }   
         cc.peak <- cc.peak + 1
     }
@@ -446,11 +465,12 @@ MIMI2 <- function() {
         df.name$Sample_Ref <- as.character(df.name$Sample_Ref)
         df.name <- unite(df.name, Combined, c(Matched_con, PeakNo_con), 
                          sep = "-", remove = FALSE)
-        df.name <- FindMissingcontrolPeaks(df.name, con1.name, con1, con2.name, con2)
+        df.name <- FindMissingcontrolPeaks(df.name, con1.name, con1, con2.name, con2, cc.name)
         
         write.csv(df.name, 
                   paste0("Testing Broad-Scale Interactions/OutputFiles/", 
                          cc.name, ".CSV"), row.names = FALSE)
     }
+    
     print("MIMI2 completed.")
 }
