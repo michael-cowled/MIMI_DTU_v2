@@ -35,7 +35,7 @@ full.list <- rbindlist(my.data, use.names=TRUE, fill=FALSE)
 
 #For changing NT to F in NT_FvA
 full.list$Sample_Ref <- gsub("NT", "F", full.list$Sample_Ref, perl = TRUE)
-full.list$Sample_Ref <- gsub("F17", "B1", full.list$Sample_Ref, perl = TRUE)
+#full.list$Sample_Ref <- gsub("F17", "B1", full.list$Sample_Ref, perl = TRUE)
 full.list$Sample_Ref <- gsub("F18", "B2", full.list$Sample_Ref, perl = TRUE)
 full.list$Sample_Ref <- gsub("F19", "B3", full.list$Sample_Ref, perl = TRUE)
 
@@ -59,14 +59,15 @@ ratio.df$Avg_Ratio <- as.numeric(ratio.df$Avg_Ratio)
 #For NT fungi
 ratio.df$Ref_Culture <- gsub("(?<![0-9])([0-9])(?![0-9])", "0\\1", ratio.df$Ref_Culture, perl = TRUE)
 ratio.df$Int_Culture <- gsub("(?<![0-9])([0-9])(?![0-9])", "0\\1", ratio.df$Int_Culture, perl = TRUE)
+ratio.df <- mutate(ratio.df, Int_Culture_2 = "Kitrinomycin")
 
-heatmap.fvf.avg <- ggplot(data = ratio.df, aes(x=Int_Culture, y=Ref_Culture)) + 
+heatmap.fvf.avg <- ggplot(data = ratio.df, aes(x=Int_Culture_2, y=Ref_Culture)) + 
     geom_tile(aes(fill=Avg_Ratio)) +
     scale_fill_gradient2(low = "dark blue", high = "dark red", mid = "white", 
                          midpoint = 0, space = "Lab", name="Ratio (%)") +
-    labs(x="Interacting Culture", y="Reference Culture") +
+    labs(x="Treatment", y="Reference Culture") +
     theme_grey(base_size=8) +
-    theme(axis.text.x=element_text(angle=45, hjust = 1))
+    theme(axis.text.x=element_text(hjust = 0.5))
 heatmap.fvf.avg
 ggsave(heatmap.fvf.avg,filename="heatmap.fvf.avg.png",height=2.24,width=3,units="in",dpi=200)
 ```
@@ -82,23 +83,46 @@ coculture.list$Matched_con <- gsub("(?<![0-9])([0-9])(?![0-9])", "0\\1", cocultu
 coculture.list <- arrange(coculture.list, Ref_Culture)
 fungus <- unique(coculture.list$Ref_Culture)
 
-for (i in fungus[1:length(fungus)]) {
-subset.list <- filter(coculture.list, Ref_Culture == i) %>%
-  filter(Matched_con == paste0(i, "CON") | is.na(Matched_con)) %>%
-    select(Int_Culture, PeakNo_con, PeakRatio) %>%
-    mutate(logPeakRatio = log((PeakRatio/100) + 1))
+i <- 1
+
+while (i <= length(fungus)) {
+subset.list <- filter(coculture.list, Ref_Culture == fungus[i]) %>%
+  filter(Matched_con == paste0(fungus[i], "CON") | is.na(Matched_con)) %>%
+    select(Int_Culture, Ref_Culture, PeakNo_con, PeakRatio, Metabolite_Effect) %>%
+    mutate(logPeakRatio = log((PeakRatio/100) + 1)) %>%
+    mutate(Int_Culture_2 = "")
            
-hm.title <- i
-heatmap_fvf <- ggplot(data = subset.list, aes(x=PeakNo_con, y=Int_Culture)) + 
-    geom_tile(aes(fill=logPeakRatio)) +
+hm.title <- fungus[i]
+heatmap_fvf <- ggplot(data = subset.list, aes(x=PeakNo_con, y=Int_Culture_2)) + 
+    geom_tile(aes(fill=PeakRatio)) +
     scale_fill_gradient2(low = "dark blue", high = "dark red", mid = "white", 
-                         midpoint = 0, limit = c(min(subset.list$logPeakRatio), 
-                                                 max(subset.list$logPeakRatio)), 
-                         space = "Lab", name="log(%PeakArea)") +
-    labs(x="Peak Number", y="Coculture") +
+                         midpoint = 0, limit = c(min(subset.list$PeakRatio), 
+                                                 max(subset.list$PeakRatio)), 
+                         space = "Lab", name="Ratio (%)") +
+    labs(x="Peak Number", y="Treatment") +
     theme_grey(base_size=8) +
-    ggtitle(label = paste0("Interactions involving ", i))
+    ggtitle(label = paste0("Effect on ", fungus[i]))
 print(heatmap_fvf)
-ggsave(heatmap_fvf,filename=paste0("heatmap_fvf", i, ".png"),height=1.75,width=10.20,units="in",dpi=200)
+ggsave(heatmap_fvf,filename=paste0("heatmap_fvf", fungus[i], ".png"),height=1.25,width=10.20,units="in",dpi=200)
+
+if (i > 1) {
+    X.list <- rbind(X.list, subset.list)
+}   else {
+    X.list <- subset.list
 }
+i <- i + 1
+}
+
+write.csv(X.list, "Testing Broad-Scale Interactions/OutputFiles/vKit_list.CSV", row.names = FALSE)
+
+heatmap_fvf <- ggplot(data = X.list, aes(x=PeakNo_con, y=Ref_Culture)) + 
+    geom_tile(aes(fill=PeakRatio)) +
+    scale_fill_gradient2(low = "dark blue", high = "dark red", mid = "white", 
+                         midpoint = 0, limit = c(min(X.list$PeakRatio), 
+                                                 max(X.list$PeakRatio)), 
+                         space = "Lab", name="Ratio (%)") +
+    labs(x="Peak Number", y="Reference culture") +
+    theme_grey(base_size=8)
+print(heatmap_fvf)
+ggsave(heatmap_fvf,filename=paste0("heatmap_fvf", i, ".png"),height=2.24,width=10.20,units="in",dpi=200)
 ```
