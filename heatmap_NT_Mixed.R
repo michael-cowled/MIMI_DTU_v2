@@ -28,9 +28,9 @@ summary.table <- data.frame(matrix(ncol = 2, nrow = length(unique.peaks)))
 summary.table[,1] <- unique.peaks
 
 for (i in unique.peaks[1:length(unique.peaks)]) {
-temp <- filter(subset.list, PeakNo_con == i)
-tempRT <- temp$RetTime_con[1]
-summary.table[i,2] <- tempRT
+    temp <- filter(subset.list, PeakNo_con == i)
+    tempRT <- temp$RetTime_con[1]
+    summary.table[i,2] <- tempRT
 }
 summary.table <- setNames(summary.table, c("PeakNo", "RetTime"))
 print(summary.table, digits = 2)
@@ -39,12 +39,14 @@ print(summary.table, digits = 2)
 ###testing (clustered heatmap)
 df.as.matrix <- select(subset.list, Sample_Ref, PeakNo_con, logPeakRatio) 
 df.as.matrix <- spread(df.as.matrix, PeakNo_con, logPeakRatio)
-names <- as.vector(df.as.matrix$Sample_Ref)
-df.as.matrix <- select(df.as.matrix, -Sample_Ref)
+Fungi_Assignments <- read_excel("Testing Broad-Scale Interactions/Fungi_Assignments_nt3.xlsx")
+df.as.matrix <- merge(df.as.matrix, Fungi_Assignments, by="Sample_Ref", all.x=TRUE)
+names <- as.vector(df.as.matrix$Species)
+df.as.matrix <- select(df.as.matrix, -Sample_Ref, -Species)
 
 df.as.matrix <- as.matrix(df.as.matrix)
 row.names(df.as.matrix) <- names
 
 colfunc <- colorRampPalette(c("dark blue", "white", "dark red"))
 
-heatmap.2(df.as.matrix, col=colfunc(15), xlab = "Peak Number", ylab = "Interacting Fungus", scale = "none", trace = "none")
+heatmap.2(df.as.matrix, col=colfunc(15), xlab = "Peak Number", scale = "none", trace = "none")
