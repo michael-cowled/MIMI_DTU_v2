@@ -39,13 +39,16 @@ for (i in 1:15) {
 }
 
 extraction$fungus <- gsub("(?<![0-9])([0-9])(?![0-9])", "0\\1", extraction$fungus, perl = TRUE)
+Fungi_Assignments <- read_excel("Testing Broad-Scale Interactions/Fungi_Assignments_nt4.xlsx")
+extraction <- merge(extraction, Fungi_Assignments, by="fungus", all.x=TRUE)
 
-p<- ggplot(extraction, aes(x=fungus, y=mean, fill=Effect)) + 
+p<- ggplot(extraction, aes(x=Ref_Species, y=mean, fill=Effect)) + 
     geom_bar(stat="identity", color="black", 
              position=position_dodge()) +
     geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width=.4,
                   position=position_dodge(.9)) 
 barchart <- p+labs(x="Reference Fungus", y = "Retention Time")+
-    theme_classic()
+    theme_classic() +
+    theme(axis.text.x=element_text(angle=45, hjust = 1))
 barchart
 ggsave(barchart,filename="barchart_fvf_tal.png",height=3.5,width=10.20,units="in",dpi=200)
