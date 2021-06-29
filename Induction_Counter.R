@@ -52,3 +52,19 @@ error <- qnorm(.95)*(sd(induction.df$Num_Inductions)/sqrt(length(induction.df$Re
 induction.sum
 induction.mean
 error
+
+### Post-use of induction counter a spreadsheet was generated to create a barchart
+# Import as 'Inductons' excel object
+
+library(ggplot2)
+# Default bar plot
+p<- ggplot(Inductions, aes(x=Type, y=Number, fill=Relation)) + 
+    geom_bar(stat="identity", color="black", 
+             position=position_dodge()) +
+    geom_errorbar(aes(ymin=Number-Error, ymax=Number+Error), width=.2,
+                  position=position_dodge(.9)) 
+print(p)
+# Finished bar plot
+p+labs(x="Interaction Type", y = "Average Number of Inductions")+
+    theme_classic() +
+    scale_fill_manual(values=c('#999999','#E69F00'))
