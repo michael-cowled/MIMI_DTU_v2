@@ -215,3 +215,14 @@ fungus.of.interest <- paste0(substr(fungus[1],1,nchar(fungus[1])-3), "v")
             ggtitle(label = paste0("Interactions involving ", i))
         print(heatmap_fvf)
     
+        
+##Barchart testing
+        
+        p<- ggplot(Effect_Inductions, aes(x=Range, y=Proportion, fill=Category)) + 
+            geom_bar(stat="identity", color="black", 
+                     position=position_dodge())
+        barchart <- p+labs(x="Elution Range (% MeCN)", y = "Proportion (%)")+
+            theme_classic() +
+            theme(axis.text.x=element_text(angle=45, hjust = 1))
+        barchart
+        ggsave(barchart,filename="barchart_fvf_tal.png",height=3.5,width=10.20,units="in",dpi=200)
