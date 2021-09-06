@@ -200,12 +200,12 @@ ggplot(data=full.list.minus.effect.1, aes(x=Metabolite_Effect, y=RetTime_CC)) + 
     theme(axis.text.x = element_text(angle = 90, face = "italic")) + scale_x_discrete(labels = effect.names)
 
 par(mfrow=c(2,3))
-hist(Effect_1$RetTime_con, main = "Complete Suppression")
-hist(Effect_2$RetTime_CC, main = "Suppression")
-hist(Effect_3$RetTime_CC, main = "Little to No Change")
-hist(Effect_4$RetTime_CC, main = "Enhancement")
-hist(Effect_5$RetTime_CC, main = "Major Enhancement")
-hist(Effect_6$RetTime_CC, main = "Induction or Unmatched")
+hist(Effect_1$RetTime_con, main = "Complete Suppression", xlab = "Retention Time", ylab = "Number of Secondary Metabolites")
+hist(Effect_2$RetTime_CC, main = "Suppression", xlab = "Retention Time", ylab = "Number of Secondary Metabolites")
+hist(Effect_3$RetTime_CC, main = "Little to No Change", xlab = "Retention Time", ylab = "Number of Secondary Metabolites")
+hist(Effect_4$RetTime_CC, main = "Enhancement", xlab = "Retention Time", ylab = "Number of Secondary Metabolites")
+hist(Effect_5$RetTime_CC, main = "Major Enhancement", xlab = "Retention Time", ylab = "Number of Secondary Metabolites")
+hist(Effect_6$RetTime_CC, main = "Induction or Unmatched", xlab = "Retention Time", ylab = "Number of Secondary Metabolites")
 hist(All_Effects_Less_Induction$RetTime_CC, main = "All other effects", xlab = "Retention Time", ylab = "Number of Secondary Metabolites")
 hist(Effect_5_6$RetTime_CC, main = "Induction or Major Enhancement", xlab = "Retention Time", ylab = "Number of Secondary Metabolites")
 ```
