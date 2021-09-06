@@ -2,7 +2,7 @@ library(data.table)
 library(dplyr)
 library(tidyr)
 
-filenames <- list.files(path = "Testing Broad-Scale Interactions/OutputFiles/NT_F1_pairwise", 
+filenames <- list.files(path = "Testing Broad-Scale Interactions/OutputFiles/NT_FvF", 
                         pattern = "F", full.names = TRUE)
 my.data <- lapply(filenames, read.csv)
 full.list <- rbindlist(my.data, use.names=TRUE, fill=FALSE)
