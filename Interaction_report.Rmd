@@ -85,6 +85,9 @@ coculture.list$Ref_Culture <- gsub("(?<![0-9])([0-9])(?![0-9])", "0\\1", cocultu
 coculture.list$Int_Culture <- gsub("(?<![0-9])([0-9])(?![0-9])", "0\\1", coculture.list$Int_Culture, perl = TRUE)
 coculture.list$Matched_con <- gsub("(?<![0-9])([0-9])(?![0-9])", "0\\1", coculture.list$Matched_con, perl = TRUE)
 coculture.list <- arrange(coculture.list, Ref_Culture)
+
+# Make excel files to adjust Ref_Culture, Int_Culture and Matched_con to be more descriptive. 
+
 Fungi_Assignments <- read_excel("Testing Broad-Scale Interactions/Fungi_Assignments_nt.xlsx")
 coculture.list <- merge(coculture.list, Fungi_Assignments, by="Ref_Culture", all.x=TRUE)
 Fungi_Assignments <- read_excel("Testing Broad-Scale Interactions/Fungi_Assignments_nt2.xlsx")

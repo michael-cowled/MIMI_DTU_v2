@@ -56,6 +56,8 @@ error
 ### Post-use of induction counter a spreadsheet was generated to create a barchart
 # Import as 'Inductons' excel object
 
+Inductions <- read_excel("Number_of_Inductions.xlsx")
+
 library(ggplot2)
 # Default bar plot
 p<- ggplot(Inductions, aes(x=Type, y=Number, fill=Relation)) + 

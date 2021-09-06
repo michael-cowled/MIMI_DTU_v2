@@ -1,3 +1,8 @@
+library(data.table)
+library(dplyr)
+library(ggplot2)
+library(readxl)
+
 mean.list <- setnames(data.frame(matrix(ncol = 8, nrow = 15)), c("mE5", "mE6", "mE5&6", "mAll",
                                                                  "eE5", "eE6", "eE5&6", "eAll"))
 
