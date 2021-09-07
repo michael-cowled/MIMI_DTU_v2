@@ -1,10 +1,16 @@
 # MIMI: Microbial Interaction Metabolite Integrator    ## 
 
-## R Packages required to be loaded in:
+MIMI is a peak matching tool created for the Macquarie University PhD 
+thesis entitled 'The ecological role of natural products in regulating 
+microbial secondary metabolomes'.
 
-    library(dplyr)
-    library(tidyr)
-    library(readxl)
+To use MIMI, the input are three NovaC files (below) corresponding to
+a coculture HPLC trace and the respective monoculture HPLC traces.
+A single .xls output file will result.
+
+The Interaction_Report.Rmd file is useful for generating a report based
+on a collection of output files corresponding to an interaction study,
+indicating trends across and within interactions.
 
 ## NovaC files
 
