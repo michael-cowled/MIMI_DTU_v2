@@ -1,4 +1,4 @@
-# Microbial_Interactions    ## 
+# MIMI: Microbial Interaction Metabolite Integrator    ## 
 
 ## R Packages required to be loaded in:
 
