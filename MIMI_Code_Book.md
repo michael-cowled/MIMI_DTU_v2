@@ -1,4 +1,4 @@
-    ## [1] "Date is: Tue 07 Sep 2021"
+    ## [1] "Date is: Wed 15 Sep 2021"
 
 ## R Packages required to be loaded in:
 
@@ -6,18 +6,24 @@
     library(tidyr)
     library(readxl)
 
-## NovaC files
+## RawData .csv files
 
-NovaC is an unpublished data extraction and formatting tool for Agilent
-Chemstation LCMS/HPLC files owned by Macquarie University and created by
-A. Prof. Andrew Piggott (Molecular Sciences/Faculty of Science &
-Engineering).
+RawData (XXX\_raw.csv) files were created through selective extraction
+of data corresponding to retention time, peak area and UV maxima for
+each peak. The data for this file corresponds to peak number in column
+1, retention time in column 2, peak area in column 3, and UV maxima in
+column 4. For column 4, data is in the format “X (Y)/n” where X
+corresponds to the wavelength in nm and Y corresponds to the normalised
+absorbance coresponding to that maximum, and /n is the delimiter used
+for separation of maxima (also represented as a SHIFT+ENTER).
 
-The raw data was extracted from Agilent Chemstation LCMS/HPLC using the
-macro “NovaC.mac” (Macquarie Unviersity) which generates an Excel file
-with the following name: "002-D1F-D7-\_F7vF2.D\_NovaC", as an example.
+For each peak was the raw UV spectra data extracted and absorbance
+normalised to a maximum of 100% (as a separate XXX\_uv.csv file). The
+data for this file corresponds to wavelength (nm) in column 1, collected
+at 2 nm intervals; and peaks 1, 2, …, X in columns 2, 3, … X + 1.
 
-See example NovaC files in folder titled: “Example\_NovaC\_Data”.
+All extracted RawData files are contained in the folder titled:
+“RawData”.
 
 File names were manually tidied up to remove unnecessary prefixes or
 suffixes: “F7vF2”.
@@ -49,12 +55,12 @@ be investigated.
 The following functions are to be pre-loaded prior to use of the main
 function, MIMI()
 
-1.  **ReadExcel:** Reads in the NovaC files corresponding to a
+1.  **ReadExcel:** Reads in the XXX\_raw.csv files corresponding to a
     particular row number in the Interaction\_Matrix.
 2.  **CheckUVCount:** Compares the top 5 UV maxima of a matched peak in
     the control of interest and the coculture.
-3.  **ReadUV:** Reads in the UV spectral data (abs vs. wavelength) for
-    the corresponding 3 samples being compared.
+3.  **ReadUV:** Reads in the XXX\_uv.csv UV spectral data (abs
+    vs. wavelength) for the corresponding 3 samples being compared.
 4.  **SubtractUV:** Subtracts the UV spectrum of the control of interest
     from the coculture, and takes the mean(Abs).
 5.  **RowBinder:** Binds the matched peak found in PeakMatcher to a df

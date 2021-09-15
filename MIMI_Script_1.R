@@ -141,7 +141,6 @@ ReadExcel <- function(excel.name) {
     raw.df.with.sorted.uv <- cbind(raw.df, uv.df)
     raw.df.with.sorted.uv <- select(raw.df.with.sorted.uv, 1:4, 20:24)
     return(raw.df.with.sorted.uv)
-    
 }
 
 #############################################
@@ -166,7 +165,7 @@ CheckUVCount <- function(con, cc, cc.peak, con.peak) {
     uv.count <- 0
     cc.uv.no <- 5 
     con.uv.no <- 5
-    
+
     while (cc.uv.no < 10) {
         con.uv.no <- 5
         while (con.uv.no < 10 && cc.uv.no < 10) {
