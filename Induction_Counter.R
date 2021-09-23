@@ -2,8 +2,8 @@ library(data.table)
 library(dplyr)
 library(tidyr)
 
-filenames <- list.files(path = "Testing Broad-Scale Interactions/OutputFiles/NT_FvF", 
-                        pattern = "F", full.names = TRUE)
+filenames <- list.files(path = "Testing Broad-Scale Interactions/OutputFiles/Tal_AvA", 
+                        pattern = "", full.names = TRUE)
 my.data <- lapply(filenames, read.csv)
 full.list <- rbindlist(my.data, use.names=TRUE, fill=FALSE)
 
@@ -52,6 +52,7 @@ error <- qnorm(.95)*(sd(induction.df$Num_Inductions)/sqrt(length(induction.df$Re
 induction.sum
 induction.mean
 error
+paste0("n is ", length(induction.df$Ref_Culture))
 
 ### Post-use of induction counter a spreadsheet was generated to create a barchart
 # Import as 'Inductons' excel object

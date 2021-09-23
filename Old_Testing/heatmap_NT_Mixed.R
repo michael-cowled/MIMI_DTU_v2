@@ -39,7 +39,7 @@ print(summary.table, digits = 2)
 ###testing (clustered heatmap)
 df.as.matrix <- select(subset.list, Sample_Ref, PeakNo_con, logPeakRatio) 
 df.as.matrix <- spread(df.as.matrix, PeakNo_con, logPeakRatio)
-Fungi_Assignments <- read_excel("Testing Broad-Scale Interactions/Fungi_Assignments_nt3.xlsx")
+Fungi_Assignments <- read_excel("Testing Broad-Scale Interactions/Fungi_Assignments_nt4.xlsx")
 df.as.matrix <- merge(df.as.matrix, Fungi_Assignments, by="Sample_Ref", all.x=TRUE)
 names <- as.vector(df.as.matrix$Species)
 df.as.matrix <- select(df.as.matrix, -Sample_Ref, -Species)
@@ -49,4 +49,7 @@ row.names(df.as.matrix) <- names
 
 colfunc <- colorRampPalette(c("dark blue", "white", "dark red"))
 
-heatmap.2(df.as.matrix, col=colfunc(15), xlab = "Peak Number", scale = "none", trace = "none")
+heatmap.2(df.as.matrix, col=colfunc(15), xlab = "Peak Number", 
+          scale = "none", trace = "none", key=TRUE , key.ylab="Count", 
+          key.xlab = expression(paste("log(", alpha, ")")), key.title="Colour Key & Histogram",
+          key.ytickfun = FALSE, density.info = "none")

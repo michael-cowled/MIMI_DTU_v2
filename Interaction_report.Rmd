@@ -98,34 +98,37 @@ fungus <- unique(coculture.list$Ref_Species)
 
 for (i in fungus[1:length(fungus)]) {
 subset.list <- filter(coculture.list, Ref_Species == i) %>%
-  filter(Matched_Species == paste0(i, "CON") | is.na(Matched_Species)) %>%
-    select(Int_Species, PeakNo_con, PeakRatio) %>%
+  filter(Matched_Species == i | is.na(Matched_Species)) %>%
+    select(Ref_Species, Matched_Species, Int_Species, PeakNo_con, PeakRatio) %>%
     mutate(logPeakRatio = log((PeakRatio/100) + 1))
            
 hm.title <- i
 heatmap_fvf <- ggplot(data = subset.list, aes(x=PeakNo_con, y=Int_Species)) + 
     geom_tile(aes(fill=logPeakRatio)) +
+    scale_x_continuous(breaks=c(0, 5, 10, 15, 20, 25, 30), limits=c(1,29)) +
     scale_fill_gradient2(low = "dark blue", high = "dark red", mid = "white", 
                          midpoint = 0, limit = c(min(subset.list$logPeakRatio), 
                                                  max(subset.list$logPeakRatio)), 
-                         space = "Lab", name="log(%PeakArea)") +
+                         space = "Lab", name = expression(paste("log(", alpha, ")"))) +
     labs(x="Peak Number", y="Coculture") +
-    theme_grey(base_size=8) +
+    theme_grey(base_size=12) +
     ggtitle(label = paste0("Interactions involving ", i))
 print(heatmap_fvf)
-ggsave(heatmap_fvf,filename=paste0("heatmap_fvf", i, ".png"),height=1.75,width=10.20,units="in",dpi=200)
+ggsave(heatmap_fvf,filename=paste0("heatmap_fvf", i, ".bmp"),height=3.5,width=8,units="in",dpi=200)
 }
 ```
 
 ## Barchart showing the proportion of effects based on retention time for each fungus
 
 ```{r, echo = FALSE, warning = FALSE}
-mean.list <- setnames(data.frame(matrix(ncol = 8, nrow = 15)), c("mE5", "mE6", "mE5&6", "mAll",
-                                                                 "eE5", "eE6", "eE5&6", "eAll"))
+mean.list <- setnames(data.frame(matrix(ncol = 16, nrow = 15)), c("mE5", "mE6", "mE5&6", "mAll",
+                                                                 "eE5", "eE6", "eE5&6", "eAll",
+                                                                 "nE5", "nE6", "ne5&6", "nAll",
+                                                                 "pE5", "pE6", "pe5&6", "pAll"))
 
 for (i in 1:15) {
-x <- paste0("NT", i, "v")
-filenames <- list.files(path = "Testing Broad-Scale Interactions/OutputFiles/NT_FvA", pattern = x, full.names = TRUE)
+x <- paste0("F", i, "v")
+filenames <- list.files(path = "Testing Broad-Scale Interactions/OutputFiles/NT_FvF", pattern = x, full.names = TRUE)
 my.data <- lapply(filenames, read.csv)
 full.list <- rbindlist(my.data, use.names=TRUE, fill=FALSE)
 full.list <- transform(full.list, Metabolite_Effect = factor(Metabolite_Effect))
@@ -135,28 +138,52 @@ Effect_5 <- filter(full.list, Metabolite_Effect == 5)
 Effect_6 <- filter(full.list, Metabolite_Effect == 6)
 Effect_5_6 <- filter(full.list, as.numeric(Metabolite_Effect) > 4)
 
+if (length(Effect_5$RetTime_CC) > 1) {
+res <- t.test(Effect_5$RetTime_CC, full.list$RetTime_CC, alternative = "greater", var.equal = FALSE)
+mean.list[i,13] <- res$p.value
+}
+if (length(Effect_6$RetTime_CC) > 1) {
+res <- t.test(Effect_6$RetTime_CC, full.list$RetTime_CC, alternative = "greater", var.equal = FALSE)
+mean.list[i,14] <- res$p.value
+}
+if (length(Effect_5_6$RetTime_CC) > 1) {
+res <- t.test(Effect_5_6$RetTime_CC, full.list$RetTime_CC, alternative = "greater", var.equal = FALSE)
+mean.list[i,15] <- res$p.value
+}
+if (length(full.list$RetTime_CC) > 1) {
+res <- t.test(full.list$RetTime_CC, full.list$RetTime_CC, alternative = "greater", var.equal = FALSE)
+mean.list[i,16] <- res$p.value
+}
+
 mean.list[i, 1] <- mean(Effect_5$RetTime_CC)
 mean.list[i, 2] <- mean(Effect_6$RetTime_CC)
 mean.list[i, 3] <- mean(Effect_5_6$RetTime_CC)
 mean.list[i, 4] <- mean(full.list$RetTime_CC)
-mean.list[i, 5] <- error <- qnorm(.95)*(sd(Effect_5$RetTime_CC)/sqrt(length(Effect_5$RetTime_CC)))
-mean.list[i, 6] <- error <- qnorm(.95)*(sd(Effect_6$RetTime_CC)/sqrt(length(Effect_6$RetTime_CC)))
-mean.list[i, 7] <- error <- qnorm(.95)*(sd(Effect_5_6$RetTime_CC)/sqrt(length(Effect_5_6$RetTime_CC)))
-mean.list[i, 8] <- error <- qnorm(.95)*(sd(full.list$RetTime_CC)/sqrt(length(full.list$RetTime_CC)))
-
+mean.list[i, 5] <- sd(Effect_5$RetTime_CC)
+mean.list[i, 6] <- sd(Effect_6$RetTime_CC)
+mean.list[i, 7] <- sd(Effect_5_6$RetTime_CC)
+mean.list[i, 8] <- sd(full.list$RetTime_CC)
+mean.list[i, 9] <- length(Effect_5$RetTime_CC)
+mean.list[i, 10] <- length(Effect_6$RetTime_CC)
+mean.list[i, 11] <- length(Effect_5_6$RetTime_CC)
+mean.list[i, 12] <- length(full.list$RetTime_CC)
 }
 
 for (i in 1:15) {
     col1 <- c(paste0("F", i), paste0("F", i), paste0("F", i), paste0("F", i))
     if (i > 1) {
         extraction2 <- cbind(col1, c("E5", "E6", "E5 & E6", "All"), 
-                                              transpose(mean.list[i,1:4]), transpose(mean.list[i,5:8]))
+                                              transpose(mean.list[i,1:4]), 
+                             transpose(mean.list[i,5:8]), transpose(mean.list[i,9:12]),
+                             transpose(mean.list[i,13:16]))
         names(extraction2) <- names(extraction)
         extraction <- rbind(extraction, extraction2)
     } else {
         extraction <- cbind(col1, c("E5", "E6", "E5 & E6", "All"), 
-                            transpose(mean.list[i,1:4]), transpose(mean.list[i,5:8]))
-        names(extraction) <- c("fungus", "Effect", "mean", "se")
+                            transpose(mean.list[i,1:4]), 
+                             transpose(mean.list[i,5:8]), transpose(mean.list[i,9:12]),
+                             transpose(mean.list[i,13:16]))
+        names(extraction) <- c("fungus", "Effect", "mean", "se", "n", "p")
         }
 }
 
@@ -164,22 +191,32 @@ extraction$fungus <- gsub("(?<![0-9])([0-9])(?![0-9])", "0\\1", extraction$fungu
 Fungi_Assignments <- read_excel("Testing Broad-Scale Interactions/Fungi_Assignments_nt4.xlsx")
 extraction <- merge(extraction, Fungi_Assignments, by="fungus", all.x=TRUE)
 
-p<- ggplot(extraction, aes(x=Ref_Species, y=mean, fill=Effect)) + 
+extraction[extraction == "E5"] <- "Major Enhancements"
+extraction[extraction == "E6"] <- "Inductions"
+extraction[extraction == "E5 & E6"] <- "Inductions & Major Enhancements"
+extraction[extraction == "All"] <- "All Metabolites"
+
+# Note: Can remove E5&E6 category if too much info.
+# Also includes outcome of t-test
+extraction <- filter(extraction, Effect != "Inductions & Major Enhancements") %>%
+  mutate(Result <- p < 0.05)
+
+p<- ggplot(extraction, aes(x=Ref_Species, y=mean, fill=Effect, width = .75)) + 
     geom_bar(stat="identity", color="black", 
              position=position_dodge()) +
-    geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width=.4,
+    geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width=.3,
                   position=position_dodge(.9)) 
 barchart <- p+labs(x="Reference Fungus", y = "Retention Time")+
-    theme_classic() +
-    theme(axis.text.x=element_text(angle=45, hjust = 1))
+    theme_classic(base_size=18) +
+    theme(axis.text.x=element_text(angle=45, hjust = 1), legend.position="bottom", legend.title=element_blank())
 barchart
-ggsave(barchart,filename="barchart_fvf_tal.png",height=3.5,width=10.20,units="in",dpi=200)
+ggsave(barchart,filename="barchart_fvf_tal.bmp",height=4.5,width=10.20,units="in",dpi=200)
 ```
 
 ## Boxplots showing the overall effect on retention time for each metabolite effect category (and associated histograms)
 
 ```{r, echo = FALSE, warning = FALSE}
-filenames <- list.files(path = "Testing Broad-Scale Interactions/OutputFiles/NT_FvA", pattern = "NT", full.names = TRUE)
+filenames <- list.files(path = "Testing Broad-Scale Interactions/OutputFiles/NT_FvF", pattern = "F", full.names = TRUE)
 my.data <- lapply(filenames, read.csv)
 full.list <- rbindlist(my.data, use.names=TRUE, fill=FALSE)
 full.list$Metabolite_Effect <- as.numeric(full.list$Metabolite_Effect)
@@ -197,10 +234,15 @@ Effect_5_6 <- filter(full.list, as.numeric(Metabolite_Effect) > 4)
 full.list <- transform(full.list, Metabolite_Effect = factor(Metabolite_Effect))
 full.list.minus.effect.1 <- filter(full.list, as.numeric(Metabolite_Effect) <7 & as.numeric(Metabolite_Effect) > 1)
 effect.names <- c("Suppression", "Little to no change", "Enhancement", "Major enhancement", "Induction")
-ggplot(data=full.list.minus.effect.1, aes(x=Metabolite_Effect, y=RetTime_CC)) + geom_boxplot(aes(fill=Metabolite_Effect)) + 
+boxplot <- ggplot(data=full.list.minus.effect.1, aes(x=Metabolite_Effect, y=RetTime_CC)) +       geom_boxplot(aes(fill=Metabolite_Effect)) + 
+    ylim(0.5,11.5) +
     ylab("Retention Time (min)") + xlab("Metabolite Effect") +
-    stat_summary(fun.y=mean, geom="point", shape=1, size=4) +
-    theme(axis.text.x = element_text(angle = 90, face = "italic")) + scale_x_discrete(labels = effect.names)
+    stat_summary(fun.y=mean, geom="point", shape=1, size=2) +
+    theme_classic(base_size=12) +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1), legend.position = "none") + 
+    scale_x_discrete(labels = effect.names)
+boxplot
+ggsave(boxplot,filename="boxplot_rt.bmp",height=3,width=3,units="in",dpi=200)
 
 par(mfrow=c(2,3))
 hist(Effect_1$RetTime_con, main = "Complete Suppression", xlab = "Retention Time", ylab = "Number of Secondary Metabolites")
@@ -209,6 +251,6 @@ hist(Effect_3$RetTime_CC, main = "Little to No Change", xlab = "Retention Time",
 hist(Effect_4$RetTime_CC, main = "Enhancement", xlab = "Retention Time", ylab = "Number of Secondary Metabolites")
 hist(Effect_5$RetTime_CC, main = "Major Enhancement", xlab = "Retention Time", ylab = "Number of Secondary Metabolites")
 hist(Effect_6$RetTime_CC, main = "Induction or Unmatched", xlab = "Retention Time", ylab = "Number of Secondary Metabolites")
-hist(All_Effects_Less_Induction$RetTime_CC, main = "All other effects", xlab = "Retention Time", ylab = "Number of Secondary Metabolites")
 hist(Effect_5_6$RetTime_CC, main = "Induction or Major Enhancement", xlab = "Retention Time", ylab = "Number of Secondary Metabolites")
+hist(full.list$RetTime_CC, main = "All Effects", xlab = "Retention Time", ylab = "Number of Secondary Metabolites")
 ```

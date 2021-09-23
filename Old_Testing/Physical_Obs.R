@@ -17,8 +17,6 @@ phenotype <- filter(ratio.df4, Physical_Effect == "P") %>%
     mutate(Norm_Avg_Ratio = Avg_Ratio - mean(ratio.df4$Avg_Ratio))
 no.change <- filter(ratio.df4, Physical_Effect == "N") %>%
     mutate(Norm_Avg_Ratio = Avg_Ratio - mean(ratio.df4$Avg_Ratio))
-overgrowing <- filter(ratio.df4, Physical_Effect == "O") %>%
-    mutate(Norm_Avg_Ratio = Avg_Ratio - mean(ratio.df4$Avg_Ratio))
 
 mean(inhibited$Norm_Avg_Ratio)
 mean(inhibiting$Norm_Avg_Ratio)
@@ -26,6 +24,9 @@ mean(contact.inhibition$Norm_Avg_Ratio)
 mean(phenotype$Norm_Avg_Ratio)
 mean(no.change$Norm_Avg_Ratio)
 mean(overgrowing$Norm_Avg_Ratio)
+
+res <- t.test(inhibited$Norm_Avg_Ratio, inhibiting$Norm_Avg_Ratio, alternative = "greater", var.equal = FALSE)
+print(res$p.value)
 
 qnorm(.95)*(sd(inhibited$Norm_Avg_Ratio)/sqrt(length(inhibited$Norm_Avg_Ratio)))
 qnorm(.95)*(sd(inhibiting$Norm_Avg_Ratio)/sqrt(length(inhibiting$Norm_Avg_Ratio)))

@@ -218,11 +218,34 @@ fungus.of.interest <- paste0(substr(fungus[1],1,nchar(fungus[1])-3), "v")
         
 ##Barchart testing
         
-        p<- ggplot(Effect_Inductions, aes(x=Range, y=Proportion, fill=Category)) + 
-            geom_bar(stat="identity", color="black", 
-                     position=position_dodge())
-        barchart <- p+labs(x="Elution Range (% MeCN)", y = "Proportion (%)")+
-            theme_classic() +
-            theme(axis.text.x=element_text(angle=45, hjust = 1))
+        barchart<- ggplot(Effect_Inductions, aes(x=Range, y=Proportion, fill=Category)) +
+            geom_bar(stat="identity", color="black",
+                     position=position_dodge()) +
+            labs(x="Elution Range (% MeCN)", y = "Proportion (%)") +
+            theme_classic(base_size=18) +
+            theme(axis.text.x=element_text(angle=0),  legend.position="bottom", legend.title=element_blank())
         barchart
-        ggsave(barchart,filename="barchart_fvf_tal.png",height=3.5,width=10.20,units="in",dpi=200)
+        ggsave(barchart,filename="barchart_elutionrange.bmp",height=4,width=4,units="in",dpi=200)
+        
+## Ggplot histograms
+        
+        hist_all <- ggplot(data=full.list, aes(full.list$RetTime_CC)) + 
+            geom_histogram(breaks=seq(0.5, 11.5, by = 0.5), 
+                           col="black", 
+                           fill=5) +
+            theme_classic(base_size=18) +
+            labs(x="Retention Time (min)", y="Number of Metabolites") +
+            ylim(c(0,400))
+        hist_all
+        ggsave(hist_all,filename="hist_all.bmp",height=4,width=3.2,units="in",dpi=200)
+        
+        hist_6 <- ggplot(data=Effect_6, aes(Effect_6$RetTime_CC)) + 
+            geom_histogram(breaks=seq(0.5, 11.5, by = 0.5), 
+                           col="black", 
+                           fill=2) +
+            theme_classic(base_size=18) +
+            labs(x="Retention Time (min)", y="Number of Metabolites") +
+            ylim(c(0,100))
+        hist_6
+        ggsave(hist_6,filename="hist_6.bmp",height=4,width=3.2,units="in",dpi=200)
+        
