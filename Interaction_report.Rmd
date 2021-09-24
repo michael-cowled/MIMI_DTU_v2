@@ -30,7 +30,7 @@ library(readxl)
 Note: Ignores both inductions and complete suppressions since the corresponding metabolites are not present in both monoculture and coculture.
 
 ```{r, echo = FALSE}
-filenames <- list.files(path = "Testing Broad-Scale Interactions/OutputFiles/NT_FvF", pattern = "F", full.names = TRUE)
+filenames <- list.files(path = "Testing Broad-Scale Interactions/OutputFiles/Tal_FvF", pattern = "", full.names = TRUE)
 my.data <- lapply(filenames, read.csv)
 full.list <- rbindlist(my.data, use.names=TRUE, fill=FALSE)
 
@@ -39,6 +39,13 @@ full.list$Sample_Ref <- gsub("NT", "F", full.list$Sample_Ref, perl = TRUE)
 full.list$Sample_Ref <- gsub("F17", "B1", full.list$Sample_Ref, perl = TRUE)
 full.list$Sample_Ref <- gsub("F18", "B2", full.list$Sample_Ref, perl = TRUE)
 full.list$Sample_Ref <- gsub("F19", "B3", full.list$Sample_Ref, perl = TRUE)
+#Correcting for culture "86280v3"
+full.list[full.list == "86280v3vRA14283c"] <- "86280V3vRA14283c"
+full.list[full.list == "86280v3vMA9095"] <- "86280V3vMA9095"
+full.list[full.list == "86280v3vAS6166"] <- "86280V3vAS6166"
+full.list[full.list == "86280v3vAS5549"] <- "86280V3vAS5549"
+full.list[full.list == "86280v3vAS4461"] <- "86280V3vAS4461"
+full.list[full.list == "86280v3v8651"] <- "86280V3v8651"
 
 refined.list <- filter(full.list, Metabolite_Effect < 5 & Metabolite_Effect > 1)
 cond.5.list <- filter(full.list, Metabolite_Effect == 5)
@@ -68,12 +75,41 @@ ratio.df3 <- merge(ratio.df2, Fungi_Assignments, by="Int_Culture", all.x=TRUE)
 heatmap.fvf.avg <- ggplot(data = ratio.df3, aes(x=Int_Species, y=Ref_Species)) + 
     geom_tile(aes(fill=Avg_Ratio)) +
     scale_fill_gradient2(low = "dark blue", high = "dark red", mid = "white", 
-                         midpoint = 0, space = "Lab", name="Ratio (%)") +
+                         midpoint = 0, space = "Lab", name="\u03b1 (%)") +
     labs(x="Interacting Culture", y="Reference Culture") +
     theme_grey(base_size=8) +
     theme(axis.text.x=element_text(angle=45, hjust = 1))
 heatmap.fvf.avg
-ggsave(heatmap.fvf.avg,filename="heatmap.fvf.avg.png",height=2.24,width=3,units="in",dpi=200)
+ggsave(heatmap.fvf.avg,filename="heatmap.fvf.avg.bmp",height=2.24,width=3,units="in",dpi=200)
+
+## For thesis
+heatmap.fvf.avg <- ggplot(data = ratio.df, aes(x=Int_Culture, y=Ref_Culture)) + 
+    geom_tile(aes(fill=Avg_Ratio)) +
+    scale_fill_gradient2(low = "dark blue", high = "dark red", mid = "white", 
+                         midpoint = 0, space = "Lab", name="\u03b1 (%)", limit = c(-80,80)) +
+    labs(x="Interacting Culture", y="Reference Culture") +
+    theme_grey(base_size=8) +
+    theme(axis.text.x=element_text(angle=45, hjust = 1))
+heatmap.fvf.avg
+ggsave(heatmap.fvf.avg,filename="heatmap.fvf.avg.bmp",height=2.24,width=3,units="in",dpi=200)
+
+subset.list <- filter(coculture.list, Ref_Culture == "FP1927") %>%
+  filter(Matched_con == "FP1927CON" | is.na(Matched_con)) %>%
+    select(Ref_Culture, Matched_con, Int_Culture, PeakNo_con, PeakRatio) %>%
+    mutate(logPeakRatio = log((PeakRatio/100) + 1))
+
+heatmap_fvf <- ggplot(data = subset.list, aes(x=PeakNo_con, y=Int_Culture)) + 
+    geom_tile(aes(fill=logPeakRatio)) +
+    scale_x_continuous(breaks=c(0, 5, 10, 15, 20, 25, 30, 35, 40), limits=c(1,40)) +
+    scale_fill_gradient2(low = "dark blue", high = "dark red", mid = "white", 
+                         midpoint = 0, limit = c(min(subset.list$logPeakRatio), 
+                                                 max(subset.list$logPeakRatio)), 
+                         space = "Lab", name = expression(paste("log(", alpha, ")"))) +
+    labs(x="Peak Number", y="Coculture") +
+    theme_grey(base_size=12) +
+    ggtitle(label = paste0("Interactions involving ", i))
+print(heatmap_fvf)
+ggsave(heatmap_fvf,filename=paste0("heatmap_fvf", i, ".bmp"),height=2.5,width=8,units="in",dpi=200)
 ```
 
 ## Heatmaps showing the effect of each interaction on a particular fungus
@@ -137,6 +173,8 @@ full.list <- filter(full.list, Metabolite_Effect != 1)
 Effect_5 <- filter(full.list, Metabolite_Effect == 5)
 Effect_6 <- filter(full.list, Metabolite_Effect == 6)
 Effect_5_6 <- filter(full.list, as.numeric(Metabolite_Effect) > 4)
+
+# Computes t-test and p-value
 
 if (length(Effect_5$RetTime_CC) > 1) {
 res <- t.test(Effect_5$RetTime_CC, full.list$RetTime_CC, alternative = "greater", var.equal = FALSE)
