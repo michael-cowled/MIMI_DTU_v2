@@ -30,7 +30,7 @@ library(readxl)
 Note: Ignores both inductions and complete suppressions since the corresponding metabolites are not present in both monoculture and coculture.
 
 ```{r, echo = FALSE}
-filenames <- list.files(path = "Testing Broad-Scale Interactions/OutputFiles/Tal_FvF", pattern = "", full.names = TRUE)
+filenames <- list.files(path = "Testing Broad-Scale Interactions/OutputFiles/NT_FvF", pattern = "F", full.names = TRUE)
 my.data <- lapply(filenames, read.csv)
 full.list <- rbindlist(my.data, use.names=TRUE, fill=FALSE)
 
@@ -75,7 +75,7 @@ ratio.df3 <- merge(ratio.df2, Fungi_Assignments, by="Int_Culture", all.x=TRUE)
 heatmap.fvf.avg <- ggplot(data = ratio.df3, aes(x=Int_Species, y=Ref_Species)) + 
     geom_tile(aes(fill=Avg_Ratio)) +
     scale_fill_gradient2(low = "dark blue", high = "dark red", mid = "white", 
-                         midpoint = 0, space = "Lab", name="\u03b1 (%)") +
+                         midpoint = 0, space = "Lab", name="\u03b1 (%)", limit=c(-40,40)) +
     labs(x="Interacting Culture", y="Reference Culture") +
     theme_grey(base_size=8) +
     theme(axis.text.x=element_text(angle=45, hjust = 1))
@@ -86,16 +86,16 @@ ggsave(heatmap.fvf.avg,filename="heatmap.fvf.avg.bmp",height=2.24,width=3,units=
 heatmap.fvf.avg <- ggplot(data = ratio.df, aes(x=Int_Culture, y=Ref_Culture)) + 
     geom_tile(aes(fill=Avg_Ratio)) +
     scale_fill_gradient2(low = "dark blue", high = "dark red", mid = "white", 
-                         midpoint = 0, space = "Lab", name="\u03b1 (%)", limit = c(-80,80)) +
+                         midpoint = 0, space = "Lab", name="\u03b1 (%)", limit = c(-100,100)) +
     labs(x="Interacting Culture", y="Reference Culture") +
     theme_grey(base_size=8) +
     theme(axis.text.x=element_text(angle=45, hjust = 1))
 heatmap.fvf.avg
 ggsave(heatmap.fvf.avg,filename="heatmap.fvf.avg.bmp",height=2.24,width=3,units="in",dpi=200)
 
-subset.list <- filter(coculture.list, Ref_Culture == "FP1927") %>%
-  filter(Matched_con == "FP1927CON" | is.na(Matched_con)) %>%
-    select(Ref_Culture, Matched_con, Int_Culture, PeakNo_con, PeakRatio) %>%
+subset.list <- filter(coculture.list, Ref_Culture == "F01") %>%
+  filter(Matched_con == "F01CON" | is.na(Matched_con)) %>%
+    select(Ref_Culture, Matched_con, Int_Culture, PeakNo_con, PeakRatio, Metabolite_Effect, RetTime_CC) %>%
     mutate(logPeakRatio = log((PeakRatio/100) + 1))
 
 heatmap_fvf <- ggplot(data = subset.list, aes(x=PeakNo_con, y=Int_Culture)) + 
@@ -254,7 +254,7 @@ ggsave(barchart,filename="barchart_fvf_tal.bmp",height=4.5,width=10.20,units="in
 ## Boxplots showing the overall effect on retention time for each metabolite effect category (and associated histograms)
 
 ```{r, echo = FALSE, warning = FALSE}
-filenames <- list.files(path = "Testing Broad-Scale Interactions/OutputFiles/NT_FvF", pattern = "F", full.names = TRUE)
+filenames <- list.files(path = "Testing Broad-Scale Interactions/OutputFiles/NT_FvA", pattern = "", full.names = TRUE)
 my.data <- lapply(filenames, read.csv)
 full.list <- rbindlist(my.data, use.names=TRUE, fill=FALSE)
 full.list$Metabolite_Effect <- as.numeric(full.list$Metabolite_Effect)
