@@ -1,30 +1,16 @@
-library(readxl)
-
-ReadExcel <- function(excel.name) {
-    raw.df <- read_excel((excel.name), skip = 3)
-    n <- nrow(raw.df)
-    new.df <- raw.df[1:n, 1:3]
-    new.df2 <- raw.df[1:n, 11]
-    raw.data <- cbind(new.df, new.df2)
-    return(raw.data)
-    
-}
-
-ReadUV <- function(excel.name) {
-    uv.data <- read_excel((excel.name), sheet = "NormalisedUVVisData")
-    return(uv.data)
-}
-
 Exporter <- function(FolderName) {
     
     filenames <- list.files(path = paste0("Testing Broad-Scale Interactions/",
                                           FolderName), pattern = "", full.names = TRUE)
     for (i in filenames[1:length(filenames)]) {
         print(i)
-        raw.data <- ReadExcel(i)
+        raw.df <- read_excel(i, skip = 3)
+        uv.df <- read_excel(i, sheet = "NormalisedUVVisData")
+        new.df <- raw.df[1:nrow(raw.df), 1:3]
         uv.data <- ReadUV(i)
-        new.name <- gsub(".xlsm","", i)
-        write.csv(raw.data, paste0("Simplified/", new.name, "_raw.CSV"), row.names = FALSE)
+        new.name <- gsub("Testing Broad-Scale Interactions/NovaCfiles/","", i)
+        new.name <- gsub(".xlsm","", new.name)
+        write.csv(new.df, paste0("Simplified/", new.name, "_raw.CSV"), row.names = FALSE)
         write.csv(uv.data, paste0("Simplified/", new.name, "_uv.CSV"), row.names = FALSE)
     }
 }

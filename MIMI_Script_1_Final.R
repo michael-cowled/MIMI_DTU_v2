@@ -67,6 +67,79 @@ library(readxl)
 # Reading in the functions:
 
 #############################################
+# 1.FindPeaks
+#############################################
+
+#Determines the local maxima for the uv spectrum corresponding to a peak
+
+#Arg: 
+# x is the vector of uv absorbances at 2 nm intervals for the peak of interest.
+
+#Returns:
+# pks is a vector indicating the position of the local maxima in the vector 'x'.
+
+find_peaks <- function (x, m = 20){ # 'm' is the stringency.
+    shape <- diff(sign(diff(x, na.pad = FALSE)))
+    pks <- sapply(which(shape < 0), FUN = function(i){
+        z <- i - m + 1
+        z <- ifelse(z > 0, z, 1)
+        w <- i + m + 1
+        w <- ifelse(w < length(x), w, length(x))
+        if(all(x[c(z : i, (i + 2) : w)] <= x[i + 1])) return(i + 1) else return(numeric(0))
+    })
+    pks <- unlist(pks)
+    pks
+}
+
+
+#############################################
+# 2.UVPicker
+#############################################
+
+# From the local maxima of a uv spectrum, a judgement is made on the reliability
+# of a peak by the value of its absorbance.
+
+# The corresponding UV maxima are added to the raw data files in a new column.
+
+#Arg: 
+# raw is the raw peak data for the sample.
+# uv is the raw uv spectrum data for each peak in a sample.
+
+#Returns:
+# raw - a modified df corresponding containing the uv maxima of each peak.
+
+UVPicker <- function (raw, uv) {
+
+n <- ncol(uv)
+for (i in 2:n) {
+    a <- vector()
+    b <- vector()
+    Maxima <- find_peaks(uv[,i], m=20)
+    for (j in 1:length(Maxima)) {
+        if (uv[Maxima[j], i] >= 5) {
+            if (length(a) == 0) {
+                a <- append(a, uv[Maxima[j], i])
+                b <- paste0(b, uv[Maxima[j], 1], " (", round(uv[Maxima[j], i], 0), ")")
+            }
+            else if (uv[Maxima[j], i] >= 5 & abs(uv[Maxima[j], i] - as.numeric(a[length(a)])) > 1) {
+                a <- append(a, uv[Maxima[j], i])
+                b <- paste0(b, "\n", uv[Maxima[j], 1], " (", round(uv[Maxima[j], i], 0), ")")
+            }
+        }
+        
+        if (length(b) >=1) {
+            raw[i-1, 4] <- b
+        }
+        else {
+            raw[i-1, 4] <- NA
+        }
+    }
+}
+names(raw)[4] <- "UV.Peaks"
+return(raw)
+}
+
+#############################################
 # 1.ReadExcel
 #############################################
 
@@ -81,8 +154,12 @@ library(readxl)
 ReadExcel <- function(excel.name) {
     
     # Read in a df based on RawData .csv format
-    raw.df <- read.csv(paste0("Simplified/Testing Broad-Scale Interactions/RawData/", 
+    raw <- read.csv(paste0("Simplified/Testing Broad-Scale Interactions/RawData/", 
                                 excel.name, "_raw.csv"))
+    uv <- read.csv(paste0("Simplified/Testing Broad-Scale Interactions/RawData/", 
+                          excel.name, "_uv.csv"))
+    
+    raw.df <- UVPicker(raw, uv)
     
     # A new df is set up to capture the top 5 UV maxima for each peak
     uv.df <- setNames(data.frame(matrix(ncol = 5, nrow = 0)), 
@@ -141,7 +218,6 @@ ReadExcel <- function(excel.name) {
     raw.df.with.sorted.uv <- cbind(raw.df, uv.df)
     raw.df.with.sorted.uv <- select(raw.df.with.sorted.uv, 1:3, 5:9)
     return(raw.df.with.sorted.uv)
-    
 }
 
 #############################################
