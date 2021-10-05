@@ -1,4 +1,3 @@
-## Note: uses the old Read_Excel
 library(readxl)
 
 Exporter <- function() {
