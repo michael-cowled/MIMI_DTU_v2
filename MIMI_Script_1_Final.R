@@ -116,17 +116,18 @@ for (i in 2:n) {
     b <- vector()
     Maxima <- find_peaks(uv[,i], m=20)
     for (j in 1:length(Maxima)) {
-        if (uv[Maxima[j], i] >= 5) {
-            if (length(a) == 0) {
-                a <- append(a, uv[Maxima[j], i])
-                b <- paste0(b, uv[Maxima[j], 1], " (", round(uv[Maxima[j], i], 0), ")")
-            }
-            else if (uv[Maxima[j], i] >= 5 & abs(uv[Maxima[j], i] - as.numeric(a[length(a)])) > 1) {
-                a <- append(a, uv[Maxima[j], i])
-                b <- paste0(b, "\n", uv[Maxima[j], 1], " (", round(uv[Maxima[j], i], 0), ")")
+        if (length(Maxima) > 0) {
+            if (uv[Maxima[j], i] >= 5) {
+                if (length(a) == 0) {
+                    a <- append(a, uv[Maxima[j], i])
+                    b <- paste0(b, uv[Maxima[j], 1], " (", round(uv[Maxima[j], i], 0), ")")
+                }
+                else if (uv[Maxima[j], i] >= 5 & abs(uv[Maxima[j], i] - as.numeric(a[length(a)])) > 1) {
+                    a <- append(a, uv[Maxima[j], i])
+                    b <- paste0(b, "\n", uv[Maxima[j], 1], " (", round(uv[Maxima[j], i], 0), ")")
+                }
             }
         }
-        
         if (length(b) >=1) {
             raw[i-1, 4] <- b
         }
