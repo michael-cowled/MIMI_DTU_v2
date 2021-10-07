@@ -23,9 +23,8 @@ mean(inhibiting$Norm_Avg_Ratio)
 mean(contact.inhibition$Norm_Avg_Ratio)
 mean(phenotype$Norm_Avg_Ratio)
 mean(no.change$Norm_Avg_Ratio)
-mean(overgrowing$Norm_Avg_Ratio)
 
-res <- t.test(inhibited$Norm_Avg_Ratio, inhibiting$Norm_Avg_Ratio, alternative = "greater", var.equal = FALSE)
+res <- t.test(phenotype$Norm_Avg_Ratio, no.change$Norm_Avg_Ratio, alternative = "greater", var.equal = FALSE)
 print(res$p.value)
 
 qnorm(.95)*(sd(inhibited$Norm_Avg_Ratio)/sqrt(length(inhibited$Norm_Avg_Ratio)))
@@ -33,7 +32,6 @@ qnorm(.95)*(sd(inhibiting$Norm_Avg_Ratio)/sqrt(length(inhibiting$Norm_Avg_Ratio)
 qnorm(.95)*(sd(contact.inhibition$Norm_Avg_Ratio)/sqrt(length(contact.inhibition$Norm_Avg_Ratio)))
 qnorm(.95)*(sd(phenotype$Norm_Avg_Ratio)/sqrt(length(phenotype$Norm_Avg_Ratio)))
 qnorm(.95)*(sd(no.change$Norm_Avg_Ratio)/sqrt(length(no.change$Norm_Avg_Ratio)))
-qnorm(.95)*(sd(overgrowing$Norm_Avg_Ratio)/sqrt(length(overgrowing$Norm_Avg_Ratio)))
 
 ## Creation of barchart
 ## Import an object with the data

@@ -254,7 +254,7 @@ ggsave(barchart,filename="barchart_fvf_tal.bmp",height=4.5,width=10.20,units="in
 ## Boxplots showing the overall effect on retention time for each metabolite effect category (and associated histograms)
 
 ```{r, echo = FALSE, warning = FALSE}
-filenames <- list.files(path = "Simplified/Testing Broad-Scale Interactions/OutputFiles/NT_FvA", pattern = "", full.names = TRUE)
+filenames <- list.files(path = "Simplified/Testing Broad-Scale Interactions/OutputFiles/NT_FvF", pattern = "", full.names = TRUE)
 my.data <- lapply(filenames, read.csv)
 full.list <- rbindlist(my.data, use.names=TRUE, fill=FALSE)
 full.list$Metabolite_Effect <- as.numeric(full.list$Metabolite_Effect)

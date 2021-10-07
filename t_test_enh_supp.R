@@ -1,8 +1,9 @@
 # F22287:
-F5vF15 <- read.csv("Testing Broad-Scale Interactions/OutputFiles/NT_FvF/F5vF15.CSV")
+F5vF13 <- read.csv("Simplified/Testing Broad-Scale Interactions/OutputFiles/NT_FvF/F5vF13.CSV")
 
-enh <- filter(F5vF15, Metabolite_Effect >3 & Metabolite_Effect <6, Sample_Ref != "F15CON", Matched_con != "F15CON")
-supp <- filter(F5vF15, Metabolite_Effect <3, Matched_con != "F15CON")
+enh <- filter(F5vF13, Metabolite_Effect >3 & Metabolite_Effect <6, Sample_Ref != "F13CON", Matched_con != "F13CON")
+enh1 <- filter(F5vF13, Metabolite_Effect >3 & Metabolite_Effect <6, Sample_Ref != "F13CON", Matched_con != "F13CON")
+supp <- filter(F5vF13, Metabolite_Effect <3, Matched_con != "F13CON")
 mean(enh$RetTime_con)
 mean(supp$RetTime_con)
 
@@ -10,15 +11,28 @@ res <- t.test(enh$RetTime_con, supp$RetTime_con, alternative = "less", var.equal
 print(res$p.value)
 
 # F22286:
-F4vF15 <- read.csv("Testing Broad-Scale Interactions/OutputFiles/NT_FvF/F4vF15.CSV")
+F4vF13 <- read.csv("Simplified/Testing Broad-Scale Interactions/OutputFiles/NT_FvF/F4vF13.CSV")
 
-enh <- filter(F4vF15, Metabolite_Effect >3 & Metabolite_Effect <6, Sample_Ref != "F15CON", Matched_con != "F15CON")
-supp <- filter(F4vF15, Metabolite_Effect <3, Matched_con != "F15CON")
+enh <- filter(F4vF13, Metabolite_Effect >3 & Metabolite_Effect <6, Sample_Ref != "F13CON", Matched_con != "F13CON")
+enh2 <- filter(F4vF13, Metabolite_Effect >3 & Metabolite_Effect <6, Sample_Ref != "F13CON", Matched_con != "F13CON")
+supp <- filter(F4vF13, Metabolite_Effect <3, Matched_con != "F13CON")
 mean(enh$RetTime_con)
 mean(supp$RetTime_con)
 
-res <- t.test(enh$RetTime_con, supp$RetTime_con, alternative = "two.sided", var.equal = FALSE)
+res <- t.test(enh$RetTime_con, supp$RetTime_con, alternative = "less", var.equal = FALSE)
 print(res$p.value)
+
+# F22287:
+F5vF13 <- read.csv("Simplified/Testing Broad-Scale Interactions/OutputFiles/NT_FvF/F5vF13.CSV")
+
+enh <- filter(F5vF13, Metabolite_Effect >3 & Metabolite_Effect <6, Sample_Ref != "F13CON", Matched_con != "F13CON")
+supp <- filter(F5vF13, Metabolite_Effect <3, Matched_con != "F13CON")
+mean(enh$RetTime_con)
+mean(supp$RetTime_con)
+
+res <- t.test(enh$RetTime_con, supp$RetTime_con, alternative = "less", var.equal = FALSE)
+print(res$p.value)
+
 
 #induction between fvf and fva
 ind_fvf <- filter(fvf_full.list, Metabolite_Effect == 6)
