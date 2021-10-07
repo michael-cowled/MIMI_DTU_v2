@@ -1,3 +1,8 @@
+induction.df$Ref_Culture <- gsub("(?<![0-9])([0-9])(?![0-9])", "0\\1", induction.df$Ref_Culture, perl = TRUE)
+induction.df$Int_Culture <- gsub("(?<![0-9])([0-9])(?![0-9])", "0\\1", induction.df$Int_Culture, perl = TRUE)
+
+induction.list <- merge(induction.df, Physical_Obs, by=c("Ref_Culture", "Int_Culture"), all.x=TRUE)
+
 x <- filter(induction.list, Physical_Effect == 1, !is.na(induction.list$Num_Inductions))
 sum(x$Num_Inductions)
 mean(x$Num_Inductions)

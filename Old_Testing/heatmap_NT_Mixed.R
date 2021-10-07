@@ -1,4 +1,4 @@
-filenames <- list.files(path = "Testing Broad-Scale Interactions/OutputFiles/NT_fvf_mixed", 
+filenames <- list.files(path = "Simplified/Testing Broad-Scale Interactions/OutputFiles/NT_Mix", 
                         pattern = "F1", full.names = TRUE)
 my.data <- lapply(filenames, read.csv)
 full.list <- rbindlist(my.data, use.names=TRUE, fill=FALSE)

@@ -3,11 +3,11 @@ full_ret24 <- filter(full.list, RetTime_CC >=2 & RetTime_CC <=4 | RetTime_con >=
 full_ret47 <- filter(full.list, RetTime_CC >=4 & RetTime_CC <=7 | RetTime_con >= 4 & RetTime_con <= 7)
 enh <- filter(full.list, as.numeric(Metabolite_Effect) == 5 | as.numeric(Metabolite_Effect) == 4)
 enh_27 <- filter(full_ret27, as.numeric(Metabolite_Effect) == 5 | as.numeric(Metabolite_Effect) == 4)
-enh_24 <- filter(full_ret35, as.numeric(Metabolite_Effect) == 5 | as.numeric(Metabolite_Effect) == 4)
+enh_24 <- filter(full_ret24, as.numeric(Metabolite_Effect) == 5 | as.numeric(Metabolite_Effect) == 4)
 enh_47 <- filter(full_ret47, as.numeric(Metabolite_Effect) == 5 | as.numeric(Metabolite_Effect) == 4)
 ind <- filter(full.list, as.numeric(Metabolite_Effect) > 5)
 ind_27 <- filter(full_ret27, as.numeric(Metabolite_Effect) > 5)
-ind_24 <- filter(full_ret35, as.numeric(Metabolite_Effect) > 5)
+ind_24 <- filter(full_ret24, as.numeric(Metabolite_Effect) > 5)
 ind_47 <- filter(full_ret47, as.numeric(Metabolite_Effect) > 5)
 
 

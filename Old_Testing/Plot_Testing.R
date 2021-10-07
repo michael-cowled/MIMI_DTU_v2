@@ -225,27 +225,27 @@ fungus.of.interest <- paste0(substr(fungus[1],1,nchar(fungus[1])-3), "v")
             theme_classic(base_size=18) +
             theme(axis.text.x=element_text(angle=0),  legend.position="bottom", legend.title=element_blank())
         barchart
-        ggsave(barchart,filename="barchart_elutionrange.bmp",height=4,width=4,units="in",dpi=200)
+        ggsave(barchart,filename="barchart_elutionrange.bmp",height=4,width=5,units="in",dpi=200)
         
 ## Ggplot histograms
         
         hist_all <- ggplot(data=full.list, aes(full.list$RetTime_CC)) + 
             geom_histogram(breaks=seq(0.5, 11.5, by = 0.5), 
                            col="black", 
-                           fill=5) +
+                           fill=2) +
             theme_classic(base_size=18) +
             labs(x="Retention Time (min)", y="Number of Metabolites") +
-            ylim(c(0,400))
+            ylim(c(0,300))
         hist_all
         ggsave(hist_all,filename="hist_all.bmp",height=4,width=3.2,units="in",dpi=200)
         
         hist_6 <- ggplot(data=Effect_6, aes(Effect_6$RetTime_CC)) + 
             geom_histogram(breaks=seq(0.5, 11.5, by = 0.5), 
                            col="black", 
-                           fill=2) +
+                           fill=5) +
             theme_classic(base_size=18) +
             labs(x="Retention Time (min)", y="Number of Metabolites") +
-            ylim(c(0,100))
+            ylim(c(0, 80))
         hist_6
         ggsave(hist_6,filename="hist_6.bmp",height=4,width=3.2,units="in",dpi=200)
         
