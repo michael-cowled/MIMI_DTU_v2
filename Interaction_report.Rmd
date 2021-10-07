@@ -30,7 +30,7 @@ library(readxl)
 Note: Ignores both inductions and complete suppressions since the corresponding metabolites are not present in both monoculture and coculture.
 
 ```{r, echo = FALSE}
-filenames <- list.files(path = "Testing Broad-Scale Interactions/OutputFiles/NT_FvF", pattern = "F", full.names = TRUE)
+filenames <- list.files(path = "Simplified/Testing Broad-Scale Interactions/OutputFiles/NT_FvF", pattern = "", full.names = TRUE)
 my.data <- lapply(filenames, read.csv)
 full.list <- rbindlist(my.data, use.names=TRUE, fill=FALSE)
 
@@ -93,14 +93,14 @@ heatmap.fvf.avg <- ggplot(data = ratio.df, aes(x=Int_Culture, y=Ref_Culture)) +
 heatmap.fvf.avg
 ggsave(heatmap.fvf.avg,filename="heatmap.fvf.avg.bmp",height=2.24,width=3,units="in",dpi=200)
 
-subset.list <- filter(coculture.list, Ref_Culture == "F01") %>%
-  filter(Matched_con == "F01CON" | is.na(Matched_con)) %>%
+subset.list <- filter(coculture.list, Ref_Species.x == "F22286") %>%
+  filter(Matched_Species.x == "F22286CON" | is.na(Matched_con)) %>%
     select(Ref_Culture, Matched_con, Int_Culture, PeakNo_con, PeakRatio, Metabolite_Effect, RetTime_CC) %>%
     mutate(logPeakRatio = log((PeakRatio/100) + 1))
 
 heatmap_fvf <- ggplot(data = subset.list, aes(x=PeakNo_con, y=Int_Culture)) + 
     geom_tile(aes(fill=logPeakRatio)) +
-    scale_x_continuous(breaks=c(0, 5, 10, 15, 20, 25, 30, 35, 40), limits=c(1,40)) +
+    scale_x_continuous(breaks=c(0, 5, 10, 15, 20, 25, 30), limits=c(1,30)) +
     scale_fill_gradient2(low = "dark blue", high = "dark red", mid = "white", 
                          midpoint = 0, limit = c(min(subset.list$logPeakRatio), 
                                                  max(subset.list$logPeakRatio)), 
@@ -141,7 +141,7 @@ subset.list <- filter(coculture.list, Ref_Species == i) %>%
 hm.title <- i
 heatmap_fvf <- ggplot(data = subset.list, aes(x=PeakNo_con, y=Int_Species)) + 
     geom_tile(aes(fill=logPeakRatio)) +
-    scale_x_continuous(breaks=c(0, 5, 10, 15, 20, 25, 30), limits=c(1,29)) +
+    scale_x_continuous(breaks=c(0, 5, 10, 15, 20, 25), limits=c(1,24)) +
     scale_fill_gradient2(low = "dark blue", high = "dark red", mid = "white", 
                          midpoint = 0, limit = c(min(subset.list$logPeakRatio), 
                                                  max(subset.list$logPeakRatio)), 
@@ -157,14 +157,14 @@ ggsave(heatmap_fvf,filename=paste0("heatmap_fvf", i, ".bmp"),height=3.5,width=8,
 ## Barchart showing the proportion of effects based on retention time for each fungus
 
 ```{r, echo = FALSE, warning = FALSE}
-mean.list <- setnames(data.frame(matrix(ncol = 16, nrow = 15)), c("mE5", "mE6", "mE5&6", "mAll",
+mean.list <- setnames(data.frame(matrix(ncol = 16, nrow = 13)), c("mE5", "mE6", "mE5&6", "mAll",
                                                                  "eE5", "eE6", "eE5&6", "eAll",
                                                                  "nE5", "nE6", "ne5&6", "nAll",
                                                                  "pE5", "pE6", "pe5&6", "pAll"))
 
-for (i in 1:15) {
+for (i in 1:13) {
 x <- paste0("F", i, "v")
-filenames <- list.files(path = "Testing Broad-Scale Interactions/OutputFiles/NT_FvF", pattern = x, full.names = TRUE)
+filenames <- list.files(path = "Simplified/Testing Broad-Scale Interactions/OutputFiles/NT_FvF", pattern = x, full.names = TRUE)
 my.data <- lapply(filenames, read.csv)
 full.list <- rbindlist(my.data, use.names=TRUE, fill=FALSE)
 full.list <- transform(full.list, Metabolite_Effect = factor(Metabolite_Effect))
@@ -172,24 +172,24 @@ full.list <- filter(full.list, Metabolite_Effect != 1)
 
 Effect_5 <- filter(full.list, Metabolite_Effect == 5)
 Effect_6 <- filter(full.list, Metabolite_Effect == 6)
-Effect_5_6 <- filter(full.list, as.numeric(Metabolite_Effect) > 4)
+Effect_5_6 <- filter(full.list, as.numeric(Metabolite_Effect) == 5 | as.numeric(Metabolite_Effect) == 4 )
 
 # Computes t-test and p-value
 
 if (length(Effect_5$RetTime_CC) > 1) {
-res <- t.test(Effect_5$RetTime_CC, full.list$RetTime_CC, alternative = "greater", var.equal = FALSE)
+res <- t.test(Effect_5$RetTime_CC, full.list$RetTime_CC, alternative = "less", var.equal = FALSE)
 mean.list[i,13] <- res$p.value
 }
 if (length(Effect_6$RetTime_CC) > 1) {
-res <- t.test(Effect_6$RetTime_CC, full.list$RetTime_CC, alternative = "greater", var.equal = FALSE)
+res <- t.test(Effect_6$RetTime_CC, full.list$RetTime_CC, alternative = "less", var.equal = FALSE)
 mean.list[i,14] <- res$p.value
 }
 if (length(Effect_5_6$RetTime_CC) > 1) {
-res <- t.test(Effect_5_6$RetTime_CC, full.list$RetTime_CC, alternative = "greater", var.equal = FALSE)
+res <- t.test(Effect_5_6$RetTime_CC, full.list$RetTime_CC, alternative = "less", var.equal = FALSE)
 mean.list[i,15] <- res$p.value
 }
 if (length(full.list$RetTime_CC) > 1) {
-res <- t.test(full.list$RetTime_CC, full.list$RetTime_CC, alternative = "greater", var.equal = FALSE)
+res <- t.test(full.list$RetTime_CC, full.list$RetTime_CC, alternative = "less", var.equal = FALSE)
 mean.list[i,16] <- res$p.value
 }
 
@@ -207,7 +207,7 @@ mean.list[i, 11] <- length(Effect_5_6$RetTime_CC)
 mean.list[i, 12] <- length(full.list$RetTime_CC)
 }
 
-for (i in 1:15) {
+for (i in 1:13) {
     col1 <- c(paste0("F", i), paste0("F", i), paste0("F", i), paste0("F", i))
     if (i > 1) {
         extraction2 <- cbind(col1, c("E5", "E6", "E5 & E6", "All"), 
@@ -254,7 +254,7 @@ ggsave(barchart,filename="barchart_fvf_tal.bmp",height=4.5,width=10.20,units="in
 ## Boxplots showing the overall effect on retention time for each metabolite effect category (and associated histograms)
 
 ```{r, echo = FALSE, warning = FALSE}
-filenames <- list.files(path = "Testing Broad-Scale Interactions/OutputFiles/NT_FvA", pattern = "", full.names = TRUE)
+filenames <- list.files(path = "Simplified/Testing Broad-Scale Interactions/OutputFiles/NT_FvA", pattern = "", full.names = TRUE)
 my.data <- lapply(filenames, read.csv)
 full.list <- rbindlist(my.data, use.names=TRUE, fill=FALSE)
 full.list$Metabolite_Effect <- as.numeric(full.list$Metabolite_Effect)
