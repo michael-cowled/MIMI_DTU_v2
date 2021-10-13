@@ -33,15 +33,15 @@ library(gplots)
 Note: Ignores both inductions and complete suppressions since the corresponding metabolites are not present in both monoculture and coculture.
 
 ```{r, echo = FALSE}
-filenames <- list.files(path = "Testing Broad-Scale Interactions/OutputFiles/AvNOVO", pattern = "", full.names = TRUE)
+filenames <- list.files(path = "Simplified/Testing Broad-Scale Interactions/OutputFiles/NT_AvNOVO", pattern = "", full.names = TRUE)
 my.data <- lapply(filenames, read.csv)
 full.list <- rbindlist(my.data, use.names=TRUE, fill=FALSE)
 
 #For changing NT to F in NT_FvA
-full.list$Sample_Ref <- gsub("NT", "F", full.list$Sample_Ref, perl = TRUE)
-full.list$Sample_Ref <- gsub("F17", "B1", full.list$Sample_Ref, perl = TRUE)
-full.list$Sample_Ref <- gsub("F18", "B2", full.list$Sample_Ref, perl = TRUE)
-full.list$Sample_Ref <- gsub("F19", "B3", full.list$Sample_Ref, perl = TRUE)
+#full.list$Sample_Ref <- gsub("NT", "F", full.list$Sample_Ref, perl = TRUE)
+#full.list$Sample_Ref <- gsub("F17", "B1", full.list$Sample_Ref, perl = TRUE)
+#full.list$Sample_Ref <- gsub("F18", "B2", full.list$Sample_Ref, perl = TRUE)
+#full.list$Sample_Ref <- gsub("F19", "B3", full.list$Sample_Ref, perl = TRUE)
 
 refined.list <- filter(full.list, Metabolite_Effect < 5 & Metabolite_Effect > 1)
 cond.5.list <- filter(full.list, Metabolite_Effect == 5)
@@ -93,11 +93,13 @@ df.as.matrix <- select(df.as.matrix, -Species)
 
 df.as.matrix <- as.matrix(df.as.matrix)
 row.names(df.as.matrix) <- names
-colnames(df.as.matrix) <- c("T2PKS", "PPTS", "Ratio")
+colnames(df.as.matrix) <- c("T2PKS", "PPTS", "\u03b1 (%)")
 
-colfunc <- colorRampPalette(c("dark blue", "white", "dark red"))
-
-heatmap.2(df.as.matrix, col=colfunc(25), scale = "none", trace = "none", cexCol=1, cexRow = 0.5, margin=c(5, 25))
+heatmap.2(df.as.matrix, col=colfunc(25), scale = "none", trace = "none", key=TRUE , key.ylab="Count", 
+          key.xlab = expression(paste(alpha, " (%)")), key.title="Colour Key & Histogram",
+          key.ytickfun = FALSE, density.info = "none", cexCol=1, cexRow = 1, margin=c(4, 25))
+#scale y-dimension to 800. Note that log scale inflates in height by doing this but nothing can be done unless 
+#either y-axis text size is reduced, OR photoshop in that section of the graph.
 ```
 
 ## Heatmaps showing the effect of each interaction on a particular fungus
@@ -153,10 +155,10 @@ heatmap_fvf <- ggplot(data = Y.list, aes(x=PeakNo_con, y=Species)) +
     geom_tile(aes(fill=PeakRatio)) +
     scale_fill_gradient2(low = "dark blue", high = "dark red", mid = "white", 
                         midpoint = 0, limit = c(-100, max(Y.list$PeakRatio)), 
-                       space = "Lab", name="Ratio (%)") +
+                       space = "Lab", name="\u03b1 (%)") +
     labs(x="Peak Number", y="Reference culture") +
     theme(axis.text.y = element_markdown())
 print(heatmap_fvf)
-ggsave(heatmap_fvf,filename=paste0("heatmap_fvf", i, ".png"),height=2.24,width=10.20,units="in",dpi=200)
+ggsave(heatmap_fvf,filename=paste0("heatmap_avg_AvNovo.bmp"),height=5,width=8,units="in",dpi=200)
 
 ```
