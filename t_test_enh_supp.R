@@ -38,34 +38,38 @@ print(res$p.value)
 ind_fvf <- filter(fvf_full.list, Metabolite_Effect == 6)
 ind_fva <- filter(fva_full.list, Metabolite_Effect == 6)
 res <- t.test(ind_fvf$RetTime_CC, ind_fva$RetTime_CC, alternative = "two.sided", var.equal = FALSE)
-print(res$p.value)
+print(res)
 
 #suppression between fvf and fva
 supp_fvf <- filter(fvf_full.list, Metabolite_Effect == 2)
 supp_fva <- filter(fva_full.list, Metabolite_Effect == 2)
 res <- t.test(supp_fvf$RetTime_CC, supp_fva$RetTime_CC, alternative = "two.sided", var.equal = FALSE)
-print(res$p.value)
+print(res)
+
 
 #induction to supp. in fva
 supp_fva <- filter(fva_full.list, Metabolite_Effect == 2)
 ind_fva <- filter(fva_full.list, Metabolite_Effect == 6)
 res <- t.test(supp_fva$RetTime_con, ind_fva$RetTime_CC, alternative = "two.sided", var.equal = FALSE)
-print(res$p.value)
+print(res)
+
 
 #induction to supp. in fvf
 supp_fvf <- filter(fvf_full.list, Metabolite_Effect == 2)
 ind_fvf <- filter(fvf_full.list, Metabolite_Effect == 6)
 res <- t.test(ind_fvf$RetTime_CC, supp_fvf$RetTime_con, alternative = "two.sided", var.equal = FALSE)
-print(res$p.value)
+print(res)
+
 
 #enhancement to supp in fva
 supp_fva <- filter(fva_full.list, Metabolite_Effect == 2)
 enh_fva <- filter(fva_full.list, Metabolite_Effect == 4)
 res <- t.test(enh_fva$RetTime_CC, supp_fva$RetTime_con, alternative = "two.sided", var.equal = FALSE)
-print(res$p.value)
+print(res)
+
 
 #enhancement to supp in fvf
 supp_fvf <- filter(fvf_full.list, Metabolite_Effect == 2)
 enh_fvf <- filter(fvf_full.list, Metabolite_Effect == 4)
 res <- t.test(enh_fvf$RetTime_CC, supp_fvf$RetTime_con, alternative = "two.sided", var.equal = FALSE)
-print(res$p.value)
+print(res)

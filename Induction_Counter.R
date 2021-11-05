@@ -2,7 +2,7 @@ library(data.table)
 library(dplyr)
 library(tidyr)
 
-filenames <- list.files(path = "Simplified/Testing Broad-Scale Interactions/OutputFiles/NT_FvF", 
+filenames <- list.files(path = "Simplified/Testing Broad-Scale Interactions/OutputFiles/NT_Mix", 
                         pattern = "", full.names = TRUE)
 my.data <- lapply(filenames, read.csv)
 full.list <- rbindlist(my.data, use.names=TRUE, fill=FALSE)
@@ -48,11 +48,11 @@ names(induction.df2) <- c("Sample_Ref", "Num_Inductions", "Num_Sig_Inductions")
 print(induction.df2)
 induction.sum <- sum(as.numeric(induction.df2$Num_Inductions))
 induction.mean <- induction.sum/length(filenames)
-error <- qnorm(.95)*(sd(induction.df$Num_Inductions)/sqrt(length(induction.df$Ref_Culture)))
+error <- qnorm(.95)*(sd(induction.df2$Num_Inductions)/sqrt(length(induction.df2$Ref_Culture)))
 induction.sum
 induction.mean
 error
-paste0("n is ", length(induction.df$Ref_Culture))
+paste0("n is ", length(induction.df2$Ref_Culture))
 
 ### Post-use of induction counter a spreadsheet was generated to create a barchart
 # Import as 'Inductons' excel object
@@ -61,7 +61,7 @@ Inductions <- read_excel("Number_of_Inductions.xlsx")
 
 library(ggplot2)
 # Default bar plot
-p<- ggplot(Inductions, aes(x=Type, y=Number, fill=Relation)) + 
+p<- ggplot(Inductions, aes(x=Type, y=Number, fill=Source)) + 
     geom_bar(stat="identity", color="black", 
              position=position_dodge()) +
     geom_errorbar(aes(ymin=Number-Error, ymax=Number+Error), width=.2,
@@ -71,3 +71,4 @@ print(p)
 p+labs(x="Interaction Type", y = "Average Number of Inductions")+
     theme_classic() +
     scale_fill_manual(values=c('#999999','#E69F00'))
+##500 x 300

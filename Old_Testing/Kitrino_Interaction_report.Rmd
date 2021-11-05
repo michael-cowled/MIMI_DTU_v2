@@ -32,7 +32,7 @@ library(ggtext)
 Note: Ignores both inductions and complete suppressions since the corresponding metabolites are not present in both monoculture and coculture.
 
 ```{r, echo = FALSE}
-filenames <- list.files(path = "Testing Broad-Scale Interactions/OutputFiles/FvKIT", pattern = "", full.names = TRUE)
+filenames <- list.files(path = "Simplified/Testing Broad-Scale Interactions/OutputFiles/Tal_FvKIT", pattern = "", full.names = TRUE)
 my.data <- lapply(filenames, read.csv)
 full.list <- rbindlist(my.data, use.names=TRUE, fill=FALSE)
 
@@ -116,7 +116,7 @@ if (i > 1) {
 i <- i + 1
 }
 
-write.csv(X.list, "Testing Broad-Scale Interactions/OutputFiles/vKit_list.CSV", row.names = FALSE)
+#write.csv(X.list, "Testing Broad-Scale Interactions/OutputFiles/vKit_list.CSV", row.names = FALSE)
 color <- "grey30"
 Fungi_Assignments <- read_excel("Testing Broad-Scale Interactions/Fungi_Assignments.xlsx")
 Y.list <- merge(X.list, Fungi_Assignments, by="Ref_Culture", all.x=TRUE)
@@ -127,8 +127,8 @@ heatmap_fvf <- ggplot(data = Y.list, aes(x=PeakNo_con, y=Species)) +
     scale_fill_gradient2(low = "dark blue", high = "dark red", mid = "white", 
                         midpoint = 0, limit = c(-100, 300), 
                        space = "Lab", name="Ratio (%)") +
-    labs(x="Peak Number", y="Reference culture") +
-    theme(axis.text.y = element_markdown())
+    labs(x="Peak Number", y="Species") +
+    theme(axis.text.y = element_markdown(), text = element_text(size = 12))
 print(heatmap_fvf)
-ggsave(heatmap_fvf,filename=paste0("heatmap_fvf", i, ".png"),height=2.24,width=10.20,units="in",dpi=200)
+ggsave(heatmap_fvf,filename=paste0("heatmap_fvf", i, ".png"),height=3.8,width=10.20,units="in",dpi=200)
 ```

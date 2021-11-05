@@ -111,3 +111,7 @@ heatmap.fvf.avg
 ggsave(heatmap.fvf.avg,filename="heatmap.fvf.avg.png",height=2.24,width=3,units="in",dpi=200)
 
 mean(ratio.df$Avg_Ratio, na.rm = TRUE)
+
+
+## Japanese paper
+pheatmap(new_matrix1, legend = F, na_col = "white")

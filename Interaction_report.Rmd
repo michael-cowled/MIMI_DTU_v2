@@ -81,6 +81,7 @@ heatmap.fvf.avg <- ggplot(data = ratio.df3, aes(x=Int_Species, y=Ref_Species)) +
     theme(axis.text.x=element_text(angle=45, hjust = 1))
 heatmap.fvf.avg
 ggsave(heatmap.fvf.avg,filename="heatmap.fvf.avg.bmp",height=2.24,width=3,units="in",dpi=200)
+#USe 1.65 width for NT_FvA
 
 ## For thesis
 heatmap.fvf.avg <- ggplot(data = ratio.df, aes(x=Int_Culture, y=Ref_Culture)) + 
@@ -93,8 +94,8 @@ heatmap.fvf.avg <- ggplot(data = ratio.df, aes(x=Int_Culture, y=Ref_Culture)) +
 heatmap.fvf.avg
 ggsave(heatmap.fvf.avg,filename="heatmap.fvf.avg.bmp",height=2.24,width=3,units="in",dpi=200)
 
-subset.list <- filter(coculture.list, Ref_Species.x == "F22286") %>%
-  filter(Matched_Species.x == "F22286CON" | is.na(Matched_con)) %>%
+subset.list <- filter(coculture.list, Ref_Species == "F22286") %>%
+  filter(Matched_Species == "F22286" | is.na(Matched_con)) %>%
     select(Ref_Culture, Matched_con, Int_Culture, PeakNo_con, PeakRatio, Metabolite_Effect, RetTime_CC) %>%
     mutate(logPeakRatio = log((PeakRatio/100) + 1))
 
@@ -141,16 +142,16 @@ subset.list <- filter(coculture.list, Ref_Species == i) %>%
 hm.title <- i
 heatmap_fvf <- ggplot(data = subset.list, aes(x=PeakNo_con, y=Int_Species)) + 
     geom_tile(aes(fill=logPeakRatio)) +
-    scale_x_continuous(breaks=c(0, 5, 10, 15, 20, 25), limits=c(1,24)) +
+    scale_x_continuous(breaks=c(0, 5, 10, 15, 20, 25, 30), limits=c(1,29)) +
     scale_fill_gradient2(low = "dark blue", high = "dark red", mid = "white", 
                          midpoint = 0, limit = c(min(subset.list$logPeakRatio), 
                                                  max(subset.list$logPeakRatio)), 
                          space = "Lab", name = expression(paste("log(", alpha, ")"))) +
     labs(x="Peak Number", y="Coculture") +
-    theme_grey(base_size=12) +
-    ggtitle(label = paste0("Interactions involving ", i))
+    theme_grey(base_size=12)# +
+    #ggtitle(label = paste0("Interactions involving ", i))
 print(heatmap_fvf)
-ggsave(heatmap_fvf,filename=paste0("heatmap_fvf", i, ".bmp"),height=3.5,width=8,units="in",dpi=200)
+ggsave(heatmap_fvf,filename=paste0("heatmap_fvf", i, ".bmp"),height=2.0,width=6.4,units="in",dpi=200)
 }
 ```
 
